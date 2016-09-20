@@ -96,7 +96,6 @@ class Reader:
             if lines[0] == '#':
                 continue
             var = lines.strip().split('\t')
-            print(var)
             chrom = var[0]
             pos = int(var[1])
             ids = var[2]
@@ -110,25 +109,32 @@ class Reader:
                         info, sample)
             yield record
 
-    def extractVars(self, vcf_path, bed_path):
-        bed = self.readBed(bed_path)
+    def extractVars(self, vcf_path, fasta_path):
         vcf = self.readVcf(vcf_path)
-        bed_rec = next(bed)
-        vcf_rec = next(vcf)
-        Var = namedtuple('Var', ['chrom', 'pos', 'ref', 'alt', 'gene'])
-        while True:
-            try:
-                if vcf_rec.chrom == bed_rec.chrom and vcf_rec.pos >= bed_rec.start and vcf_rec.pos <= bed_rec.stop:
-                    record = Var(vcf_rec.chrom, vcf_rec.pos - bed_rec.start, vcf_rec.ref, vcf_rec.alt, bed_rec.gene)
-                    vcf_rec = next(vcf)
-                    yield record
-                elif  vcf_rec.pos > bed_rec.stop or vcf_rec.chrom != bed_rec.chrom:
-                    bed_rec = next(bed)
-                else:
-                    vcf_rec = next(vcf)
-            except StopIteration:
-                break
-
+        Var = namedtuple('Var', ['chrom', 'pos', 'ref', 'alt', 'codonPos','refCodon', 'altCodon'])
+        fasta = {rec.header : rec.seq for rec in self.readFasta(fasta_path)}
+        for records in vcf:
+            if (records.pos) % 3 == 0:
+                codon_pos = (records.pos)/3
+                codon = fasta[records.chrom][(records.pos-3):records.pos]#[(records.pos-2):records.pos+1]
+                print(records, codon)
+                change = codon[:2] + records.alt 
+                record = Var(records.chrom, records.pos, records.ref, records.alt, codon_pos, codon, change)
+                yield record
+            elif (records.pos +1 ) % 3 == 0:
+                codon_pos = (records.pos +1)/3
+                codon = fasta[records.chrom][(records.pos-2):(records.pos+1)]#[records.pos-1:records.pos+2]
+                print(codon)
+                change = codon[0] + records.alt + codon[2]
+                record = Var(records.chrom, records.pos, records.ref, records.alt, codon_pos, codon, change)
+                yield record
+            elif (records.pos +2) % 3 == 0:
+                codon_pos = (records.pos +2)/3
+                codon = fasta[records.chrom][(records.pos-1):(records.pos+2)]#[records.pos:records.pos+3]
+                print(codon)
+                change = records.alt + codon[1:]
+                record = Var(records.chrom, records.pos, records.ref, records.alt, codon_pos,codon, change)
+                yield record
 
             
 

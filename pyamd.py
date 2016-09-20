@@ -85,15 +85,24 @@ def main(bbduk_path, bwa_path, smt_path, bft_path, gatk_path,
     gvcf_path, gret = varcaller.hapCaller(add_path, ref_path)
     if gret != 0:
         raise RuntimeError('GATK failed to complete; Exiting pyAMD')
-    
-#    #Extract variants in bed region 
-#    reader = Reader()
-#    ovars = reader.extractVars(vcf_path, bed_path)
-#    obed_path = '{0}/variants.bed'.format(out_path)
-#    obed = open(obed_path, 'w')
-#    for var in ovars:
-#        obed.write('{0}\t{1}\t{2}\t{3}\t{4}\n'.format(var.chrom, var.pos, var.ref, var.alt, var.gene))
-#    obed.close()
+   
+    #Extract variants in bed region 
+    reader = Reader()
+    ovars = reader.extractVars(vcf_path, ref_path)
+    obed_path = '{0}/variants.bed'.format(out_path)
+    obed = open(obed_path, 'w')
+    obed.write('Chrom\tPos\tRef\tAlt\tCodonPos\trefCodon\taltCodon\n')
+    for var in ovars:
+        obed.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(var.chrom, var.pos, var.ref, var.alt, var.codonPos, var.refCodon, var.altCodon))
+    obed.close()
+
+    ovars = reader.extractVars(gvcf_path, ref_path)
+    obed_path = '{0}/variants_gatk.bed'.format(out_path)
+    obed = open(obed_path, 'w')
+    obed.write('Chrom\tPos\tRef\tAlt\tCodonPos\trefCodon\taltCodon\n')
+    for var in ovars:
+        obed.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(var.chrom, var.pos, var.ref, var.alt, var.codonPos, var.refCodon, var.altCodon))
+    obed.close()
 
 if __name__ == '__main__':
     #Set default tool paths

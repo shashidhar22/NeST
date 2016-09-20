@@ -60,7 +60,7 @@ class Samtools:
         ovcf_path = '{0}/variants.vcf'.format(self.out_path)
         
         btcmd = [self.bft_path, 'call', '-V', 'indels', '-vmO', 'v', 
-                '-R', bed_path, '-o', ovcf_path, bcf_path]
+                '-o', ovcf_path, bcf_path]
         print(' '.join(btcmd))
         btrun = subprocess.Popen(btcmd, shell=False)
         btrun.wait()

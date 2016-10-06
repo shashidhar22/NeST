@@ -58,10 +58,12 @@ class Samtools:
 
     def bcftools(self, bcf_path, bed_path):
         ovcf_path = '{0}/variants.vcf'.format(self.out_path)
-        
-        btcmd = [self.bft_path, 'call', '-V', 'indels', '-vmO', 'v', 
-                '-o', ovcf_path, bcf_path]
-        print(' '.join(btcmd))
+        btcmd = [self.bft_path, 'call', '--skip-variants', 'indels',
+                '--multiallelic-caller', '--variants-only', '-O', 'v', 
+                '-o', ovcf_path, bcf_path]        
+#        btcmd = [self.bft_path, 'call', '-V', 'indels', '-vmO', 'v', 
+#                '-o', ovcf_path, bcf_path]
+#        print(' '.join(btcmd))
         btrun = subprocess.Popen(btcmd, shell=False)
         btrun.wait()
         

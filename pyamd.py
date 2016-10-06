@@ -11,6 +11,7 @@ from pyamd.bwa import Bwa
 from pyamd.samtools import Samtools
 from pyamd.reader import Reader
 from pyamd.gatk import GenAnTK
+from pyamd.annotater import Annotate
 
 def main(bbduk_path, bwa_path, smt_path, bft_path, gatk_path, 
         rone_path, rtwo_path, ref_path, adp_path, bed_path, out_path):
@@ -85,29 +86,14 @@ def main(bbduk_path, bwa_path, smt_path, bft_path, gatk_path,
     gvcf_path, gret = varcaller.hapCaller(add_path, ref_path)
     if gret != 0:
         raise RuntimeError('GATK failed to complete; Exiting pyAMD')
+
+
+    #Annotate variants
+    annotate = Annotate(out_path)
+    annotate.iterVcf(bed_path, vcf_path, ref_path, 'samtools')
+    annotate.iterVcf(bed_path, vcf_path, ref_path, 'gatk')
    
-    #Extract variants in bed region 
-    reader = Reader()
-    ovars = reader.extractVars(vcf_path, ref_path)
-    obed_path = '{0}/variants.bed'.format(out_path)
-    obed = open(obed_path, 'w')
-    obed.write('Chrom\tPos\tRef\tAlt\tCodonPos\trefCodon\taltCodon\n')
-    for var in ovars:
-        obed.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(var.chrom, var.pos, var.ref, var.alt, var.codonPos, var.refCodon, var.altCodon))
-    obed.close()
-
-    ovars = reader.extractVars(gvcf_path, ref_path)
-    obed_path = '{0}/variants_gatk.bed'.format(out_path)
-    obed = open(obed_path, 'w')
-    obed.write('Chrom\tPos\tRef\tAlt\tCodonPos\trefCodon\taltCodon\n')
-    for var in ovars:
-        obed.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(var.chrom, var.pos, var.ref, var.alt, var.codonPos, var.refCodon, var.altCodon))
-    obed.close()
-
 if __name__ == '__main__':
-    #Set default tool paths
-#def main(bbduk_path, bwa_path, smt_path, bft_path, rone_path, 
-#        rtwo_path, ref_path, adp_path, out_path):
 
     bbduk_def = shutil.which("bbduk.sh")
     bwa_def = shutil.which("bwa")

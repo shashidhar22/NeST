@@ -21,7 +21,7 @@ class Bwa:
         sam_path = '{0}/output.sam'.format(self.out_path)
         bwcmd = [self.bwa_path, 'mem', '-t', '4', self.ref_path,
                 rone_path, rtwo_path, '>', sam_path]
-
+        print(' '.join(bwcmd))
         bwrun = subprocess.Popen(' '.join(bwcmd), shell=True)
         bwrun.wait()
 

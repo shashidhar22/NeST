@@ -91,7 +91,7 @@ def main(bbduk_path, bwa_path, smt_path, bft_path, gatk_path,
     #Annotate variants
     annotate = Annotate(out_path)
     annotate.iterVcf(bed_path, vcf_path, ref_path, 'samtools')
-    annotate.iterVcf(bed_path, vcf_path, ref_path, 'gatk')
+    annotate.iterVcf(bed_path, gvcf_path, ref_path, 'gatk')
    
 if __name__ == '__main__':
 

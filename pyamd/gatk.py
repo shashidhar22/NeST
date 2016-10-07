@@ -32,7 +32,6 @@ class GenAnTK:
         hcmd = ['java', '-jar', self.gatk_path, '-T', 'HaplotypeCaller', '-R', ref_path,
             '-I', bam_path, '-o', vcf_path, '-nct', '1', 
             '-gt_mode', 'DISCOVERY']
-        print(hcmd)
         hrun = subprocess.Popen(hcmd, shell=False)
         hrun.wait()
         return(vcf_path, hrun.returncode)

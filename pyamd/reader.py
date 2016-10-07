@@ -159,6 +159,8 @@ class Reader:
                 vals_value = format_val[vals]
                 if format_dict[vals_id].number == 'G':
                     values.append(vals_value)
+                elif format_dict[vals_id].number == '.':
+                    values.append(vals_value)
                 elif format_dict[vals_id].number == 'R':
                     values.append([int(allele) for allele in vals_value.split(',')])
                 elif format_dict[vals_id].number == '4':

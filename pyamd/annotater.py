@@ -5,7 +5,7 @@ import vcf
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
-from pyamd.reader import Reader
+from reader import Reader
 
 
 class Annotate:
@@ -78,11 +78,16 @@ class Annotate:
                 if vcf_rec.chrom != bed_rec.chrom:
                     mrna_len = 0
                     bed_rec = next(bed_reader)
+            
+                elif vcf_rec.chrom != bed_rec.chrom: 
+                    mrna_len = 0 
+                    vcf_rec = next(vcf_reader)
 
                 #Change bed record if var position is beyond bed stop
                 elif vcf_rec.pos > bed_rec.stop:
                     mrna_len += bed_rec.stop - bed_rec.start +1
                     bed_rec = next(bed_reader)
+                
 
                 #If var position is before bed start, annotate var as Intronic variants            
                 elif vcf_rec.pos < bed_rec.start:
@@ -96,9 +101,8 @@ class Annotate:
                     out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\t{5}\t{6}\n'.format(vcf_rec.chrom, 
                                     vcf_rec.pos, vcf_rec.ref, vcf_rec.alt, anno, alfreq, pval))
                     vcf_rec = next(vcf_reader)
-
                 #If var in bed range, annotate with exon number and get codon change
-                elif vcf_rec.pos in range(bed_rec.start, bed_rec.stop + 1):
+                elif vcf_rec.pos in range(bed_rec.start, bed_rec.stop + 1) :
                     anno = bed_rec.gene
                     fasta = coding_dict[vcf_rec.chrom]
                     codon_pos = vcf_rec.pos - bed_rec.start + mrna_len +1
@@ -122,5 +126,7 @@ if __name__ == '__main__':
     bed_path = sys.argv[1]
     fasta_path = sys.argv[2]
     vcf_path = sys.argv[3]
-    annotate = Annotate()
-    annotate.iterVcf(bed_path, vcf_path, fasta_path)
+    out_path = os.path.abspath(sys.argv[4])
+    annotate = Annotate(out_path)
+    name = sys.argv[5]
+    annotate.iterVcf(bed_path, vcf_path, fasta_path, name)

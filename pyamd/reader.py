@@ -179,6 +179,18 @@ class Reader:
         formats = Format(*values)
         return(formats)
 
+    def getVcfLength(self, vcf_path):
+        contigs = OrderedDict()
+        vcf_file = open(vcf_path, 'r')
+        for lines in vcf_file:
+            lines = lines.strip()
+            if '##' == lines[:2]:
+                if 'contig' == lines[2:8]:
+                    rec_contig = self.getContigIDs(lines)
+                    contigs[rec_contig.id] = rec_contig.length
+            else:
+                break
+        return(contigs)
 
     def readVcf(self, vcf_path):
         vcf_file = open(vcf_path, 'r')

@@ -5,7 +5,7 @@ import vcf
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
-from reader import Reader
+from pyamd.reader import Reader
 
 
 class Annotate:
@@ -68,26 +68,35 @@ class Annotate:
         out_file.write('Chrom\tPos\tRef\tAlt\tExon\tRefCodon\tAltCodon\tCodonNumber\tAF\tPval\n')
         bed_reader = reader.readBed(bed_path)
         vcf_reader = reader.readVcf(vcf_path)
+        contigs = reader.getVcfLength(vcf_path)
+        print(contigs)
         coding_dict = self.getCodingFasta(fasta_path, bed_path)
         bed_rec = next(bed_reader)
         vcf_rec = next(vcf_reader)
         mrna_len = 0
+        bed_changed = 0
         while True:
             try:
                 #Change bed record if var chromosome does not match
-                if vcf_rec.chrom != bed_rec.chrom:
+                if vcf_rec.chrom != bed_rec.chrom and bed_changed == 0:
                     mrna_len = 0
                     bed_rec = next(bed_reader)
-            
-                elif vcf_rec.chrom != bed_rec.chrom: 
+                    bed_changed = 1
+
+                elif vcf_rec.chrom != bed_rec.chrom and bed_changed == 1: 
+                    mrna_len = 0 
+                    vcf_rec = next(vcf_reader)
+                    bed_changed = 0
+                
+                elif vcf_rec.chrom != bed_rec.chrom and bed_changed == 0: 
                     mrna_len = 0 
                     vcf_rec = next(vcf_reader)
 
                 #Change bed record if var position is beyond bed stop
-                elif vcf_rec.pos > bed_rec.stop:
+                elif vcf_rec.pos > bed_rec.stop :
                     mrna_len += bed_rec.stop - bed_rec.start +1
                     bed_rec = next(bed_reader)
-                
+
 
                 #If var position is before bed start, annotate var as Intronic variants            
                 elif vcf_rec.pos < bed_rec.start:
@@ -115,7 +124,11 @@ class Annotate:
                     out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\n'.format(vcf_rec.chrom, 
                                     vcf_rec.pos, vcf_rec.ref, vcf_rec.alt, anno, codon[0], codon[1], codon[2], 
                                     alfreq, pval))
-                    vcf_rec = next(vcf_reader)
+                    vcf_rec = next(vcf_reader)       
+    
+#                elif vcf_rec.pos <= contigs[vcf_rec.chrom]:
+#                    vcf_rec = next(vcf_reader)
+#                    bed_changed = 0
             except StopIteration:
                 break
         out_file.close()

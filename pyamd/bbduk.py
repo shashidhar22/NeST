@@ -24,13 +24,14 @@ class QualCheck:
         brtwo = os.path.splitext(os.path.basename(rtwo_path))[0]
         orone_path = '{0}/{1}_cleaned.fq'.format(self.out_path, brone)
         ortwo_path = '{0}/{1}_cleaned.fq'.format(self.out_path, brtwo)
-
+        stats_path = '{0}/{1}_stats.txt'.format(self.out_path, brone)
         #Set up the command
         bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=0', 'ktrim=l',
                 'mink=4', 'ref={0}'.format(self.adp_path), 'qtrim=rl',
                 'trimq=30', 'minlength=50', 'qin=33', 'overwrite=true',
                 'in={0}'.format(rone_path), 'in2={0}'.format(rtwo_path),
-                'out={0}'.format(orone_path), 'out2={0}'.format(ortwo_path)]
+                'out={0}'.format(orone_path), 'out2={0}'.format(ortwo_path), 
+                'stats={0}'.format(stats_path)]
 
         #Run bbduk
         bcmd = subprocess.Popen(bbcmd, shell=False)

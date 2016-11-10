@@ -131,8 +131,14 @@ class Reader:
             try:
                 vals_id = vals
                 vals_value = info_val[vals]
-                if info_dict[vals_id].number == '4':
+                if info_dict[vals_id].number == '4' and info_dict[vals_id].types == 'Integer':
                     values.append([int(allele) for allele in vals_value.split(',')])
+                elif info_dict[vals_id].number == '4' and info_dict[vals_id].types == 'Float':
+                    values.append([int(allele) for allele in vals_value.split(',')])
+                elif info_dict[vals_id].number == 'A' and info_dict[vals_id].types == 'Integer':
+                    values.append([int(val) for val in vals_value.split(',')])
+                elif info_dict[vals_id].number == 'A' and info_dict[vals_id].types == 'Float':
+                    values.append([float(val) for val in vals_value.split(',')])
                 elif info_dict[vals_id].types == 'Integer':
                     values.append(int(vals_value))
                 elif info_dict[vals_id].types == 'Float':

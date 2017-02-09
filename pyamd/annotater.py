@@ -54,6 +54,8 @@ class Annotate:
 
     def getAlFreq(self, depth):
         '''Calculate allele frequency based on allelic depth'''
+        if depth == None:
+            return(None)
         total = sum(depth)
         if len(depth) == 4:
             ref = sum(depth[:2])
@@ -88,6 +90,7 @@ class Annotate:
         rev = ''
         for nuc in fasta:
             rev += rev_comp[nuc]
+
         return(rev)
 
     def getAA(self, codon):
@@ -107,7 +110,7 @@ class Annotate:
             'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S',
             'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
             'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
-            'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
+            'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W'
             }
 
         return(codontable[codon])
@@ -175,18 +178,23 @@ class Annotate:
                         elif bed_rec.strand == '-':
                             fasta = self.getRevComp(fasta[::-1])
                             rev_comp = {'A':'T', 'C':'G', 'G':'C', 'T':'A'}
-                            alt = rev_comp[vcf_rec.alt]
+                            alt =  '' #rev_comp[vcf_rec.alt[:3]]
+                            ref = ''
                             codon_pos = bed_rec.stop - vcf_rec.pos + mrna_len + 1
                             if len(vcf_rec.ref) > 1 or len(vcf_rec.alt) > 1 :
                                 codon = ['NA', 'NA', 'NA']
                                 refAA = 'NA'
                                 altAA = 'NA'
+                                alt = ''.join([rev_comp[val] for val in vcf_rec.alt[::-1]])
+                                ref = ''.join([rev_comp[val] for val in vcf_rec.ref[::-1]])
                             else:
+                                alt = rev_comp[vcf_rec.alt]
+                                ref = rev_comp[vcf_rec.ref]
                                 codon = self.getCodon(codon_pos, fasta, alt)
                                 refAA = self.getAA(codon[0])
                                 altAA = self.getAA(codon[1])
                             out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\n'.format(vcf_rec.chrom, 
-                                            vcf_rec.pos, rev_comp[vcf_rec.ref], rev_comp[vcf_rec.alt], anno, codon[0], codon[1], codon[2], 
+                                            vcf_rec.pos, ref, alt, anno, codon[0], codon[1], codon[2], 
                                             refAA, altAA, vcf_rec.info.DP, vcf_rec.qual,alfreq, pval))
                         prev_vcf = vcf_rec.chrom
                         vcf_rec = next(vcf_reader)       
@@ -221,7 +229,6 @@ class Annotate:
                     prev_vcf = vcf_rec.chrom
                     vcf_rec = next(vcf_reader)
                     bed_changed = 0
-
             except StopIteration:
                 break
         out_file.close()

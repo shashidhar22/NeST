@@ -208,6 +208,7 @@ class Reader:
         #samples = namedtuple()
         for lines in vcf_file:
             lines = lines.strip()
+            print(lines)
             if '##' == lines[:2]:
                 if 'contig' == lines[2:8]:
                     rec_contig = self.getContigIDs(lines)
@@ -230,7 +231,11 @@ class Reader:
                 ref = var[3].split(',')[0]
                 alt = var[4].split(',')[0]
                 filters = var[6]
-                qual = float(var[5])
+                if var[5] == '.':
+                    qual = 0.0
+                else:                    
+                    qual = float(var[5])
+                        
                 infos = self.getRecInfo(var[7], info) 
                 sample = OrderedDict()
                 for sam, form in zip(samples.samples, var[9:]):

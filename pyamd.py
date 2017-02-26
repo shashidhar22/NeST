@@ -1,6 +1,7 @@
 #! /usr/bin/python3
 import os
 import sys
+import glob
 import time
 import shutil
 import logging
@@ -14,11 +15,13 @@ from pyamd.alignment import Snap
 from pyamd.samtools import Samtools
 from pyamd.reader import Reader
 from pyamd.gatk import GenAnTK
-from pyamd.annotater import Annotate
+from pyamd.annotater2 import Annotate
+from pyamd.kestrel import kes_runner
+from pyamd.filter import filterer 
 
 def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path, 
         rone_path, rtwo_path, ref_path, adp_path, bed_path, 
-        out_path, aligner):
+        out_path, aligner,kes_path, kan_path):
     #Setup logging
 
     #Check if files are present
@@ -111,12 +114,42 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     if gret != 0:
         raise RuntimeError('GATK failed to complete; Exiting MARs')
 
+    
 
-    #Annotate variants
+    merged_vcf = filterer(gvcf_path, vcf_path, out_path)
     annotate = Annotate(out_path)
+    annotate.iterVcf(bed_path, merged_vcf, ref_path, 'merged')
     annotate.iterVcf(bed_path, gvcf_path, ref_path, 'gatk')
-    annotate.iterVcf(bed_path, vcf_path, ref_path, 'samtools')
-   
+    annotate.iterVcf(bed_path, vcf_path , ref_path, 'samtools')
+
+
+def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
+              sample_list, inp_path, ref_path, adp_path, bed_path, 
+              out_dir, aligner, kes_path, kan_path):
+    if not os.path.exists(os.path.abspath(out_dir)):
+        os.mkdir(os.path.abspath(out_dir))
+    sample_handle = open(sample_list)
+    for lines in sample_handle:
+
+        sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
+        sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))
+        rone_path = ''
+        rtwo_path = ''
+        for files in sample_files:
+            if 'R1' in files:
+                rone_path = files
+            else:
+                rtwo_path = files
+        out_path = '{0}/Sample_{1}'.format(os.path.abspath(out_dir), lines.strip())
+        print(out_path)
+        if not os.path.exists(out_path):
+            os.mkdir(out_path)
+        main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path, 
+             rone_path, rtwo_path, ref_path, adp_path, bed_path,
+             out_path, aligner, kes_path, kan_path)
+
+
+
 if __name__ == '__main__':
 
     bbduk_def = shutil.which("bbduk.sh")
@@ -129,10 +162,14 @@ if __name__ == '__main__':
 
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
+    parser.add_argument('-i', '--inp_path', type=str, 
+                        help='Path to input directory (Specify only for batch mode)')
+    parser.add_argument('-s', '--sample_list', type=str,
+                        help='File containing list of samples (Specify only for batch mode')
     parser.add_argument('-1', '--fwd', dest='rone_path', type=str, 
-                        help='Path to forward reads fastq', required=True)
+                        help='Path to forward reads fastq', )
     parser.add_argument('-2', '--rev', dest='rtwo_path', type=str, 
-                        help='Path to reverse reads fastq', required=True)
+                        help='Path to reverse reads fastq')
     parser.add_argument('-r', '--ref', dest='ref_path', type=str, 
                         help='Path to Reference fasta file', required=True)
     parser.add_argument('-a', '--adapter', dest='adp_path', type=str, 
@@ -154,11 +191,20 @@ if __name__ == '__main__':
                         help='Path to GATK executable')
     parser.add_argument('--bcftools', dest='bft_path', type=str, default=bft_def,
                         help='Path to Bcftools executable')
+    parser.add_argument('--kestrel', dest='kes_path', type=str, default=bft_def,
+                        help='Path to Kestrel executable')
+    parser.add_argument('--kanalyze', dest='kan_path', type=str, default=bft_def,
+                        help='Path to Kanalyze executable')
 
     
 
     
     args = parser.parse_args()
-    main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
-        args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
-        args.out_path, args.aligner)
+    if args.inp_path == None and args.rone_path != None:
+        main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
+            args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
+            args.out_path, args.aligner, args.kes_path, args.kan_path)
+    elif args.inp_path != None and args.rone_path == None:
+        marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
+            args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path, 
+            args.out_path, args.aligner, args.kes_path, args.kan_path)

@@ -21,7 +21,7 @@ from pyamd.filter import filterer
 
 def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path, 
         rone_path, rtwo_path, ref_path, adp_path, bed_path, 
-        out_path, aligner,kes_path, kan_path):
+        out_path, aligner,kes_path, kan_path, pic_path):
     #Setup logging
 
     #Check if files are present
@@ -103,7 +103,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
         raise RuntimeError('Bcftools failed to complete; Exiting MARs')
 
     #Call GATK
-    pic_path = 'lib/picard.jar'
+    #pic_path = 'lib/picard.jar'
     varcaller = GenAnTK(gatk_path, pic_path, out_path)
     
     add_path, aret = varcaller.picard(bam_path)
@@ -125,7 +125,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               sample_list, inp_path, ref_path, adp_path, bed_path, 
-              out_dir, aligner, kes_path, kan_path):
+              out_dir, aligner, kes_path, kan_path, pic_path):
     if not os.path.exists(os.path.abspath(out_dir)):
         os.mkdir(os.path.abspath(out_dir))
     sample_handle = open(sample_list)
@@ -146,19 +146,21 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
             os.mkdir(out_path)
         main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path, 
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
-             out_path, aligner, kes_path, kan_path)
+             out_path, aligner, kes_path, kan_path, pic_path)
 
 
 
 if __name__ == '__main__':
 
-    bbduk_def = shutil.which("bbduk.sh")
-    bwa_def = shutil.which("bwa")
-    bowtie_def = shutil.which("bowtie2")
-    snap_def = shutil.which("snap-aligner")
-    smt_def = shutil.which("samtools")
-    bft_def = shutil.which("bcftools")
-    gatk_def = shutil.which("GenomeAnalysisTK.jar")
+    def_path = "{0}/lib".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
+    bbduk_def = "{0}/bbmap/bbduk.sh".format(def_path)
+    bwa_def = "{0}/bwa-0.7.12/bwa".format(def_path)
+    bowtie_def = "{0}/bowtie2-2.3.0/bowtie2".format(def_path)
+    snap_def = "{0}/snap/snap-aligner".format(def_path)
+    smt_def = "{0}/samtools-1.3.1/samtools".format(def_path)
+    bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
+    gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
+    pic_def = "{0}/picard.jar".format(def_path)
 
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
@@ -191,6 +193,8 @@ if __name__ == '__main__':
                         help='Path to GATK executable')
     parser.add_argument('--bcftools', dest='bft_path', type=str, default=bft_def,
                         help='Path to Bcftools executable')
+    parser.add_argument('--picard', dest='pic_path', type=str, default=pic_def,
+                        help='Path to Bcftools executable')
     parser.add_argument('--kestrel', dest='kes_path', type=str, default=bft_def,
                         help='Path to Kestrel executable')
     parser.add_argument('--kanalyze', dest='kan_path', type=str, default=bft_def,
@@ -203,8 +207,8 @@ if __name__ == '__main__':
     if args.inp_path == None and args.rone_path != None:
         main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
             args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
-            args.out_path, args.aligner, args.kes_path, args.kan_path)
+            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path)
     elif args.inp_path != None and args.rone_path == None:
         marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
             args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path, 
-            args.out_path, args.aligner, args.kes_path, args.kan_path)
+            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path)

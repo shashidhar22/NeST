@@ -15,13 +15,14 @@ from pyamd.alignment import Snap
 from pyamd.samtools import Samtools
 from pyamd.reader import Reader
 from pyamd.gatk import GenAnTK
+from pyamd.gatk import Picard
 from pyamd.annotater2 import Annotate
 from pyamd.kestrel import kes_runner
 from pyamd.filter import filterer 
 
 def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path, 
         rone_path, rtwo_path, ref_path, adp_path, bed_path, 
-        out_path, aligner,kes_path, kan_path, pic_path):
+        out_path, aligner,kes_path, kan_path, pic_path, sam_name):
     #Setup logging
 
     #Check if files are present
@@ -76,7 +77,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
         if mret != 0:
             raise RuntimeError('BBMap failed to complete; Exitinign MARs')
     
-    #Call Samtools
+    #Fix mate information, sort files and add read groups
     varengine = Samtools(smt_path, bft_path, out_path)
     bam_path, fret = varengine.fixmate(sam_path)
     if fret != 0:
@@ -86,6 +87,11 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     if sret != 0:
         raise RuntimeError('Samtools sort failed to complete; Exiting MARs')
 
+    rgadder = Picard(pic_path, out_path)
+    bam_path, aret = rgadder.picard(bam_path, sam_name)
+    if aret != 0:
+        raise RuntimeError('GATK failed to complete; Exiting MARs')
+
     bcf_path, pret = varengine.pileup(ref_path, bam_path)
     if pret != 0:
         raise RuntimeError('Samtools mpileup failed to complete; Exiting MARs')
@@ -94,7 +100,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     if bret != 0:
         raise RuntimeError('Bcftools index failed to complete; Exiting MARs')
 
-    vcf_path, bret = varengine.bcftools(bcf_path, bed_path)
+    vcf_path, bret = varengine.bcftools(bcf_path, bed_path, sam_name)
     if bret != 0:
         raise RuntimeError('Bcftools failed to complete; Exiting MARs')
 
@@ -104,23 +110,20 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
 
     #Call GATK
     #pic_path = 'lib/picard.jar'
-    varcaller = GenAnTK(gatk_path, pic_path, out_path)
+    varcaller = GenAnTK(gatk_path, out_path)
     
-    add_path, aret = varcaller.picard(bam_path)
-    if aret != 0:
-        raise RuntimeError('GATK failed to complete; Exiting MARs')
 
-    gvcf_path, gret = varcaller.hapCaller(add_path, ref_path)
+    gvcf_path, gret = varcaller.hapCaller(bam_path, ref_path, sam_name)
     if gret != 0:
         raise RuntimeError('GATK failed to complete; Exiting MARs')
 
     
 
-    merged_vcf = filterer(gvcf_path, vcf_path, out_path)
+    merged_vcf = filterer(gvcf_path, vcf_path, sam_name, out_path)
     annotate = Annotate(out_path)
-    annotate.iterVcf(bed_path, merged_vcf, ref_path, 'merged')
-    annotate.iterVcf(bed_path, gvcf_path, ref_path, 'gatk')
-    annotate.iterVcf(bed_path, vcf_path , ref_path, 'samtools')
+    annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged')
+    annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
+    annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
 
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
@@ -132,6 +135,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     for lines in sample_handle:
 
         sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
+        sample_name = 'Sample_{0}'.format(lines.strip())
         sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))
         rone_path = ''
         rtwo_path = ''
@@ -146,7 +150,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
             os.mkdir(out_path)
         main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path, 
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
-             out_path, aligner, kes_path, kan_path, pic_path)
+             out_path, aligner, kes_path, kan_path, pic_path, sample_name)
 
 
 
@@ -180,6 +184,8 @@ if __name__ == '__main__':
                         help='Path to Bed file for MDR regions', required=True)
     parser.add_argument('-o', '--outpath', dest='out_path', type=str, 
                         help='Path where all outputs will be stored', required=True)
+    parser.add_argument('-n', '--sam_name', dest='sam_name', type=str, 
+                        help='Sample name', default=None)
     parser.add_argument('-m', '--mapper', dest='aligner', type=str,
                         choices=['bowtie2', 'bwa', 'bbmap', 'snap'], 
                         default='bwa', help='The aligner to used by MARs')
@@ -205,10 +211,15 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     if args.inp_path == None and args.rone_path != None:
+        if args.sam_name == None:
+            sam_name = os.path.splitext(os.path.basename(args.rone_path))[0]
+        else:
+            sam_name = args.sam_name
         main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
             args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
-            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path)
+            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, sam_name)
     elif args.inp_path != None and args.rone_path == None:
         marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
             args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path, 
             args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path)
+

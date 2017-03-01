@@ -116,10 +116,10 @@ class Annotate:
 
         return(codontable[codon])
 
-    def iterVcf(self, bed_path, vcf_path, fasta_path,name):
+    def iterVcf(self, bed_path, vcf_path, sam_name, fasta_path,name):
         reader = Reader()
-        out_path = '{0}/variants_{1}.bed'.format(self.outdir,name)
-        out_vcf = '{0}/variants_{1}_annotated.vcf'.format(self.outdir, name)
+        out_path = '{0}/{2}_variants_{1}.bed'.format(self.outdir,name, sam_name)
+        out_vcf = '{0}/{2}_variants_{1}_annotated.vcf'.format(self.outdir, name, sam_name)
         
         out_file = open(out_path, 'w')
         out_file.write('Chrom\tPos\tRef\tAlt\tExon\tRefCodon\tAltCodon\tCodonNumber\tRefAA\tAltAA\tCoverage\tQual\tAF\tPval\n')
@@ -209,11 +209,12 @@ class Annotate:
                             alt =  '' #rev_comp[vcf_rec.alt[:3]]
                             ref = ''
                             codon_pos = bed_rec.stop - vcf_rec.POS + mrna_len + 1
+                            print(vcf_rec)
                             if len(vcf_rec.REF) > 1 or len(str(vcf_rec.ALT[0])) > 1 :
                                 codon = ['NA', 'NA', 'NA']
                                 refAA = 'NA'
                                 altAA = 'NA'
-                                alt = ''.join([rev_comp[val] for val in list(vcf_rec.ALT)[::-1]])
+                                alt = ''.join([rev_comp[val] for val in list(str(vcf_rec.ALT[0]))[::-1]])
                                 ref = ''.join([rev_comp[val] for val in list(vcf_rec.REF)[::-1]])
                             else:
                                 alt = rev_comp[str(vcf_rec.ALT[0])]

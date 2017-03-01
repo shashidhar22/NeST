@@ -5,10 +5,10 @@ import vcf.utils
 import csv
 import sys
 
-def filterer(gatk, samtools, out_path):
+def filterer(gatk, samtools, sam_name, out_path):
     gat_reader = vcf.Reader(filename=gatk)
     sam_reader = vcf.Reader(filename=samtools)
-    out_vcf = '{0}/variants_merged.vcf'.format(out_path)
+    out_vcf = '{0}/{1}_variants_merged.vcf'.format(out_path, sam_name)
     merged = vcf.Writer(open(out_vcf, 'w'), sam_reader)
     for gatk, samt in vcf.utils.walk_together(gat_reader, sam_reader):
         try:

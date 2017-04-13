@@ -165,7 +165,7 @@ if __name__ == '__main__':
     bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
     gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = "{0}/picard.jar".format(def_path)
-
+    aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
     parser.add_argument('-i', '--inp_path', type=str, 
@@ -191,7 +191,7 @@ if __name__ == '__main__':
                         default='bwa', help='The aligner to used by MARs')
     parser.add_argument('--bbduk', dest='bbduk_path', type=str, default=bbduk_def,
                         help='Path to BBduk executable')
-    parser.add_argument('--aligner', dest='aligner_path', type=str, default=bwa_def,
+    parser.add_argument('--aligner', dest='aligner_path', type=str, default=None,
                         help='Path to aligner executable')
     parser.add_argument('--samtools', dest='smt_path', type=str, default=smt_def,
                         help='Path to Samtools executable')
@@ -210,11 +210,16 @@ if __name__ == '__main__':
 
     
     args = parser.parse_args()
+    if args.aligner_path == None:
+        args.aligner_path = aligner_def[args.aligner]
+        
+
     if args.inp_path == None and args.rone_path != None:
         if args.sam_name == None:
             sam_name = os.path.splitext(os.path.basename(args.rone_path))[0]
         else:
             sam_name = args.sam_name
+            
         main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
             args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
             args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, sam_name)

@@ -18,10 +18,11 @@ from pyamd.gatk import GenAnTK
 from pyamd.gatk import Picard
 from pyamd.annotater2 import Annotate
 from pyamd.kestrel import kes_runner
-from pyamd.filter import filterer 
+from pyamd.filter import filterer
+from pyamd.summarize import Summary
 
-def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path, 
-        rone_path, rtwo_path, ref_path, adp_path, bed_path, 
+def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
+        rone_path, rtwo_path, ref_path, adp_path, bed_path,
         out_path, aligner,kes_path, kan_path, pic_path, sam_name):
     #Setup logging
 
@@ -33,7 +34,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     if not os.path.exists(rtwo_path):
         raise FileNotFoundException('Reverse read not found; Exiting MARs')
         sys.exit()
-    
+
     if not os.path.exists(ref_path):
         raise FileNotFoundException('Reference fasta file not found; Exiting MARs')
         sys.exit()
@@ -45,7 +46,7 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     if not os.path.exists(out_path):
         os.mkdir(out_path)
 
-    
+
     #Call Bbduk
     bbduk = QualCheck(bbduk_path, adp_path, out_path)
     rone_path, rtwo_path, bret = bbduk.bbduk(rone_path, rtwo_path)
@@ -76,13 +77,13 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
         sam_path, mret = bbmap.bbmap(rone_path, rtwo_path)
         if mret != 0:
             raise RuntimeError('BBMap failed to complete; Exitinign MARs')
-    
+
     #Fix mate information, sort files and add read groups
     varengine = Samtools(smt_path, bft_path, out_path)
     bam_path, fret = varengine.fixmate(sam_path)
     if fret != 0:
         raise RuntimeError('Samtools fixmate failed to complete; Exiting MARs')
-    
+
     bam_path, sret = varengine.sort(sam_path)
     if sret != 0:
         raise RuntimeError('Samtools sort failed to complete; Exiting MARs')
@@ -111,24 +112,24 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     #Call GATK
     #pic_path = 'lib/picard.jar'
     varcaller = GenAnTK(gatk_path, out_path)
-    
+
 
     gvcf_path, gret = varcaller.hapCaller(bam_path, ref_path, sam_name)
     if gret != 0:
         raise RuntimeError('GATK failed to complete; Exiting MARs')
 
-    
+
 
     merged_vcf = filterer(gvcf_path, vcf_path, sam_name, out_path)
     annotate = Annotate(out_path)
     annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged')
     annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
     annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
-
+    return
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-              sample_list, inp_path, ref_path, adp_path, bed_path, 
-              out_dir, aligner, kes_path, kan_path, pic_path):
+              sample_list, inp_path, ref_path, adp_path, bed_path,
+              out_dir, aligner, kes_path, kan_path, pic_path, voi_path):
     if not os.path.exists(os.path.abspath(out_dir)):
         os.mkdir(os.path.abspath(out_dir))
     sample_handle = open(sample_list)
@@ -148,10 +149,12 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         print(out_path)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
-        main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path, 
+        main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
              out_path, aligner, kes_path, kan_path, pic_path, sample_name)
 
+    summary = Summary(ref_path, bed_path, voi_path, out_path)
+    summary.getVarOfInt(out_path)
 
 
 if __name__ == '__main__':
@@ -168,26 +171,26 @@ if __name__ == '__main__':
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
-    parser.add_argument('-i', '--inp_path', type=str, 
+    parser.add_argument('-i', '--inp_path', type=str,
                         help='Path to input directory (Specify only for batch mode)')
     parser.add_argument('-s', '--sample_list', type=str,
                         help='File containing list of samples (Specify only for batch mode')
-    parser.add_argument('-1', '--fwd', dest='rone_path', type=str, 
+    parser.add_argument('-1', '--fwd', dest='rone_path', type=str,
                         help='Path to forward reads fastq', )
-    parser.add_argument('-2', '--rev', dest='rtwo_path', type=str, 
+    parser.add_argument('-2', '--rev', dest='rtwo_path', type=str,
                         help='Path to reverse reads fastq')
-    parser.add_argument('-r', '--ref', dest='ref_path', type=str, 
+    parser.add_argument('-r', '--ref', dest='ref_path', type=str,
                         help='Path to Reference fasta file', required=True)
-    parser.add_argument('-a', '--adapter', dest='adp_path', type=str, 
+    parser.add_argument('-a', '--adapter', dest='adp_path', type=str,
                         help='Path to Adpater fasta file', required=True)
-    parser.add_argument('-b', '--bed', dest='bed_path', type=str, 
+    parser.add_argument('-b', '--bed', dest='bed_path', type=str,
                         help='Path to Bed file for MDR regions', required=True)
-    parser.add_argument('-o', '--outpath', dest='out_path', type=str, 
+    parser.add_argument('-o', '--outpath', dest='out_path', type=str,
                         help='Path where all outputs will be stored', required=True)
-    parser.add_argument('-n', '--sam_name', dest='sam_name', type=str, 
+    parser.add_argument('-n', '--sam_name', dest='sam_name', type=str,
                         help='Sample name', default=None)
     parser.add_argument('-m', '--mapper', dest='aligner', type=str,
-                        choices=['bowtie2', 'bwa', 'bbmap', 'snap'], 
+                        choices=['bowtie2', 'bwa', 'bbmap', 'snap'],
                         default='bwa', help='The aligner to used by MARs')
     parser.add_argument('--bbduk', dest='bbduk_path', type=str, default=bbduk_def,
                         help='Path to BBduk executable')
@@ -206,9 +209,11 @@ if __name__ == '__main__':
     parser.add_argument('--kanalyze', dest='kan_path', type=str, default=bft_def,
                         help='Path to Kanalyze executable')
 
-    
+    parser.add_argument('--varofint', dest='voi_path', type=str, default=bft_def,
+                        help='Path to variant of interest')
 
-    
+
+
     args = parser.parse_args()
     if args.aligner_path == None:
         args.aligner_path = aligner_def[args.aligner]
@@ -219,12 +224,10 @@ if __name__ == '__main__':
             sam_name = os.path.splitext(os.path.basename(args.rone_path))[0]
         else:
             sam_name = args.sam_name
-            
-        main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
-            args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path, 
+        main(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path,
+            args.rone_path, args.rtwo_path, args.ref_path, args.adp_path, args.bed_path,
             args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, sam_name)
     elif args.inp_path != None and args.rone_path == None:
-        marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path, 
-            args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path, 
-            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path)
-
+        marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path,
+            args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path,
+            args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, args.voi_path)

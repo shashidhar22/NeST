@@ -13,7 +13,7 @@ class Annotate:
     def __init__(self, outdir):
         self.outdir = os.path.abspath(outdir)
         return
-    
+
     def getCodon(self, codon_pos, fasta, alt):
         '''Get the codon change for the variant.'''
         #The assumption made here is that the CDS has just on ORF
@@ -49,7 +49,7 @@ class Annotate:
                 coding_dict[chrom] += fasta_dict[rec.chrom][rec.start-1 : rec.stop]
             except KeyError:
                 coding_dict[chrom] = fasta_dict[rec.chrom][rec.start-1 : rec.stop]
-    
+
         return(coding_dict)
 
     def getAlFreq(self, depth):
@@ -66,7 +66,7 @@ class Annotate:
             ref = depth[0]
             alt = depth[1]
             alfreq = alt/float(total)
-        return(alfreq) 
+        return(alfreq)
 
     def getBedOrder(self, bed_path):
         bed_order = list()
@@ -116,11 +116,41 @@ class Annotate:
 
         return(codontable[codon])
 
+    def getCodon(aa):
+        aatable = {
+            'I' : 'ATA,ATC,ATT',
+            'M' : 'ATG',
+            'T' : 'ACA,ACC,ACG,ACT',
+            'N' : 'AAC,AAT',
+            'K' : 'AAA,AAG',
+            'S' : 'AGC,AGT',
+            'R' : 'AGA,AGG',
+            'L' : 'CTA,CTC,CTG,CTT',
+            'P' : 'CCA,CCC,CCG,CCT',
+            'H' : 'CAC,CAT',
+            'Q' : 'CAA,CAG',
+            'R' : 'CGA,CGC,CGG,CGT',
+            'V' : 'GTA,GTC,GTG,GTT',
+            'A' : 'GCA,GCC,GCG,GCT',
+            'D' : 'GAC,GAT',
+            'E' : 'GAA,GAG',
+            'G' : 'GGA,GGC,GGG,GGT',
+            'S' : 'TCA,TCC,TCG,TCT',
+            'F' : 'TTC,TTT',
+            'L' : 'TTA,TTG',
+            'Y' : 'TAC,TAT',
+            'C' : 'TGC,TGT',
+            '_' : 'TAA,TAG,TGA',
+            'W' : 'TGG'
+
+            }
+            return(aatable[aa])
+
     def iterVcf(self, bed_path, vcf_path, sam_name, fasta_path,name):
         reader = Reader()
         out_path = '{0}/{2}_variants_{1}.bed'.format(self.outdir,name, sam_name)
         out_vcf = '{0}/{2}_variants_{1}_annotated.vcf'.format(self.outdir, name, sam_name)
-        
+
         out_file = open(out_path, 'w')
         out_file.write('Chrom\tPos\tRef\tAlt\tExon\tRefCodon\tAltCodon\tCodonNumber\tRefAA\tAltAA\tCoverage\tQual\tAF\tPval\n')
         bed_reader = reader.readBed(bed_path)
@@ -151,8 +181,8 @@ class Annotate:
                             #alfreq = self.getAlFreq(vcf_rec.format['Test'].AD)
                             alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
                         pval = 100**(vcf_rec.QUAL/float(-10))
-                        #Wrie intronic var to file  
-                        out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM, 
+                        #Wrie intronic var to file
+                        out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM,
                                         vcf_rec.POS, vcf_rec.REF, str(vcf_rec.ALT[0]), anno, vcf_rec.INFO['DP'],
                                         vcf_rec.QUAL, alfreq, pval))
                         vcf_rec.add_info('AlFreq',alfreq)
@@ -167,7 +197,7 @@ class Annotate:
                         prev_vcf = vcf_rec.CHROM
                         vcf_rec = next(vcf_reader)
                         bed_changed = 0
-                
+
                     elif vcf_rec.POS in range(bed_rec.start, bed_rec.stop + 1):
                         anno = bed_rec.gene
                         try:
@@ -190,7 +220,7 @@ class Annotate:
                                 codon = self.getCodon(codon_pos, fasta, alt)
                                 refAA = self.getAA(codon[0])
                                 altAA = self.getAA(codon[1])
-                            out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\n'.format(vcf_rec.CHROM, 
+                            out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\n'.format(vcf_rec.CHROM,
                                             vcf_rec.POS, vcf_rec.REF, str(vcf_rec.ALT[0]), anno, codon[0], codon[1],
                                             codon[2], refAA, altAA, vcf_rec.INFO['DP'],
                                             vcf_rec.QUAL, alfreq, pval))
@@ -222,8 +252,8 @@ class Annotate:
                                 codon = self.getCodon(codon_pos, fasta, alt)
                                 refAA = self.getAA(codon[0])
                                 altAA = self.getAA(codon[1])
-                            out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\n'.format(vcf_rec.CHROM, 
-                                            vcf_rec.POS, ref, alt, anno, codon[0], codon[1], codon[2], 
+                            out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}\n'.format(vcf_rec.CHROM,
+                                            vcf_rec.POS, ref, alt, anno, codon[0], codon[1], codon[2],
                                             refAA, altAA, vcf_rec.INFO['DP'], vcf_rec.QUAL,alfreq, pval))
                             vcf_rec.add_info('AlFreq',alfreq)
                             vcf_rec.add_info('pVal', pval)
@@ -235,9 +265,9 @@ class Annotate:
                             vcf_rec.add_info('AltAA', altAA)
                             vcf_writer.write_record(vcf_rec)
                         prev_vcf = vcf_rec.CHROM
-                        vcf_rec = next(vcf_reader)       
+                        vcf_rec = next(vcf_reader)
                         bed_changed = 0
-                    
+
                     elif vcf_rec.POS > bed_rec.stop :
                         if bed_rec.chrom == 'MT':
                             mrna_len = 0
@@ -245,14 +275,14 @@ class Annotate:
                             mrna_len += bed_rec.stop - bed_rec.start +1
                         prev_bed = bed_rec.chrom
                         bed_rec = next(bed_reader)
-                        bed_changed = 1 
+                        bed_changed = 1
 
                 elif vcf_rec.CHROM != bed_rec.chrom and bed_ord.index(bed_rec.chrom) < vcf_ord.index(vcf_rec.CHROM):
                     mrna_len = 0
                     prev_bed = bed_rec.chrom
                     bed_rec = next(bed_reader)
                     bed_changed = 1
-            
+
                 elif vcf_rec.CHROM != bed_rec.chrom and bed_ord.index(bed_rec.chrom) > vcf_ord.index(vcf_rec.CHROM):
                     mrna_len = 0
                     anno = "Intron"
@@ -261,8 +291,8 @@ class Annotate:
                     except KeyError:
                         alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
                     pval = 100**(vcf_rec.QUAL/float(-10))
-                    #Wrie intronic var to file  
-                    out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM, 
+                    #Wrie intronic var to file
+                    out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM,
                                     vcf_rec.POS, vcf_rec.REF, str(vcf_rec.ALT[0]), anno, vcf_rec.INFO['DP'],
                                     vcf_rec.QUAL, alfreq, pval))
                     vcf_rec.add_info('AlFreq',alfreq)
@@ -283,7 +313,7 @@ class Annotate:
         vcf_writer.close()
         return
 
-      
+
 
 if __name__ == '__main__':
     bed_path = sys.argv[1]

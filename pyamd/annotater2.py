@@ -116,7 +116,7 @@ class Annotate:
 
         return(codontable[codon])
 
-    def getCodon(aa):
+    def aaToCodon(self, aa):
         aatable = {
             'I' : 'ATA,ATC,ATT',
             'M' : 'ATG',
@@ -144,7 +144,7 @@ class Annotate:
             'W' : 'TGG'
 
             }
-            return(aatable[aa])
+        return(aatable[aa])
 
     def iterVcf(self, bed_path, vcf_path, sam_name, fasta_path,name):
         reader = Reader()

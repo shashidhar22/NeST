@@ -20,6 +20,7 @@ from pyamd.annotater2 import Annotate
 from pyamd.kestrel import kes_runner
 from pyamd.filter import filterer
 from pyamd.summarize import Summary
+from pyamd.prepinputs import Prepper
 
 def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
         rone_path, rtwo_path, ref_path, adp_path, bed_path,
@@ -133,6 +134,9 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     if not os.path.exists(os.path.abspath(out_dir)):
         os.mkdir(os.path.abspath(out_dir))
     sample_handle = open(sample_list)
+    prep = Prepper(opts.inp_path)
+    config = prep.prepInputs()
+    print(config)
     for lines in sample_handle:
 
         sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
@@ -217,7 +221,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.aligner_path == None:
         args.aligner_path = aligner_def[args.aligner]
-        
+
 
     if args.inp_path == None and args.rone_path != None:
         if args.sam_name == None:

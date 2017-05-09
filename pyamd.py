@@ -138,25 +138,36 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     config = prep.prepInputs()
     print(config)
     print(len([key for key in config if config[key].paired]))
-    for lines in sample_handle:
-        print(lines)
-        sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
-        sample_name = 'Sample_{0}'.format(lines.strip())
-        sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))
-        rone_path = ''
-        rtwo_path = ''
-        for files in sample_files:
-            if 'R1' in files:
-                rone_path = files
-            else:
-                rtwo_path = files
-        out_path = '{0}/Sample_{1}'.format(os.path.abspath(out_dir), lines.strip())
-        print(out_path)
+    for samples in config:
+        sample_name = samples.sample
+        rone_path = samples.files[0]
+        rtwo_path = samples.files[1]
+        out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sample_name)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
         main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
              out_path, aligner, kes_path, kan_path, pic_path, sample_name)
+
+    # for lines in sample_handle:
+    #
+    #     sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
+    #     sample_name = 'Sample_{0}'.format(lines.strip())
+    #     sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))
+    #     rone_path = ''
+    #     rtwo_path = ''
+    #     for files in sample_files:
+    #         if 'R1' in files:
+    #             rone_path = files
+    #         else:
+    #             rtwo_path = files
+    #     out_path = '{0}/Sample_{1}'.format(os.path.abspath(out_dir), lines.strip())
+    #     print(out_path)
+    #     if not os.path.exists(out_path):
+    #         os.mkdir(out_path)
+        # main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
+        #      rone_path, rtwo_path, ref_path, adp_path, bed_path,
+        #      out_path, aligner, kes_path, kan_path, pic_path, sample_name)
 
     summary = Summary(ref_path, bed_path, voi_path, out_path)
     summary.getVarOfInt(out_path)

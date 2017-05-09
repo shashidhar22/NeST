@@ -32,7 +32,7 @@ class Identifier:
             return(True)
         else:
             return(False)
-  
+
 
     def isSraOld(self):
         #@SRR037455.1 HWI-E4_6_30ACL:4:1:0:29 length=35
@@ -84,14 +84,23 @@ class Prepper:
     def __init__(self, input_path):
         self.input_path = os.path.abspath(input_path)
 
+    def getFastqPaths(self):
+        files = list()
+        for subdir, dir, files in os.walk(self.input_path):
+            for file in files:
+                if '.fastq' in file or '.fastq.gz' in file:
+                    filepath = subdir + os.sep + file
+                    files.append(filepath)
+        return(files)
+
     def prepInputs(self):
-        files = glob.glob('{0}/*.fastq*'.format(self.input_path)) + glob.glob('{0}/*/*.fastq*'.format(self.input_path))
+        files = self.getFastqPaths()
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
             Sample = namedtuple('Sample', ['sample', 'library', 'files', 'prep', 'paired'])
             rec = next(reader.read())
-            identifier = Identifier(rec)    
+            identifier = Identifier(rec)
             metric = Metrics(fastq)
             isIllOld =  identifier.isIlluminaOld()
             isIllNew =  identifier.isIlluminaNew()
@@ -100,6 +109,8 @@ class Prepper:
             isPac = identifier.isPacbio()
             seqType = ''
             libType = ''
+            sample_regex = re.compile('r1|r2|l001|l002|l003|l004|R1|R2|L001|L002|L003|L004')
+            sample = sample_regex.split(fastq)[0]
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
                 lib = re.findall(paired_regex, rec.header)[0]
@@ -136,23 +147,21 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))                    
+                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
 
             try:
                 paired = True
-                experiment[lib] = Sample(lib, seqType, [experiment[lib].files[0], fastq], libType, paired)
-            except KeyError:            
-                experiment[lib] = Sample(lib, seqType, [fastq], libType, paired)
+                experiment[sample] = Sample(lib, seqType, [experiment[lib].files[0], fastq], libType, paired)
+            except KeyError:
+                experiment[sample] = Sample(lib, seqType, [fastq], libType, paired)
 
         logger.info("The following libraries were detected in the given folder : {0}".format(self.input_path))
         for files in experiment:
             logger.info("Library: {0} ; Sequence type: {1} ; Files: {2} ; Library type: {3} ; Paired: {4}")
 
-        return(experiment)            
+        return(experiment)
 
 if __name__ == '__main__':
     path = os.path.abspath(sys.argv[1])
     prepper = Fastq(path)
-    experiment = prepper.prepInputs()    
-
-    
+    experiment = prepper.prepInputs()

@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import stream.SiteScore;
-import structures.LongM;
+
 import dna.AminoAcid;
 import dna.Data;
 import dna.Gene;
@@ -273,20 +273,15 @@ public final class BBIndex extends AbstractIndex {
 //		assert(false) : "modify this function so that it gives more weight to trimming lists over highly covered baits";
 		//And also, incorporate the "remove the longest list" function
 		
-		//Remove lists until the length sum is below this value
 		final int limit=Tools.max(SMALL_GENOME_LIST, lengthHistogram[MAX_AVERAGE_LIST_TO_SEARCH])*keys.length;
 		final int limit2=Tools.max(SMALL_GENOME_LIST, lengthHistogram[MAX_AVERAGE_LIST_TO_SEARCH2]);
-		
-		//Do not search if the shortest list is longer than this
 		final int limit3=Tools.max(SMALL_GENOME_LIST, lengthHistogram[MAX_SHORTEST_LIST_TO_SEARCH]);
 //		final int limitS=lengthHistogram[chrom][MAX_SINGLE_LIST_TO_SEARCH];
 		
 		int sum=0;
 		int initialHitCount=0;
-		
-		//Shortest list found
+
 		int shortest=Integer.MAX_VALUE-1;
-		//Second shortest list found
 		int shortest2=Integer.MAX_VALUE;
 		
 //		for(int i=0; i<hits.length; i++){
@@ -295,7 +290,6 @@ public final class BBIndex extends AbstractIndex {
 		
 		final int[] lengths=getGenericArray(keys.length);
 		
-		//Find shortest lists
 		for(int i=0; i<keys.length; i++){
 			int key=keys[i];
 			int x=count(key);
@@ -315,8 +309,6 @@ public final class BBIndex extends AbstractIndex {
 //		assert(false) : limit+", "+limit2+", "+limit3+", "+shortest2+", "+shortest+", "+initialHitCount+", "+MIN_APPROX_HITS_TO_KEEP+"\n"+Arrays.toString(lengths);
 		assert(shortest2>=shortest);
 		if(initialHitCount<MIN_APPROX_HITS_TO_KEEP){return initialHitCount;}
-		
-		//Don't search if the shortest list is too long
 		if(shortest>limit3 && !SLOW){
 			for(int i=0; i<keys.length; i++){keys[i]=-1;}
 			return 0;
@@ -379,7 +371,6 @@ public final class BBIndex extends AbstractIndex {
 			final int key=keys[i];
 			if(key>=0){
 				final int len=count(key);
-//				System.err.println(len);
 				if(len>0 && len<maxLen){
 					numHits++;
 				}else if(clearBadKeys){
@@ -3099,17 +3090,16 @@ public final class BBIndex extends AbstractIndex {
 		return keyProbArray;
 	}
 	
-	private static final int KEY_BUFFER_LENGTH=256; //Boosted from 128 to 256 to deal with crashes from short kmers, long reads, and vslow.
 	
 	private final int[][] locArrays=new int[601][];
-	private final int[] valueArray=new int[KEY_BUFFER_LENGTH];
-	private final int[] sizeArray=new int[KEY_BUFFER_LENGTH];
-	private final int[][] offsetArrays=new int[KEY_BUFFER_LENGTH][];
-	private final int[][] greedyListArrays=new int[KEY_BUFFER_LENGTH][];
-	private final int[][] genericArrays=new int[KEY_BUFFER_LENGTH][];
-	private final int[] startArray=new int[KEY_BUFFER_LENGTH];
-	private final int[] stopArray=new int[KEY_BUFFER_LENGTH];
-	private final Quad[] tripleStorage=makeQuadStorage(KEY_BUFFER_LENGTH);
+	private final int[] valueArray=new int[128];
+	private final int[] sizeArray=new int[128];
+	private final int[][] offsetArrays=new int[128][];
+	private final int[][] greedyListArrays=new int[128][];
+	private final int[][] genericArrays=new int[128][];
+	private final int[] startArray=new int[128];
+	private final int[] stopArray=new int[128];
+	private final Quad[] tripleStorage=makeQuadStorage(128);
 	private final int[] greedyReturn=new int[2];
 	private final int[][] shrinkReturn2=new int[3][];
 	private final int[][] shrinkReturn3=new int[5][];
@@ -3118,9 +3108,9 @@ public final class BBIndex extends AbstractIndex {
 	private final int[] precountArray;
 
 	private final byte[][][] baseScoreArrays=new byte[2][601][];
-	private final int[][][] keyScoreArrays=new int[2][KEY_BUFFER_LENGTH][];
+	private final int[][][] keyScoreArrays=new int[2][128][];
 	final float[] keyProbArray=new float[601];
-	private final float[][] keyWeightArrays=new float[KEY_BUFFER_LENGTH][];
+	private final float[][] keyWeightArrays=new float[128][];
 	
 	
 	private final Quad[] makeQuadStorage(int number){
@@ -3130,8 +3120,8 @@ public final class BBIndex extends AbstractIndex {
 	}
 	
 
-	private final QuadHeap heap=new QuadHeap(KEY_BUFFER_LENGTH-1);
-	private final QuadHeap active=new QuadHeap(KEY_BUFFER_LENGTH-1);
+	private final QuadHeap heap=new QuadHeap(127);
+	private final QuadHeap active=new QuadHeap(127);
 	
 	static int SHIFT_LENGTH=(32-1-NUM_CHROM_BITS);
 	static int MAX_ALLOWED_CHROM_INDEX=~((-1)<<SHIFT_LENGTH);

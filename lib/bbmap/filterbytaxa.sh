@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified May 11, 2016
+Last modified December 15, 2015
 
 Description:   Filters sequences according to their taxonomy,
 as determined by the sequence name.  Sequences should
@@ -27,9 +27,6 @@ ziplevel=2      (zl) Set to 1 (lowest) through 9 (max) to change compression
 Processing parameters:
 level=          Taxonomic level, such as phylum.  Filtering will operate on
                 sequences within the same taxonomic level as specified ids.
-reqlevel=       Require nodes to have ancestors at these levels.  For example,
-                reqlevel=species,genus would ban nodes that are not defined
-                at both the species and genus levels.
 ids=            Comma-delimited list of NCBI numeric IDs.
 names=          Alternately, a list of names (such as 'Homo sapiens').
                 Note that spaces need special handling.

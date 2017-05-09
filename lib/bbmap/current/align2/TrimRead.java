@@ -89,9 +89,6 @@ public final class TrimRead implements Serializable {
 	public static int trimFast(Read r, boolean trimLeft, boolean trimRight, int trimq, int minResult, int discardUnder){
 		final byte[] bases=r.bases, qual=r.quality;
 		if(bases==null || bases.length<1){return 0;}
-		
-//		assert(false) : trimLeft+", "+trimRight+", "+trimq+", "+minResult+", "+discardUnder;
-		
 		final int len=r.length();
 		final int a0, b0;
 		final int a, b;
@@ -106,7 +103,6 @@ public final class TrimRead implements Serializable {
 				a=trimLeft ? a0 : 0;
 				b=trimRight ? b0 : 0;
 			}
-//			assert(false) : a0+", "+b0+" -> "+a+", "+b;
 		}else if(windowMode){
 			a=0;
 			b=(trimRight ? testRightWindow(bases, qual, (byte)trimq, windowLength) : 0);
@@ -265,7 +261,7 @@ public final class TrimRead implements Serializable {
 		if(optimalBias>=0){avgErrorRate=optimalBias;}//Override
 		assert(avgErrorRate>0 && avgErrorRate<=1) : "Average error rate ("+avgErrorRate+") must be between 0 (exclusive) and 1 (inclusive)";
 		if(bases==null || bases.length==0){return 0;}
-		if(qual==null){return avgErrorRate>=1 ? 0 : ((((long)testLeftN(bases))<<32) | (((long)testRightN(bases))&0xFFFFFFFFL));}
+		if(qual==null){return avgErrorRate<1 ? 0 : ((((long)testLeftN(bases))<<32) | (((long)testRightN(bases))&0xFFFFFFFFL));}
 		
 		float maxScore=0;
 		float score=0;
@@ -326,7 +322,7 @@ public final class TrimRead implements Serializable {
 	/** Count number of bases that need trimming on left side */
 	private static int testLeft(byte[] bases, byte[] qual, final byte trimq){
 		if(bases==null || bases.length==0){return 0;}
-		if(qual==null){return trimq<0 ? 0 : testLeftN(bases);}
+		if(qual==null){return trimq>0 ? 0 : testLeftN(bases);}
 		int good=0;
 		int lastBad=-1;
 		int i=0;
@@ -367,7 +363,7 @@ public final class TrimRead implements Serializable {
 	/** Count number of bases that need trimming on right side */
 	private static int testRight(byte[] bases, byte[] qual, final byte trimq){
 		if(bases==null || bases.length==0){return 0;}
-		if(qual==null){return trimq<0 ? 0 : testRightN(bases);}
+		if(qual==null){return trimq>0 ? 0 : testRightN(bases);}
 		int good=0;
 		int lastBad=bases.length;
 		int i=bases.length-1;

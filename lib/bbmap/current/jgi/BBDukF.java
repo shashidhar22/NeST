@@ -20,8 +20,9 @@ import stream.ConcurrentReadOutputStream;
 import stream.KillSwitch;
 import stream.Read;
 import stream.SamLine;
-import structures.IntList;
-import structures.ListNum;
+
+import align2.IntList;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -93,9 +94,7 @@ public class BBDukF {
 		ReadWrite.MAX_ZIP_THREADS=8;
 		
 		
-		if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-			ByteFile.FORCE_MODE_BF2=true;
-		}
+		ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		
 		/* Initialize local variables with defaults */
 		boolean setOut=false, setOutb=false;
@@ -185,10 +184,6 @@ public class BBDukF {
 				qfin1=b;
 			}else if(a.equals("qfin2")){
 				qfin2=b;
-			}else if(a.equals("qfout") || a.equals("qfout1")){
-				qfout1=b;
-			}else if(a.equals("qfin2")){
-				qfout2=b;
 			}else if(a.equals("out") || a.equals("out1") || a.equals("outu") || a.equals("outu1") || a.equals("outnonmatch") || 
 					a.equals("outnonmatch1") || a.equals("outunnmatch") || a.equals("outunmatch1") || a.equals("outunnmatched") || a.equals("outunmatched1")){
 				out1=b;
@@ -564,7 +559,7 @@ public class BBDukF {
 			{
 				long memory=Runtime.getRuntime().maxMemory();
 				double xmsRatio=Shared.xmsRatio();
-				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 				tableMemory=(long)(usableMemory*.95);
 			}
 
@@ -682,14 +677,6 @@ public class BBDukF {
 			out2=a+2+b;
 		}
 		
-		if(qfout1!=null && qfout1.contains("#") && in2!=null && !new File(qfout1).exists()){
-			int pound=qfout1.lastIndexOf('#');
-			String a=qfout1.substring(0, pound);
-			String b=qfout1.substring(pound+1);
-			qfout1=a+1+b;
-			qfout2=a+2+b;
-		}
-		
 		if(outb1!=null && outb1.contains("#")){
 			int pound=outb1.lastIndexOf('#');
 			String a=outb1.substring(0, pound);
@@ -715,7 +702,7 @@ public class BBDukF {
 			out2=null;
 		}
 		
-		if(!Tools.testOutputFiles(overwrite, append, false, out1, out2, qfout1, qfout2, outb1, outb2, outsingle, outstats, outrpkm, outduk, outrqc, outrefstats)){
+		if(!Tools.testOutputFiles(overwrite, append, false, out1, out2, outb1, outb2, outsingle, outstats, outrpkm, outduk, outrqc, outrefstats)){
 			throw new RuntimeException("\nCan't write to some output files; overwrite="+overwrite+"\n");
 		}
 		if(!Tools.testInputFiles(false, true, in1, in2, qfin1, qfin2)){
@@ -724,8 +711,7 @@ public class BBDukF {
 		if(!Tools.testInputFiles(true, true, ref)){
 			throw new RuntimeException("\nCan't read to some reference files.\n");
 		}
-		if(!Tools.testForDuplicateFiles(true, in1, in2, qfin1, qfin2, qfout1, qfout2,
-				out1, out2, outb1, outb2, outsingle, outstats, outrpkm, outduk, outrqc, outrefstats)){
+		if(!Tools.testForDuplicateFiles(true, in1, in2, qfin1, qfin2, out1, out2, outb1, outb2, outsingle, outstats, outrpkm, outduk, outrqc, outrefstats)){
 			throw new RuntimeException("\nSome file names were specified multiple times.\n");
 		}
 		
@@ -895,11 +881,7 @@ public class BBDukF {
 			}else{
 				System.err.println("******  PLEASE ENSURE K IS LESS THAN OR EQUAL TO REF SEQUENCE LENGTHS.  ******\n");
 			}
-			if(ktrimRight && trimByOverlap){
-				ktrimRight=false;
-			}else{
-				assert(false) : "You can bypass this assertion with the -da flag.";
-			}
+			assert(false) : "You can bypass this assertion with the -da flag.";
 		}
 		
 		final boolean vic=Read.VALIDATE_IN_CONSTRUCTOR;
@@ -928,57 +910,46 @@ public class BBDukF {
 		outstream.println("\nInput:                  \t"+readsIn+" reads \t\t"+basesIn+" bases.");
 		
 		if((ref!=null || literal!=null) && !(ktrimLeft || ktrimRight || ktrimN)){
-			outstream.println("Contaminants:           \t"+readsKFiltered+" reads ("+toPercent(readsKFiltered, readsIn)+") \t"+
-					basesKFiltered+" bases ("+toPercent(basesKFiltered, basesIn)+")");
+			outstream.println("Contaminants:           \t"+readsKFiltered+" reads ("+String.format("%.2f",readsKFiltered*100.0/readsIn)+"%) \t"+
+					basesKFiltered+" bases ("+String.format("%.2f",basesKFiltered*100.0/basesIn)+"%)");
 			outstream.flush();
 		}
 		if(qtrimLeft || qtrimRight){
-			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+toPercent(readsQTrimmed, readsIn)+") \t"+
-					basesQTrimmed+" bases ("+toPercent(basesQTrimmed, basesIn)+")");
+			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+String.format("%.2f",readsQTrimmed*100.0/readsIn)+"%) \t"+
+					basesQTrimmed+" bases ("+String.format("%.2f",basesQTrimmed*100.0/basesIn)+"%)");
 		}
 		if(forceTrimLeft>0 || forceTrimRight>0 || forceTrimRight2>0 || forceTrimModulo>0){
-			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+toPercent(readsFTrimmed, readsIn)+") \t"+
-					basesFTrimmed+" bases ("+toPercent(basesFTrimmed, basesIn)+")");
+			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+String.format("%.2f",readsFTrimmed*100.0/readsIn)+"%) \t"+
+					basesFTrimmed+" bases ("+String.format("%.2f",basesFTrimmed*100.0/basesIn)+"%)");
 		}
 		if(ktrimLeft || ktrimRight || ktrimN){
 			String x=(ktrimN ? "KMasked: " : "KTrimmed:");
-			outstream.println(x+"               \t"+readsKTrimmed+" reads ("+toPercent(readsKTrimmed, readsIn)+") \t"+
-					basesKTrimmed+" bases ("+toPercent(basesKTrimmed, basesIn)+")");
+			outstream.println(x+"               \t"+readsKTrimmed+" reads ("+String.format("%.2f",readsKTrimmed*100.0/readsIn)+"%) \t"+
+					basesKTrimmed+" bases ("+String.format("%.2f",basesKTrimmed*100.0/basesIn)+"%)");
 		}
 		if(trimByOverlap){
-			outstream.println("Trimmed by overlap:     \t"+readsTrimmedByOverlap+" reads ("+toPercent(readsTrimmedByOverlap, readsIn)+") \t"+
-					basesTrimmedByOverlap+" bases ("+toPercent(basesTrimmedByOverlap, basesIn)+")");
+			outstream.println("Trimmed by overlap:     \t"+readsTrimmedByOverlap+" reads ("+String.format("%.2f",readsTrimmedByOverlap*100.0/readsIn)+"%) \t"+
+					basesTrimmedByOverlap+" bases ("+String.format("%.2f",basesTrimmedByOverlap*100.0/basesIn)+"%)");
 		}
 		if(filterGC){
-			outstream.println("Filtered by GC:         \t"+badGcReads+" reads ("+toPercent(badGcReads, readsIn)+") \t"+
-					badGcBases+" bases ("+toPercent(badGcBases, basesIn)+")");
+			outstream.println("Filtered by GC:         \t"+badGcReads+" reads ("+String.format("%.2f",badGcReads*100.0/readsIn)+"%) \t"+
+					badGcBases+" bases ("+String.format("%.2f",badGcBases*100.0/basesIn)+"%)");
 		}
 		if(minAvgQuality>0 || maxNs>=0 || minBaseFrequency>0 || chastityFilter || removeBadBarcodes){
-			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+toPercent(readsQFiltered, readsIn)+") \t"+
-					basesQFiltered+" bases ("+toPercent(basesQFiltered, basesIn)+")");
+			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+String.format("%.2f",readsQFiltered*100.0/readsIn)+"%) \t"+
+					basesQFiltered+" bases ("+String.format("%.2f",basesQFiltered*100.0/basesIn)+"%)");
 		}
 		if(calcEntropy){
-			outstream.println("Low entropy discards:   \t"+readsEFiltered+" reads ("+toPercent(readsEFiltered, readsIn)+") \t"+
-					basesEFiltered+" bases ("+toPercent(basesEFiltered, basesIn)+")");
+			outstream.println("Low entropy discards:   \t"+readsEFiltered+" reads ("+String.format("%.2f",readsEFiltered*100.0/readsIn)+"%) \t"+
+					basesEFiltered+" bases ("+String.format("%.2f",basesEFiltered*100.0/basesIn)+"%)");
 		}
-
-		final long readsRemoved=readsIn-readsOut;
-		final long basesRemoved=basesIn-basesOut;
 		
-		outstream.println("Total Removed:          \t"+readsRemoved+" reads ("+toPercent(readsRemoved, readsIn)+") \t"+
-				basesRemoved+" bases ("+toPercent(basesRemoved, basesIn)+")");
-		
-		outstream.println("Result:                 \t"+readsOut+" reads ("+toPercent(readsOut, readsIn)+") \t"+
-				basesOut+" bases ("+toPercent(basesOut, basesIn)+")");
+		outstream.println("Result:                 \t"+readsOut+" reads ("+String.format("%.2f",readsOut*100.0/readsIn)+"%) \t"+
+				basesOut+" bases ("+String.format("%.2f",basesOut*100.0/basesIn)+"%)");
 		
 		if(loglog!=null){
 			outstream.println("Unique "+loglog.k+"-mers:         \t"+loglog.cardinality());
 		}
-	}
-	
-	private String toPercent(long numerator, long denominator){
-		if(denominator<1){return "0.00%";}
-		return String.format("%.2f%%",numerator*100.0/denominator);
 	}
 	
 	/**
@@ -1014,8 +985,8 @@ public class BBDukF {
 		
 		long rsum=0, bsum=0;
 		
-		/* Create StringCount list of scaffold names and hitcounts */
-		ArrayList<StringCount> list=new ArrayList<StringCount>();
+		/* Create StringNum list of scaffold names and hitcounts */
+		ArrayList<StringNum> list=new ArrayList<StringNum>();
 		for(int i=1; i<scaffoldNames.size(); i++){
 			final long num1=scaffoldReadCounts.get(i), num2=scaffoldBaseCounts.get(i);
 			if(num1>0 || !printNonZeroOnly){
@@ -1023,7 +994,7 @@ public class BBDukF {
 				bsum+=num2;
 				final String s=scaffoldNames.get(i);
 				final int len=scaffoldLengths.get(i);
-				final StringCount sn=new StringCount(s, len, num1, num2);
+				final StringNum sn=new StringNum(s, len, num1, num2);
 				list.add(sn);
 			}
 		}
@@ -1038,7 +1009,7 @@ public class BBDukF {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",rsum,rmult*rsum));
 			tsw.print("#Name\tReads\tReadsPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult)));
 			}
 		}else{
@@ -1046,7 +1017,7 @@ public class BBDukF {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",rsum,rmult*rsum,bsum,bsum*bmult));
 			tsw.print("#Name\tReads\tReadsPct\tBases\tBasesPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult),sn.bases,(sn.bases*bmult)));
 			}
 		}
@@ -1500,7 +1471,7 @@ public class BBDukF {
 			final int buff=(!ORDERED ? 12 : Tools.max(32, 2*Shared.threads()));
 			FileFormat ff1=FileFormat.testOutput(out1, FileFormat.FASTQ, null, true, overwrite, append, ORDERED);
 			FileFormat ff2=FileFormat.testOutput(out2, FileFormat.FASTQ, null, true, overwrite, append, ORDERED);
-			ros=ConcurrentReadOutputStream.getStream(ff1, ff2, qfout1, qfout2, buff, null, true);
+			ros=ConcurrentReadOutputStream.getStream(ff1, ff2, null, null, buff, null, true);
 			ros.start();
 		}else{ros=null;}
 		if(outb1!=null){
@@ -2255,7 +2226,7 @@ public class BBDukF {
 //						int bestInsert=BBMergeOverlapper.mateByOverlap(r1, r2, aprob, bprob, overlapVector, minOverlap0, minOverlap,
 //								overlapMargin, overlapMaxMismatches0, overlapMaxMismatches, overlapMinq);
 						int bestInsert=BBMergeOverlapper.mateByOverlapRatio(r1, r2, aprob, bprob, overlapVector, minOverlap0, minOverlap,
-								minInsert0, minInsert, maxRatio, 0.12f, ratioMargin, ratioOffset, 0.95f, 0.95f, useQualityForOverlap);
+								minInsert0, minInsert, maxRatio, ratioMargin, ratioOffset, 0.95f, 0.95f, useQualityForOverlap);
 						
 						if(bestInsert<minInsert){bestInsert=-1;}
 						boolean ambig=(overlapVector[4]==1);
@@ -3390,6 +3361,41 @@ public class BBDukF {
 	}
 	
 	/*--------------------------------------------------------------*/
+	
+	/**
+	 * Object holding a String and numbers, for tracking the number of read and base hits per sequence.
+	 */
+	private static class StringNum implements Comparable<StringNum>{
+		
+		public StringNum(String name_, int len_, long reads_, long bases_){
+			name=name_;
+			length=len_;
+			reads=reads_;
+			bases=bases_;
+		}
+		public final int compareTo(StringNum o){
+			if(bases!=o.bases){return o.bases>bases ? 1 : -1;}
+			if(reads!=o.reads){return o.reads>reads ? 1 : -1;}
+			return name.compareTo(o.name);
+		}
+		public final boolean equals(StringNum o){
+			return compareTo(o)==0;
+		}
+		public final String toString(){
+			return name+"\t"+length+"\t"+reads+"\t"+bases;
+		}
+		
+		/*--------------------------------------------------------------*/
+		
+		/** Sequence name */
+		public final String name;
+		/** Sequence length */
+		public final int length;
+		/** Number of reads or bases mapped to this sequence */
+		public final long reads, bases;
+	}
+	
+	/*--------------------------------------------------------------*/
 	/*----------------        Static Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
@@ -3455,8 +3461,6 @@ public class BBDukF {
 	private String in1=null, in2=null;
 	/** Input qual files */
 	private String qfin1=null, qfin2=null;
-	/** Output qual files */
-	private String qfout1=null, qfout2=null;
 	/** Output reads (unmatched and at least minlen) */
 	private String out1=null, out2=null;
 	/** Output reads (matched or shorter than minlen) */
@@ -3655,7 +3659,7 @@ public class BBDukF {
 	/** Trim matching kmers and all bases to the left */
 	private final boolean ktrimLeft;
 	/** Trim matching kmers and all bases to the right */
-	private boolean ktrimRight;
+	private final boolean ktrimRight;
 	/** Don't trim, but replace matching kmers with a symbol (default N) */
 	private final boolean ktrimN;
 	/** Exclude kmer itself when ktrimming */

@@ -10,7 +10,8 @@ import stream.Read;
 import stream.SamLine;
 import stream.ScaffoldCoordinates;
 import stream.SiteScore;
-import structures.LongList;
+
+import align2.LongList;
 import align2.ReadStats;
 import align2.Tools;
 
@@ -76,7 +77,15 @@ public class CoveragePileup {
 			if("null".equalsIgnoreCase(b)){b=null;}
 //			System.err.println("Processing "+args[i]);
 			
-			if(a.equals("ref") || a.equals("reference") || a.equals("fasta")){
+			if(Parser.isJavaFlag(arg)){
+				//jvm argument; do nothing
+//			}else if(Parser.parseCommonStatic(arg, a, b)){//TODO: Enable
+//				//do nothing
+			}else if(Parser.parseZip(arg, a, b)){
+				//do nothing
+			}else if(a.equals("monitor") || a.equals("killswitch")){
+				Parser.parseCommonStatic(arg, a, b);
+			}else if(a.equals("ref") || a.equals("reference") || a.equals("fasta")){
 				reference=b;
 			}else if(a.equals("in") || a.equals("in1")){
 				in1=b;
@@ -187,12 +196,6 @@ public class CoveragePileup {
 				}
 			}else if(a.equals("covwindowavg")){
 				LOW_COV_DEPTH=Double.parseDouble(b);
-			}else if(Parser.isJavaFlag(arg)){
-				//jvm argument; do nothing
-			}else if(Parser.parseCommonStatic(arg, a, b)){
-				//do nothing
-			}else if(Parser.parseZip(arg, a, b)){
-				//do nothing
 			}else{
 				throw new RuntimeException("Unknown parameter: "+args[i]);
 			}
@@ -212,8 +215,7 @@ public class CoveragePileup {
 			USE_BITSETS=(vectorMode==BITSET_MODE);
 			USE_COVERAGE_ARRAYS=(vectorMode==ARRAY_MODE);
 		}else{
-			if(histogram==null && basecov==null && bincov==null && normcov==null && 
-					normcovOverall==null && outorf==null && !calcCovStdev){//No need for coverage array!
+			if(histogram==null && basecov==null && bincov==null && normcov==null && normcovOverall==null && outorf==null){//No need for coverage array!
 				USE_COVERAGE_ARRAYS=false;
 				if(TWOCOLUMN){//No need for bitset, either!
 					USE_BITSETS=false;
@@ -775,7 +777,7 @@ public class CoveragePileup {
 //			assert(false && length==stop-start+1) : length+", "+start+", "+stop+", "+(stop-start+1);
 //			assert(false) : "'"+new String(sl.rname())+"', '"+sl.rnameS()+"'";
 //			assert(false) : "'"+sl.rnameS()+"'";
-			final byte[] match=(INCLUDE_DELETIONS ? null : sl.toShortMatch(true));
+			final byte[] match=(INCLUDE_DELETIONS ? null : SamLine.cigarToShortMatch(sl.cigar, true));
 			return addCoverage(sl.rnameS(), sl.seq, match, start, stop, length, sl.strand(), sl.hasMate() ? 1 : 2);
 		}
 		return false;
@@ -1161,13 +1163,11 @@ public class CoveragePileup {
 				for(int i=0, len=scaf.length; i<len; i++){
 					int x=(ca==null ? 0 : ca.get(i));
 					if(!deltaOnly || x!=last){
-						if(x>0 || !NONZERO_ONLY){
-							tsw.print(scaf.name);
-							tsw.print('\t');
-							tsw.print(i);
-							tsw.print('\t');
-							tsw.println(x);
-						}
+						tsw.print(scaf.name);
+						tsw.print('\t');
+						tsw.print(i);
+						tsw.print('\t');
+						tsw.println(x);
 						last=x;
 					}
 				}
@@ -1254,9 +1254,9 @@ public class CoveragePileup {
 					int x=(ca==null ? 0 : ca.get(i));
 					sum+=x;
 					if(i>=nextPos){
-						if(sum>0 || !NONZERO_ONLY){
-							tsw.print(String.format("%s\t%.2f\t%d\t%d\n", scaf.name, sum*invbin, (i+1), running));
-						}
+//						float bin=(i-lastPos);
+//						tsw.print(String.format("%s\t%.2f\t%d\t%d\n", scaf.name, sum/bin, (i+1), running));
+						tsw.print(String.format("%s\t%.2f\t%d\t%d\n", scaf.name, sum*invbin, (i+1), running));
 						lastPos=i;
 						running+=binsize;
 						nextPos+=binsize;
@@ -1304,9 +1304,7 @@ public class CoveragePileup {
 				if(i>=nextPos || i==lim){
 					int bin=(i-lastPos);
 					if(scaf.length>=minscaf){
-						if(sum>0 || !NONZERO_ONLY){
-							tsw.print(String.format("%s\t%.2f\t%d\t%d\n", scaf.name, sum/(float)bin, (i+1), running));
-						}
+						tsw.print(String.format("%s\t%.2f\t%d\t%d\n", scaf.name, sum/(float)bin, (i+1), running));
 					}
 					running+=bin;
 					nextPos+=binsize;

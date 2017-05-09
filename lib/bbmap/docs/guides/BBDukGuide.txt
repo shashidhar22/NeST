@@ -130,9 +130,9 @@ This will remove all reads that have a 31-mer match to PhiX (a common Illumina s
 
 
 Kmer masking:
-bbduk.sh in=ecoli.fa out=ecoli_masked.fa ref=salmonella.fa k=25 kmask=N
+bbduk.sh in=ecoli.fa out=ecoli_masked.fa ref=salmonella.fa k=25 ktrim=N
 
-This will mask all 25-mers in E.coli that are also shared by Salmonella, by converting them to N. You can change them to some other letter instead, like X.  Alternatively, kmask=lc will convert the masked bases to lowercase.
+This will mask all 25-mers in E.coli that are also shared by Salmonella, by converting them to N. You can change them to some other letter instead, like X.
 
 
 Entropy filtering:

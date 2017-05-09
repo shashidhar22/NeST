@@ -92,8 +92,8 @@ public class ClumpList extends ArrayList<Clump> {
 			final int size=size();
 			for(int i=ptr.getAndIncrement(); i<size; i=ptr.getAndIncrement()){
 				Clump c=get(i);
-				ArrayList<Read> list=c.makeConsensus();
-				storage.addAll(list);
+				Read r=c.consensus();
+				storage.add(r);
 				c.clear();
 				set(i, null);
 			}

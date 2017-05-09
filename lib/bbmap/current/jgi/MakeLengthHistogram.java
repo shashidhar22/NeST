@@ -6,13 +6,15 @@ import java.util.ArrayList;
 import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Data;
 import dna.Parser;
 import dna.Timer;
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
 import fileIO.TextStreamWriter;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -220,7 +222,7 @@ public class MakeLengthHistogram {
 	public static int MAX_LENGTH=80000;
 	public static int MULT=10;
 	public static boolean ROUND_BINS=false;
-	public static boolean NON_ZERO_ONLY=true;
+	public static boolean NON_ZERO_ONLY=false;
 	
 	public static boolean append=false;
 	public static boolean overwrite=true;

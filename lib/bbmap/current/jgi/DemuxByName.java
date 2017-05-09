@@ -16,7 +16,7 @@ import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.MultiCros;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
@@ -25,6 +25,8 @@ import fileIO.ByteFile2;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
 import fileIO.TextFile;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -97,8 +99,6 @@ public class DemuxByName {
 				prefixMode=Tools.parseBoolean(b);
 			}else if(a.equals("suffixmode") || a.equals("suffix") || a.equals("sm")){
 				prefixMode=!Tools.parseBoolean(b);
-			}else if(a.equals("substringmode") || a.equals("substring")){
-				substringMode=Tools.parseBoolean(b);
 			}else if(a.equals("outu") || a.equals("outu1")){
 				outu1=b;
 			}else if(a.equals("outu2")){
@@ -147,8 +147,6 @@ public class DemuxByName {
 					bit=bs.nextSetBit(bit+1);
 					affixLengths[i]=bit;
 				}
-				Arrays.sort(affixLengths);
-				Tools.reverseInPlace(affixLengths);
 			}
 			
 			assert(affixLengths.length>0 && affixLengths[0]>0) : "Must include at least one non-zero-length affix (name).";
@@ -245,11 +243,6 @@ public class DemuxByName {
 
 		ffin1=FileFormat.testInput(in1, FileFormat.FASTQ, extin, true, true);
 		ffin2=FileFormat.testInput(in2, FileFormat.FASTQ, extin, true, true);
-		
-		if(ffin1!=null && out1!=null && ffin1.samOrBam()){
-			String ext=ReadWrite.rawExtension(out1);
-			useSharedHeader=FileFormat.isSamOrBam(ext);
-		}
 	}
 	
 	void process(Timer t){
@@ -257,7 +250,7 @@ public class DemuxByName {
 		
 		final ConcurrentReadInputStream cris;
 		{
-			cris=ConcurrentReadInputStream.getReadInputStream(maxReads, useSharedHeader, ffin1, ffin2, qfin1, qfin2);
+			cris=ConcurrentReadInputStream.getReadInputStream(maxReads, true, ffin1, ffin2, qfin1, qfin2);
 			if(verbose){outstream.println("Started cris");}
 			cris.start(); //4567
 		}
@@ -268,7 +261,7 @@ public class DemuxByName {
 		if(out1!=null){
 			final int buff=4;
 			
-			mcros=(fixedAffixLength>0 ? new MultiCros(out1, out2, false, overwrite, append, true, useSharedHeader, FileFormat.FASTQ, buff) : null);
+			mcros=(fixedAffixLength>0 ? new MultiCros(out1, out2, false, overwrite, append, true, false, FileFormat.FASTQ, buff) : null);
 			
 			if(paired && out2==null && (in1==null || !in1.contains(".sam"))){
 				outstream.println("Writing interleaved.");
@@ -285,7 +278,7 @@ public class DemuxByName {
 				
 				FileFormat ffout1=FileFormat.testOutput(out1.replace("%", s), FileFormat.FASTQ, extout, true, overwrite, append, false);
 				FileFormat ffout2=(out2==null ? null : FileFormat.testOutput(out2.replace("%", s), FileFormat.FASTQ, extout, true, overwrite, append, false));
-				ConcurrentReadOutputStream ros=ConcurrentReadOutputStream.getStream(ffout1, ffout2, qf1, qf2, buff, null, true);
+				ConcurrentReadOutputStream ros=ConcurrentReadOutputStream.getStream(ffout1, ffout2, qf1, qf2, buff, null, false);
 				ros.start();
 				nameToStream.put(s, ros);
 			}
@@ -299,7 +292,7 @@ public class DemuxByName {
 			
 			FileFormat ffout1=FileFormat.testOutput(outu1, FileFormat.FASTQ, extout, true, overwrite, append, false);
 			FileFormat ffout2=(outu2==null ? null : FileFormat.testOutput(outu2, FileFormat.FASTQ, extout, true, overwrite, append, false));
-			rosu=ConcurrentReadOutputStream.getStream(ffout1, ffout2, null, null, buff, null, true);
+			rosu=ConcurrentReadOutputStream.getStream(ffout1, ffout2, null, null, buff, null, false);
 			rosu.start();
 		}else{
 			rosu=null;
@@ -344,19 +337,10 @@ public class DemuxByName {
 					
 					ArrayList<Read> al2=null;
 					if(names.size()>0){
-						if(substringMode){
-							for(String s : names){
-								if(id.contains(s)){
-									al2=nameToArray.get(s);
-									break;
-								}
-							}
-						}else{
-							for(int affixLen : affixLengths){
-								final String sub=idlen>=affixLen ? prefixMode ? id.substring(0, affixLen) : id.substring(idlen-affixLen) : id;
-								al2=nameToArray.get(sub);
-								if(al2!=null){break;}
-							}
+						for(int affixLen : affixLengths){
+							final String sub=idlen>=affixLen ? prefixMode ? id.substring(0, affixLen) : id.substring(idlen-affixLen) : id;
+							al2=nameToArray.get(sub);
+							if(al2!=null){break;}
 						}
 					}
 					
@@ -485,9 +469,8 @@ public class DemuxByName {
 
 	private long maxReads=-1;
 //	private boolean exclude=true;
-
+	
 	private boolean prefixMode=true;
-	private boolean substringMode=false;
 //	private int affixLen=-1;
 	
 	private int fixedAffixLength=-1;
@@ -511,6 +494,5 @@ public class DemuxByName {
 	public boolean errorState=false;
 	private boolean overwrite=true;
 	private boolean append=false;
-	private boolean useSharedHeader=false;
 	
 }

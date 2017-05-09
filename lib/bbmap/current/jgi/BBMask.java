@@ -17,8 +17,8 @@ import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
 import stream.SamLine;
-import structures.IntList;
-import structures.ListNum;
+import align2.IntList;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -113,11 +113,7 @@ public class BBMask{
 			}else if(a.equals("in") || a.equals("input") || a.equals("in1") || a.equals("input1") || a.equals("ref")){
 				inRef=b;
 			}else if(a.equals("insam") || a.equals("samin") || a.equals("sam")){
-				if(b!=null){
-					for(String s : b.split(",")){
-						inSam.add(s);
-					}
-				}
+				inSam=(b==null || b.equalsIgnoreCase("null")) ? null : b.split(",");
 			}else if(a.equals("out") || a.equals("output") || a.equals("out1") || a.equals("output1") || a.equals("output1")){
 				outRef=b;
 			}else if(a.equals("qfin") || a.equals("qfin1")){
@@ -174,10 +170,7 @@ public class BBMask{
 				overwrite=Tools.parseBoolean(b);
 			}else if(a.startsWith("minscaf") || a.startsWith("mincontig")){
 				stream.FastaReadInputStream.MIN_READ_LEN=Integer.parseInt(b);
-			}else if(!arg.contains("=") && FileFormat.hasSamOrBamExtension(arg)){
-				inSam.add(arg);
 			}
-			
 			else if(inRef==null && i==0 && !arg.contains("=") && (arg.toLowerCase().startsWith("stdin") || new File(arg).exists())){
 				inRef=arg;
 			}
@@ -219,10 +212,10 @@ public class BBMask{
 
 		ffinRef=FileFormat.testInput(inRef, FileFormat.FASTA, extinRef, true, true);
 		
-		if(inSam!=null && inSam.size()>0){
-			ffinSam=new FileFormat[inSam.size()];
-			for(int i=0; i<inSam.size(); i++){
-				ffinSam[i]=FileFormat.testInput(inSam.get(i), FileFormat.SAM, null, true, false);
+		if(inSam!=null && inSam.length>0){
+			ffinSam=new FileFormat[inSam.length];
+			for(int i=0; i<inSam.length; i++){
+				ffinSam[i]=FileFormat.testInput(inSam[i], FileFormat.SAM, null, true, false);
 			}
 		}else{
 			ffinSam=null;
@@ -702,7 +695,7 @@ public class BBMask{
 			boolean numeric=false;
 			if(match==null){
 				assert(sl.cigar!=null);
-				match=sl.toShortMatch(true);
+				match=SamLine.cigarToShortMatch(sl.cigar, true);
 				numeric=true;
 			}else{
 				for(byte b : match){
@@ -1339,7 +1332,7 @@ public class BBMask{
 	public boolean errorState=false;
 
 	private String inRef=null;
-	private ArrayList<String> inSam=new ArrayList<String>();
+	private String inSam[]=null;
 
 	private String qfinRef=null;
 

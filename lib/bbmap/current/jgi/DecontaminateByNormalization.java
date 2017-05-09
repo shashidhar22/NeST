@@ -14,11 +14,10 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Data;
 import dna.Parser;
 import dna.Timer;
-import driver.RenameAndMux;
 import fileIO.ByteFile;
 import fileIO.ByteFile1;
 import fileIO.ByteFile2;
@@ -27,10 +26,10 @@ import fileIO.FileFormat;
 import fileIO.TextFile;
 
 import align2.BBMap;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
-import assemble.Tadpole;
 
 /**
  * @author Brian Bushnell
@@ -73,7 +72,6 @@ public class DecontaminateByNormalization {
 
 		final ArrayList<String> readNameFiles=new ArrayList<String>();
 		final ArrayList<String> refNameFiles=new ArrayList<String>();
-		int onlyProcessFirstN=-1;
 		
 		Parser parser=new Parser();
 		parser.overwrite=true;
@@ -126,33 +124,12 @@ public class DecontaminateByNormalization {
 				minRatio=Double.parseDouble(b);
 			}else if(a.equals("basesundermin")){
 				basesUnderMin=Integer.parseInt(b);
-			}else if(a.equals("onlyprocessfirstn") || a.equals("opfn")){
-				onlyProcessFirstN=Integer.parseInt(b);
 			}else if(a.equals("window")){
 				CoveragePileup.LOW_COV_WINDOW=Integer.parseInt(b);
 			}else if(a.equals("windowcov")){
 				CoveragePileup.LOW_COV_DEPTH=Double.parseDouble(b);
 			}else if(a.equals("mapraw")){
 				mapRawReads=Tools.parseBoolean(b);
-			}
-			
-			/* Tadpole parameters */
-			else if(a.equals("tadpole") || a.equals("ecctadpole") || a.equals("ecct") || a.equals("ecc")){
-				ecct=Tools.parseBoolean(b);
-			}else if(a.equals("tadpoleaggressive") || a.equals("aggressive") || a.equals("aecc")){
-				tadpoleAggressive=Tools.parseBoolean(b);
-				if(tadpoleAggressive){tadpoleConservative=false;}
-			}else if(a.equals("tadpoleconservative") || a.equals("conservative") || a.equals("cecc")){
-				tadpoleConservative=Tools.parseBoolean(b);
-				if(tadpoleConservative){tadpoleAggressive=false;}
-			}else if(a.equals("kt") || a.equals("ktadpole") || a.equals("tadpolek")){
-				tadpoleK=Integer.parseInt(b);
-			}else if(a.equals("tadpoleprefilter") || a.equals("tadpre")){
-				tadpolePrefilter=Integer.parseInt(b);
-			}
-			
-			else if(a.equals("k")){
-				normK=Integer.parseInt(b);
 			}else if(a.equals("target")){
 				normTarget=Integer.parseInt(b);
 			}else if(a.equals("hashes")){
@@ -163,20 +140,15 @@ public class DecontaminateByNormalization {
 				kfilter=Integer.parseInt(b);
 			}else if(a.equals("ambig") || a.equals("ambiguous")){
 				ambigMode=b;
-			}
-			
-			//Deprecated
-//			else if(a.equals("ecc")){
-//				ecc=Tools.parseBoolean(b);
-//			}else if(a.equals("cecc")){
-//				cecc=Tools.parseBoolean(b);
-//				if(cecc){ecc=true;aecc=false;}
-//			}else if(a.equals("aecc")){
-//				aecc=Tools.parseBoolean(b);
-//				if(aecc){ecc=true;cecc=false;}
-//			}
-			
-			else if(a.equals("prefilter")){
+			}else if(a.equals("ecc")){
+				ecc=Tools.parseBoolean(b);
+			}else if(a.equals("cecc")){
+				cecc=Tools.parseBoolean(b);
+				if(cecc){ecc=true;aecc=false;}
+			}else if(a.equals("aecc")){
+				aecc=Tools.parseBoolean(b);
+				if(aecc){ecc=true;cecc=false;}
+			}else if(a.equals("prefilter")){
 				prefilter=Tools.parseBoolean(b);
 			}else if(a.equals("filterbits") || a.equals("fbits")){
 				filterBits=Integer.parseInt(b);
@@ -232,13 +204,6 @@ public class DecontaminateByNormalization {
 		
 		readNames.addAll(readNameFiles);
 		refNames.addAll(refNameFiles);
-		
-		assert(readNames.size()==refNames.size()) : "Must have same number of read and assembly files. "+readNames.size()+"!="+refNames.size();
-		
-		while(onlyProcessFirstN>0 && onlyProcessFirstN<readNames.size()){ //For testing.
-			readNames.remove(readNames.size()-1);
-			refNames.remove(refNames.size()-1);
-		}
 //		System.err.println("\n************ 5\n"+readNames+"\n\n"+refNames+"\n\n"+readNameFiles+"\n\n"+refNameFiles);
 		
 		if(outdir!=null && outdir.length()>0 && !outdir.endsWith("/")){outdir=outdir+"/";}
@@ -258,22 +223,14 @@ public class DecontaminateByNormalization {
 	void process(Timer t){
 		log("Decontaminate start", false);
 		String mergePath=tempdir+"_merged.fq.gz";
-		String tadpolePath=tempdir+"_corrected.fq.gz";
 		String normPath=tempdir+"_normalized.fq.gz";
 		
 		if(mapRawReads){
 			map(readNames, refNames, 0);
 		}
-		renameAndMux_MT(readNames, mergePath);
-		if(ecct){
-			eccTadpole(mergePath, tadpolePath);
-			if(deleteFiles){delete(mergePath);}
-			mergePath=tadpolePath;
-		}
-		normalize(mergePath, normPath, normK, minDepth, normTarget, normHashes, normPasses, ecc, prefilter, normalizeByLowerDepth);
-		if(deleteFiles){delete(mergePath);}
+		renameAndMerge(readNames, mergePath);
+		normalize(mergePath, normPath, minDepth, normTarget, normHashes, normPasses, ecc, prefilter, normalizeByLowerDepth);
 		demux(normPath, readNames);
-		if(deleteFiles){delete(normPath);}
 		map(readNames, refNames, 1);
 		filter(readNames, refNames);
 		
@@ -304,8 +261,8 @@ public class DecontaminateByNormalization {
 	/*----------------         Inner Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	private void renameAndMux_ST(ArrayList<String> readPaths, String fnameOut){
-		log("renameAndMux start", true);
+	private void renameAndMerge(ArrayList<String> readPaths, String fnameOut){
+		log("renameAndMerge start", true);
 		System.err.println("\nRename/Merge Phase Start");
 
 		FileFormat ffout=FileFormat.testOutput(fnameOut, FileFormat.FASTQ, null, true, true, false, false);
@@ -360,12 +317,12 @@ public class DecontaminateByNormalization {
 						{
 							readsProcessed++;
 							basesProcessed+=initialLength1;
-							r1.id=core+"_"+r1.numericID+" 1:";
+							r1.id=core+"_"+r1.numericID+" /1";
 						}
 						if(r2!=null){
 							readsProcessed++;
 							basesProcessed+=initialLength2;
-							r2.id=core+"_"+r1.numericID+" 2:";
+							r2.id=core+"_"+r1.numericID+" /2";
 						}
 						
 						
@@ -388,97 +345,10 @@ public class DecontaminateByNormalization {
 			
 			ffout=FileFormat.testOutput(fnameOut, FileFormat.FASTQ, null, true, false, true, false);
 		}
-		log("renameAndMux finish", true);
+		log("renameAndMerge finish", true);
 	}
 	
-	private void renameAndMux_MT(ArrayList<String> readPaths, String fnameOut){
-		log("renameAndMux start", true);
-		System.err.println("\nRename/Merge Phase Start");
-		
-//		String dir=ReadWrite.parseRoot(fnameIn);
-		
-		ArrayList<String> argList=new ArrayList<String>();
-		
-		{
-			argList.add("out="+fnameOut);
-			
-			StringBuilder sb=new StringBuilder("in=");
-			String comma="";
-			for(String s : readPaths){
-				sb.append(comma);
-				sb.append(s);
-				comma=",";
-			}
-			argList.add(sb.toString());
-		}
-		
-		String[] args=argList.toArray(new String[0]);
-		
-		{//Run Mux
-			int oldZT=ReadWrite.MAX_ZIP_THREADS;
-			boolean oldUP=ReadWrite.USE_PIGZ;
-			boolean oldUU=ReadWrite.USE_UNPIGZ;
-			try {
-				RenameAndMux.main(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-				log("failed", true);
-				System.exit(1);
-			}
-			ReadWrite.MAX_ZIP_THREADS=oldZT;
-			ReadWrite.USE_PIGZ=oldUP;
-			ReadWrite.USE_UNPIGZ=oldUU;
-		}
-
-		log("renameAndMux finish", true);
-	}
-	
-	private void eccTadpole(String fnameIn, String fnameOut){
-		log("tadpole start", true);
-		System.err.println("\nTadpole Phase Start");
-		
-//		String dir=ReadWrite.parseRoot(fnameIn);
-		
-		ArrayList<String> argList=new ArrayList<String>();
-		
-		{
-			argList.add("in="+fnameIn);
-			argList.add("out="+fnameOut);
-			argList.add("k="+tadpoleK);
-			argList.add("mode=correct");
-			if(tadpoleAggressive){
-				argList.add("aggressive");
-			}else if(tadpoleConservative){
-				argList.add("conservative");
-			}
-			if(tadpolePrefilter>=0){
-				argList.add("prefilter="+tadpolePrefilter);
-			}
-			argList.add("prealloc="+tadpolePrealloc);
-		}
-		
-		String[] args=argList.toArray(new String[0]);
-		
-		{//Run Mux
-			int oldZT=ReadWrite.MAX_ZIP_THREADS;
-			boolean oldUP=ReadWrite.USE_PIGZ;
-			boolean oldUU=ReadWrite.USE_UNPIGZ;
-			try {
-				Tadpole.main(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-				log("failed", true);
-				System.exit(1);
-			}
-			ReadWrite.MAX_ZIP_THREADS=oldZT;
-			ReadWrite.USE_PIGZ=oldUP;
-			ReadWrite.USE_UNPIGZ=oldUU;
-		}
-
-		log("tadpole finish", true);
-	}
-	
-	private void normalize(String fnameIn, String fnameOut, int k, int min, int target, int hashes, int passes, boolean ecc, boolean prefilter, boolean uselowerdepth){
+	private void normalize(String fnameIn, String fnameOut, int min, int target, int hashes, int passes, boolean ecc, boolean prefilter, boolean uselowerdepth){
 		log("normalization start", true);
 		System.err.println("\nNormalization/Error Correction Phase Start");
 		
@@ -494,7 +364,6 @@ public class DecontaminateByNormalization {
 			argList.add("hashes="+hashes);
 			argList.add("passes="+passes);
 			argList.add("target="+target);
-			argList.add("k="+k);
 			argList.add("mindepth="+min);
 			argList.add("maxdepth="+target);
 			argList.add("minprob="+minprob);
@@ -545,10 +414,6 @@ public class DecontaminateByNormalization {
 		String[] args=argList.toArray(new String[0]);
 		
 		{//Run Demux
-			int oldZT=ReadWrite.MAX_ZIP_THREADS;
-			boolean oldUP=ReadWrite.USE_PIGZ;
-			boolean oldUU=ReadWrite.USE_UNPIGZ;
-			ReadWrite.MAX_ZIP_THREADS=Tools.mid(ReadWrite.MAX_ZIP_THREADS, 2, 4);
 			try {
 				DemuxByName.main(args);
 			} catch (Exception e) {
@@ -556,9 +421,6 @@ public class DecontaminateByNormalization {
 				log("failed", true);
 				System.exit(1);
 			}
-			ReadWrite.MAX_ZIP_THREADS=oldZT;
-			ReadWrite.USE_PIGZ=oldUP;
-			ReadWrite.USE_UNPIGZ=oldUU;
 		}
 		
 		log("demux finish", true);
@@ -681,25 +543,6 @@ public class DecontaminateByNormalization {
 		return sdf.format(new Date());
 	}
 	
-	/**
-	 * Delete all non-null filenames.
-	 * @param prefix Append this prefix to filenames before attempting to delete them
-	 * @param names Filenames to delete
-	 */
-	private void delete(String path){
-		if(path==null){return;}
-		if(verbose){System.err.println("Trying to delete "+path);}
-		File f=new File(path);
-		if(f.exists()){
-			try {
-				f.delete();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	/*--------------------------------------------------------------*/
 	
 	private void printOptions(){
@@ -727,7 +570,7 @@ public class DecontaminateByNormalization {
 	
 	private String logName=null;
 	private String resultsName="results.txt";
-	private String tempdir=(Shared.tmpdir() == null ? "" : Shared.tmpdir());
+	private String tempdir=(Shared.TMPDIR == null ? "" : Shared.TMPDIR);
 	private String outdir=null;
 	
 	/*--------------------------------------------------------------*/
@@ -743,24 +586,12 @@ public class DecontaminateByNormalization {
 	private int minr=20;
 	private int minl=500;
 	
-	/** Delete temp files after use */
-	private boolean deleteFiles=true;
-
-	/** Error correct with Tadpole */
-	private boolean ecct=false;
-	private boolean tadpoleAggressive=false;
-	private boolean tadpoleConservative=false;
-	private boolean tadpolePrealloc=true;
-	private int tadpoleK=42;
-	private int tadpolePrefilter=1;
-	
 	/** Scaffolds will be discarded if there are at least this many bases in windows below a coverage cutoff. */
 	private int basesUnderMin=-1;
 	
 	private float depthPercentile=0.75f;
 	private float minprob=0.5f;
 	private int minDepth=2;
-	private int normK=31;
 	private int normTarget=20;
 	private int normHashes=4;
 	private int normPasses=1;

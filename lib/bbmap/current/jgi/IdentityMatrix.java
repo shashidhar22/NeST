@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import align2.BandedAligner;
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 
@@ -12,7 +13,7 @@ import stream.ConcurrentGenericReadInputStream;
 import stream.ConcurrentReadInputStream;
 import stream.FASTQ;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 
@@ -249,7 +250,7 @@ public class IdentityMatrix {
 						if(r2.numericID>r1.numericID){break;}
 //						int edits=bandy.alignQuadruple(r1.bases, r2.bases, maxEdits2, false);
 						int edits=bandy.alignQuadrupleProgressive(r1.bases, r2.bases, 10, maxEdits2, false);
-						System.err.println(r1.id+"->"+r2.id+": Edits="+edits);
+//						System.err.println(r1.id+"->"+r2.id+": Edits="+edits);
 						float editRate=edits/(float)Tools.max(r1.length(), r2.length());
 						float similarity=1-editRate;
 						if(r1!=r2){

@@ -16,7 +16,7 @@ import stream.ConcurrentReadOutputStream;
 import stream.KillSwitch;
 import stream.Read;
 import stream.SamLine;
-import structures.ListNum;
+
 import dna.Data;
 import dna.Parser;
 import dna.Timer;
@@ -25,6 +25,8 @@ import fileIO.ByteFile1;
 import fileIO.ByteFile2;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -204,17 +206,6 @@ public class ReformatReads {
 			usePairGC=parser.usePairGC;
 			tossJunk=parser.tossJunk;
 			recalibrateQuality=parser.recalibrateQuality;
-			
-			idFilter=parser.idFilter;
-			subfilter=parser.subfilter;
-			delfilter=parser.delfilter;
-			insfilter=parser.insfilter;
-			indelfilter=parser.indelfilter;
-			dellenfilter=parser.dellenfilter;
-			inslenfilter=parser.inslenfilter;
-			editfilter=parser.editfilter;
-			
-			USE_EDIT_FILTER=(subfilter>-1 || delfilter>-1 || insfilter>-1 || indelfilter>-1 || dellenfilter>-1 || inslenfilter>-1 || editfilter>-1);
 
 			setInterleaved=parser.setInterleaved;
 			
@@ -222,7 +213,7 @@ public class ReformatReads {
 			in2=parser.in2;
 			qfin1=parser.qfin1;
 			qfin2=parser.qfin2;
-			
+
 			out1=parser.out1;
 			out2=parser.out2;
 			outsingle=parser.outsingle;
@@ -419,9 +410,6 @@ public class ReformatReads {
 		long unmappedReadsT=0;
 		long unmappedBasesT=0;
 		
-		long idfilteredReadsT=0;
-		long idfilteredBasesT=0;
-		
 		long basesSwappedT=0;
 		long readsSwappedT=0;
 
@@ -435,10 +423,8 @@ public class ReformatReads {
 		final boolean MAKE_LHIST=ReadStats.COLLECT_LENGTH_STATS;
 		final boolean MAKE_GCHIST=ReadStats.COLLECT_GC_STATS;
 		final boolean MAKE_IDHIST=ReadStats.COLLECT_IDENTITY_STATS;
-		final boolean MAKE_IHIST=ReadStats.COLLECT_INSERT_STATS;
 		
-		final ReadStats readstats=(MAKE_QHIST || MAKE_MHIST || MAKE_BHIST || MAKE_QAHIST || MAKE_EHIST
-				|| MAKE_INDELHIST || MAKE_LHIST || MAKE_GCHIST || MAKE_IDHIST || MAKE_IHIST) ? 
+		final ReadStats readstats=(MAKE_QHIST || MAKE_MHIST || MAKE_BHIST || MAKE_QAHIST || MAKE_EHIST || MAKE_INDELHIST || MAKE_LHIST || MAKE_GCHIST || MAKE_IDHIST) ? 
 				new ReadStats() : null;
 		
 		{
@@ -452,9 +438,7 @@ public class ReformatReads {
 				Read r=reads.get(0);
 				assert((ffin1==null || ffin1.samOrBam()) || (r.mate!=null)==cris.paired());
 			}
-			
-			Read prevRead=null;
-			
+
 			while(reads!=null && reads.size()>0){
 				
 				if(skipreads>0){
@@ -495,26 +479,13 @@ public class ReformatReads {
 						if(MAKE_BHIST){readstats.addToBaseHistogram(r1);}
 						if(MAKE_MHIST){readstats.addToMatchHistogram(r1);}
 						if(MAKE_QAHIST){readstats.addToQualityAccuracy(r1);}
-						
+
 						if(MAKE_EHIST){readstats.addToErrorHistogram(r1);}
 						if(MAKE_INDELHIST){readstats.addToIndelHistogram(r1);}
 						if(MAKE_LHIST){readstats.addToLengthHistogram(r1);}
 						if(MAKE_GCHIST){readstats.addToGCHistogram(r1);}
 						if(MAKE_IDHIST){readstats.addToIdentityHistogram(r1);}
-						
-						if(MAKE_IHIST && !r1.secondary()){
-							final SamLine sl1=(SamLine)r1.obj, sl2;
-							if(r2!=null){
-								sl2=(SamLine)r2.obj;
-							}else{
-								sl2=(prevRead==null ? null : (SamLine)prevRead.obj);
-							}
-							if(sl1!=null && sl2!=null && sl1.qname.equals(sl2.qname) && sl1.pairnum()!=sl2.pairnum()){
-								readstats.addToInsertHistogram(sl1, sl2);
-							}
-						}
 					}
-					if(!r1.secondary()){prevRead=r1;}
 					
 					if(loglog!=null){loglog.hash(r1);}
 					
@@ -622,33 +593,6 @@ public class ReformatReads {
 								r2.setDiscarded(true);
 								unmappedBasesT+=initialLength1;
 								unmappedReadsT++;
-							}
-						}
-					}
-					
-					if(idFilter>=0 || USE_EDIT_FILTER){
-						if(r1!=null && !r1.discarded()){
-							assert(r1.match!=null || (r1.obj!=null && r1.obj.getClass().equals(SamLine.class))) : "idfilter requires sam/bam input.";
-							boolean pass=passesIDFilter(r1, idFilter, false);
-							if(USE_EDIT_FILTER){
-								pass=pass&&passesEditFilter(r1, false);
-							}
-							if(!pass){
-								r1.setDiscarded(true);
-								idfilteredBasesT+=initialLength1;
-								idfilteredReadsT++;
-							}
-						}
-						if(r2!=null && !r2.discarded()){
-							assert(r2.match!=null || (r2.obj!=null && r2.obj.getClass().equals(SamLine.class))) : "idfilter requires sam/bam input.";
-							boolean pass=passesIDFilter(r2, idFilter, false);
-							if(USE_EDIT_FILTER){
-								pass=pass&&passesEditFilter(r2, false);
-							}
-							if(!pass){
-								r2.setDiscarded(true);
-								idfilteredBasesT+=initialLength1;
-								idfilteredReadsT++;
 							}
 						}
 					}
@@ -1061,11 +1005,6 @@ public class ReformatReads {
 			outstream.println("Low quality discards:   \t"+lowqReadsT+" reads ("+String.format("%.2f",lowqReadsT*rpmult)+"%) \t"+
 					lowqBasesT+" bases ("+String.format("%.2f",lowqBasesT*bpmult)+"%)");
 		}
-		if(idFilter>=0 || USE_EDIT_FILTER){
-			outstream.println("Identity/edit discards: \t"+idfilteredReadsT+" reads ("+String.format("%.2f",idfilteredReadsT*rpmult)+"%) \t"+
-					idfilteredBasesT+" bases ("+String.format("%.2f",idfilteredBasesT*bpmult)+"%)");
-		}
-		
 		if(filterGC){
 			outstream.println("GC content discards:    \t"+badGcReadsT+" reads ("+String.format("%.2f",badGcReadsT*rpmult)+"%) \t"+
 					badGcBasesT+" bases ("+String.format("%.2f",badGcBasesT*bpmult)+"%)");
@@ -1097,51 +1036,6 @@ public class ReformatReads {
 		if(errorState){
 			throw new RuntimeException("ReformatReads terminated in an error state; the output may be corrupt.");
 		}
-	}
-	
-	/*--------------------------------------------------------------*/
-
-	public static final boolean passesIDFilter(Read r, float minId, boolean requireMapped){
-		if(minId<=0 || r.perfect()){return true;}
-		if(r.match==null){
-			Object o=r.obj;
-			if(o!=null && o.getClass()==SamLine.class){
-				SamLine sl=(SamLine)o;
-				r.match=sl.toShortMatch(false);
-			}
-		}
-		if(r.match==null){return !requireMapped;}
-		return Read.identityFlat(r.match)>=minId;
-	}
-	
-	public final boolean passesEditFilter(Read r, boolean requireMapped){
-		if(r.perfect()){return true;}
-		if(r.match==null){
-			Object o=r.obj;
-			if(o!=null && o.getClass()==SamLine.class){
-				SamLine sl=(SamLine)o;
-				r.match=sl.toShortMatch(false);
-			}
-		}
-		if(r.match==null){return !requireMapped;}
-		if(r.shortmatch()){r.toLongMatchString();}
-		
-		final int sub=Read.countSubs(r.match);
-		final int ins=Read.countInsertions(r.match);
-		final int del=Read.countDeletions(r.match);
-		final int inscount=Read.countInsertionEvents(r.match);
-		final int delcount=Read.countDeletionEvents(r.match);
-		
-		boolean bad=false;
-		bad=bad||(subfilter>=0 && sub>subfilter);
-		bad=bad||(insfilter>=0 && inscount>insfilter);
-		bad=bad||(delfilter>=0 && delcount>delfilter);
-		bad=bad||(inslenfilter>=0 && r.hasLongInsertion(inslenfilter));
-		bad=bad||(dellenfilter>=0 && r.hasLongDeletion(dellenfilter));
-		bad=bad||(indelfilter>=0 && inscount+delcount>indelfilter);
-		bad=bad||(editfilter>=0 && sub+ins+del>editfilter);
-		
-		return !bad;
 	}
 	
 	/*--------------------------------------------------------------*/
@@ -1371,16 +1265,6 @@ public class ReformatReads {
 	private boolean stoptag=false;
 	private boolean iupacToN=false;
 	
-	private float idFilter=-1;
-	private int subfilter=-1;
-	private int delfilter=-1;
-	private int insfilter=-1;
-	private int indelfilter=-1;
-	private int dellenfilter=-1;
-	private int inslenfilter=-1;
-	private int editfilter=-1;
-	
-	boolean USE_EDIT_FILTER=false;
 
 	private long maxReads=-1;
 	private long skipreads=-1;

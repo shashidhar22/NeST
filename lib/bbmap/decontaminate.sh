@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell.
-Last modified June 28, 2016
+Last modified September 29, 2015
 
 Description:  Decontaminates multiplexed assemblies via normalization and mapping.
 
@@ -47,12 +47,6 @@ basesundermin=-1    If positive, removes contigs with at least this many bases i
 window=500          Sliding window size 
 windowcov=5         Average coverage below this will be classified as low.
 
-Tadpole Parameters:
-ecct=f              Error-correct with Tadpole before normalization.
-kt=42               Kmer length for Tadpole.
-aggressive=f        Do aggressive error correction.
-conservative=f      Do conservative error correction.
-tadpoleprefilter=1  (tadpre) Ignore kmers under this depth to save memory.
 
 Normalization Parameters:
 mindepth=2          Min depth of reads to keep.
@@ -61,13 +55,12 @@ hashes=4            Number of hashes in Bloom filter.
 passes=1            Normalization passes.
 minprob=0.5         Min probability of correctness to add a kmer.
 dp=0.75             (depthpercentile) Percentile to use for depth proxy (0.5 means median).
+ecc=f               Error-correction.
+aecc=f              Agressive error-correction.
+cecc=f              Conservative error-correction.
 prefilter=t         Prefilter, for large datasets.
 filterbits=32       (fbits) Bits per cell in primary filter.
 prefilterbits=2     (pbits) Bits per cell in prefilter.
-k=31                Kmer length for normalization.  Longer is more precise but less sensitive.
-
-Other parameters:
-opfn=0              (onlyprocessfirstn) Set to a positive number to only process that many datasets.  This is for internal testing of specificity.
 
 Java Parameters:
 -Xmx                This will be passed to Java to set memory usage, overriding the program's automatic memory detection.

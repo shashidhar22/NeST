@@ -20,11 +20,12 @@ import stream.KillSwitch;
 import stream.MultiCros;
 import stream.Read;
 import stream.SamLine;
-import structures.IntList;
-import structures.ListNum;
 import tax.GiToNcbi;
 import tax.TaxNode;
 import tax.TaxTree;
+
+import align2.IntList;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -127,9 +128,7 @@ public class Seal {
 		ReadWrite.MAX_ZIP_THREADS=8;
 		
 		
-		if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-			ByteFile.FORCE_MODE_BF2=true;
-		}
+		ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		SamLine.SET_FROM_OK=true;
 		
 		/* Initialize local variables with defaults */
@@ -497,7 +496,7 @@ public class Seal {
 			{
 				long memory=Runtime.getRuntime().maxMemory();
 				double xmsRatio=Shared.xmsRatio();
-				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 				tableMemory=(long)(usableMemory*.95);
 			}
 
@@ -744,7 +743,7 @@ public class Seal {
 		
 		if(USE_TAXTREE){
 			if(giTableFile!=null){loadGiToNcbi();}
-			if(USE_TAXTREE){tree=TaxTree.loadTaxTree(taxTreeFile, taxNameFile, taxNodeFile, DISPLAY_PROGRESS ? outstream : null, false);}
+			if(USE_TAXTREE){tree=loadTaxTree();}
 			addToTree();
 		}
 		
@@ -768,36 +767,31 @@ public class Seal {
 		outstream.println("\nInput:                  \t"+readsIn+" reads \t\t"+basesIn+" bases.");
 		
 		if(ref!=null || literal!=null){
-			outstream.println("Matched reads:          \t"+readsMatched+" reads ("+toPercent(readsMatched, readsIn)+") \t"+
-					basesMatched+" bases ("+toPercent(basesMatched, basesIn)+")");
-			outstream.println("Unmatched reads:        \t"+readsUnmatched+" reads ("+toPercent(readsUnmatched, readsIn)+") \t"+
-					basesUnmatched+" bases ("+toPercent(basesUnmatched, basesIn)+")");
+			outstream.println("Matched reads:          \t"+readsMatched+" reads ("+String.format("%.2f",readsMatched*100.0/readsIn)+"%) \t"+
+					basesMatched+" bases ("+String.format("%.2f",basesMatched*100.0/basesIn)+"%)");
+			outstream.println("Unmatched reads:        \t"+readsUnmatched+" reads ("+String.format("%.2f",readsUnmatched*100.0/readsIn)+"%) \t"+
+					basesUnmatched+" bases ("+String.format("%.2f",basesUnmatched*100.0/basesIn)+"%)");
 			outstream.flush();
 		}
 		if(qtrimLeft || qtrimRight){
-			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+toPercent(readsQTrimmed, readsIn)+") \t"+
-					basesQTrimmed+" bases ("+toPercent(basesQTrimmed, basesIn)+")");
+			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+String.format("%.2f",readsQTrimmed*100.0/readsIn)+"%) \t"+
+					basesQTrimmed+" bases ("+String.format("%.2f",basesQTrimmed*100.0/basesIn)+"%)");
 		}
 		if(forceTrimLeft>0 || forceTrimRight>0 || forceTrimRight2>0 || forceTrimModulo>0){  
-			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+toPercent(readsFTrimmed, readsIn)+") \t"+
-					basesFTrimmed+" bases ("+toPercent(basesFTrimmed, basesIn)+")");
+			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+String.format("%.2f",readsFTrimmed*100.0/readsIn)+"%) \t"+
+					basesFTrimmed+" bases ("+String.format("%.2f",basesFTrimmed*100.0/basesIn)+"%)");
 		}
 		if(minAvgQuality>0 || maxNs>=0){
-			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+toPercent(readsQFiltered, readsIn)+") \t"+
-					basesQFiltered+" bases ("+toPercent(basesQFiltered, basesIn)+")");
+			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+String.format("%.2f",readsQFiltered*100.0/readsIn)+"%) \t"+
+					basesQFiltered+" bases ("+String.format("%.2f",basesQFiltered*100.0/basesIn)+"%)");
 		}
 		if(parsecustom){
 			outstream.println();
-			outstream.println("Correctly mapped:       \t"+correctReads+" reads ("+toPercent(correctReads, readsIn)+")");
-			outstream.println("Incorrectly mapped:     \t"+incorrectReads+" reads ("+toPercent(incorrectReads, readsIn)+")");
+			outstream.println("Correctly mapped:       \t"+correctReads+" reads ("+String.format("%.2f",correctReads*100.0/readsIn)+"%)");
+			outstream.println("Incorrectly mapped:     \t"+incorrectReads+" reads ("+String.format("%.2f",incorrectReads*100.0/readsIn)+"%)");
 		}
-//		outstream.println("Result:                 \t"+readsMatched+" reads ("+toPercent(readsMatched*100.0/readsIn)+"%) \t"+
-//				basesMatched+" bases ("+toPercent(basesMatched*100.0/basesIn)+"%)");
-	}
-	
-	private String toPercent(long numerator, long denominator){
-		if(denominator<1){return "0.00%";}
-		return String.format("%.2f%%",numerator*100.0/denominator);
+//		outstream.println("Result:                 \t"+readsMatched+" reads ("+String.format("%.2f",readsMatched*100.0/readsIn)+"%) \t"+
+//				basesMatched+" bases ("+String.format("%.2f",basesMatched*100.0/basesIn)+"%)");
 	}
 	
 	/**
@@ -835,8 +829,8 @@ public class Seal {
 		
 		long rsum=0, bsum=0;
 		
-		/* Create StringCount list of scaffold names and hitcounts */
-		ArrayList<StringCount> list=new ArrayList<StringCount>();
+		/* Create StringNum list of scaffold names and hitcounts */
+		ArrayList<StringNum> list=new ArrayList<StringNum>();
 		for(int i=1; i<scaffoldNames.size(); i++){
 			final long num1=scaffoldReadCounts.get(i), num2=scaffoldBaseCounts.get(i);
 			if(num1>0 || !printNonZeroOnly){
@@ -844,7 +838,7 @@ public class Seal {
 				bsum+=num2;
 				final String s=scaffoldNames.get(i);
 				final int len=scaffoldLengths.get(i);
-				final StringCount sn=new StringCount(s, len, num1, num2);
+				final StringNum sn=new StringNum(s, len, num1, num2);
 				list.add(sn);
 			}
 		}
@@ -859,7 +853,7 @@ public class Seal {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",readsMatched,rmult*readsMatched));
 			tsw.print("#Name\tReads\tReadsPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult)));
 			}
 		}else{
@@ -868,7 +862,7 @@ public class Seal {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",readsMatched,rmult*readsMatched,basesMatched,basesMatched*bmult));
 			tsw.print("#Name\tReads\tReadsPct\tBases\tBasesPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult),sn.bases,(sn.bases*bmult)));
 			}
 		}
@@ -1107,24 +1101,24 @@ public class Seal {
 		}
 	}
 	
-//	private TaxTree loadTaxTree(){
-//		assert(taxTreeFile!=null || (taxNameFile!=null && taxNodeFile!=null)) : "Must specify both taxname and taxnode files.";
-//		Timer t=new Timer();
-//		outstream.print("\nLoading tax tree; ");
-//		final TaxTree tree;
-//		if(taxTreeFile!=null){
-//			tree=ReadWrite.read(TaxTree.class, taxTreeFile, true);
-//		}else{
-//			tree=new TaxTree(taxNameFile, taxNodeFile);
-//		}
-//		t.stop();
-//		if(DISPLAY_PROGRESS){
-//			outstream.println("time: \t"+t);
-//			Shared.printMemory();
-//			outstream.println();
-//		}
-//		return tree;
-//	}
+	private TaxTree loadTaxTree(){
+		assert(taxTreeFile!=null || (taxNameFile!=null && taxNodeFile!=null)) : "Must specify both taxname and taxnode files.";
+		Timer t=new Timer();
+		outstream.print("\nLoading tax tree; ");
+		final TaxTree tree;
+		if(taxTreeFile!=null){
+			tree=ReadWrite.read(TaxTree.class, taxTreeFile, true);
+		}else{
+			tree=new TaxTree(taxNameFile, taxNodeFile);
+		}
+		t.stop();
+		if(DISPLAY_PROGRESS){
+			outstream.println("time: \t"+t);
+			Shared.printMemory();
+			outstream.println();
+		}
+		return tree;
+	}
 	
 	private void addToTree(){
 		for(int i=0; i<scaffoldFragCounts.length(); i++){
@@ -2730,6 +2724,40 @@ public class Seal {
 		private long correctT=0;
 		private long incorrectT=0;
 		
+	}
+	
+	/*--------------------------------------------------------------*/
+	/*----------------        Helper Methods        ----------------*/
+	/*--------------------------------------------------------------*/
+	
+	/**
+	 * Object holding a String and numbers, for tracking the number of read and base hits per scaffold.
+	 */
+	private static class StringNum implements Comparable<StringNum>{
+		
+		public StringNum(String name_, int len_, long reads_, long bases_){
+			name=name_;
+			length=len_;
+			reads=reads_;
+			bases=bases_;
+		}
+		public final int compareTo(StringNum o){
+			if(bases!=o.bases){return o.bases>bases ? 1 : -1;}
+			if(reads!=o.reads){return o.reads>reads ? 1 : -1;}
+			return name.compareTo(o.name);
+		}
+		public final boolean equals(StringNum o){
+			return compareTo(o)==0;
+		}
+		public final String toString(){
+			return name+"\t"+length+"\t"+reads+"\t"+bases;
+		}
+		
+		/*--------------------------------------------------------------*/
+		
+		public final String name;
+		public final int length;
+		public final long reads, bases;
 	}
 	
 	/*--------------------------------------------------------------*/

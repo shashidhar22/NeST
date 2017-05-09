@@ -3,8 +3,8 @@ package stream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import align2.ListNum;
 import align2.Shared;
-import structures.ListNum;
 
 /**
  * This class is designed for distributed environments.

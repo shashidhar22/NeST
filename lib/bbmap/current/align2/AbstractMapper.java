@@ -229,8 +229,6 @@ public abstract class AbstractMapper {
 				synthReadlen=Integer.parseInt(b);
 			}else if(a.equals("kfilter")){
 				KFILTER=Integer.parseInt(b);
-			}else if(a.equals("renamebyinsert")){
-				RenameByInsert=Tools.parseBoolean(b);
 			}else if(a.equals("msa")){
 				MSA_TYPE=b;
 			}else if(a.equals("bandwidth") || a.equals("bw")){
@@ -625,15 +623,10 @@ public abstract class AbstractMapper {
 				CORRECT_THRESH=Integer.parseInt(b);
 			}else if(a.equals("statsfile")){
 				statsOutputFile=b;
-			}else if(a.equals("ignorefrequentkmers") || a.equals("ifk")){
-				AbstractIndex.REMOVE_FREQUENT_GENOME_FRACTION=Tools.parseBoolean(b);
-			}else if(a.equals("trimbygreedy") || a.equals("tbg") || a.equals("greedy")){
-				AbstractIndex.TRIM_BY_GREEDY=Tools.parseBoolean(b);
 			}else{
 				throw new RuntimeException("Unknown parameter: "+arg);
 			}
 		}
-		
 		
 		{//Process parser fields
 			Parser.processQuality();
@@ -773,15 +766,6 @@ public abstract class AbstractMapper {
 					if(vslow){fast=false;slow=true;}
 					args[i]=null;
 					nulls++;
-				}else if(a.equals("vslow")){
-					vslow=Tools.parseBoolean(b);
-					if(vslow){fast=false;slow=true;}
-					args[i]=null;
-					nulls++;
-				}else if(a.equals("excludefraction") || a.equals("ef")){
-					excludeFraction=Float.parseFloat(b);
-					args[i]=null;
-					nulls++;
 				}
 			}
 		}
@@ -821,8 +805,8 @@ public abstract class AbstractMapper {
 			
 			AbstractMapThread.OUTPUT_SAM=false;
 			if(outFile!=null){
-				FileFormat ff1=FileFormat.testOutput(outFile, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
-				FileFormat ff2=outFile2==null ? null : FileFormat.testOutput(outFile2, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff1=FileFormat.testOutput(outFile, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff2=outFile2==null ? null : FileFormat.testOutput(outFile2, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
 				rosA=ConcurrentReadOutputStream.getStream(ff1, ff2, qfout, qfout2, buff, null, false);
 				rosA.start();
 				t.stop();
@@ -831,8 +815,8 @@ public abstract class AbstractMapper {
 				AbstractMapThread.OUTPUT_SAM|=ff1.samOrBam();
 			}
 			if(outFileM!=null){
-				FileFormat ff1=FileFormat.testOutput(outFileM, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
-				FileFormat ff2=outFileM2==null ? null : FileFormat.testOutput(outFileM2, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff1=FileFormat.testOutput(outFileM, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff2=outFileM2==null ? null : FileFormat.testOutput(outFileM2, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
 				rosM=ConcurrentReadOutputStream.getStream(ff1, ff2, qfoutM, qfoutM2, buff, null, false);
 				rosM.start();
 				t.stop();
@@ -841,8 +825,8 @@ public abstract class AbstractMapper {
 				AbstractMapThread.OUTPUT_SAM|=ff1.samOrBam();
 			}
 			if(outFileU!=null){
-				FileFormat ff1=FileFormat.testOutput(outFileU, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
-				FileFormat ff2=outFileU2==null ? null : FileFormat.testOutput(outFileU2, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff1=FileFormat.testOutput(outFileU, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff2=outFileU2==null ? null : FileFormat.testOutput(outFileU2, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
 				rosU=ConcurrentReadOutputStream.getStream(ff1, ff2, qfoutU, qfoutU2, buff, null, false);
 				rosU.start();
 				t.stop();
@@ -851,8 +835,8 @@ public abstract class AbstractMapper {
 				AbstractMapThread.OUTPUT_SAM|=ff1.samOrBam();
 			}
 			if(outFileB!=null && !Data.scaffoldPrefixes){
-				FileFormat ff1=FileFormat.testOutput(outFileB, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
-				FileFormat ff2=outFileB2==null ? null : FileFormat.testOutput(outFileB2, DEFAULT_OUTPUT_FORMAT, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff1=FileFormat.testOutput(outFileB, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
+				FileFormat ff2=outFileB2==null ? null : FileFormat.testOutput(outFileB2, FileFormat.SAM, 0, 0, true, overwrite, append, OUTPUT_ORDERED_READS);
 				rosB=ConcurrentReadOutputStream.getStream(ff1, ff2, qfoutB, qfoutB2, buff, null, false);
 				rosB.start();
 				t.stop();
@@ -1370,6 +1354,7 @@ public abstract class AbstractMapper {
 		double invSites100=100d/siteSum1;
 		
 		final double matedPercent=(numMated*invTrials100);
+		ReadStats.matedPercent=matedPercent;
 		final double badPairsPercent=(badPairs*invTrials100);
 		final double matedPercentBases=(numMatedBases*invBases100);
 		final double badPairsPercentBases=(badPairBases*invBases100);
@@ -1524,12 +1509,6 @@ public abstract class AbstractMapper {
 				tswStats.println(String.format("avg insert size: \t  %.2f", outerLengthAvg));
 			}
 		}
-		
-		/** For RQCFilter */
-		lastBothUnmapped=bothUnmapped;
-		lastBothUnmappedBases=bothUnmappedBases;
-		lastReadsUsed=(readsUsed1+readsUsed2);
-		lastBasesUsed=basesUsed;
 		
 		if(PRINT_UNMAPPED_COUNT){
 			double invReadsUsed100=100.0/(readsUsed1+readsUsed2);
@@ -2208,6 +2187,7 @@ public abstract class AbstractMapper {
 		double invSites100=100d/siteSum1;
 
 		final double matedPercent=(numMated*invTrials100);
+		ReadStats.matedPercent=matedPercent;
 		final double badPairsPercent=(badPairs*invTrials100);
 		final double innerLengthAvg=(innerLengthSum*1d/numMated);
 		final double outerLengthAvg=(outerLengthSum*1d/numMated);
@@ -2568,7 +2548,6 @@ public abstract class AbstractMapper {
 	boolean fast=false;
 	boolean slow=false;
 	boolean vslow=false;
-	float excludeFraction=-1;
 	boolean verbose=false;
 	boolean rcompMate=false;
 	boolean outputSitesOnly=false;
@@ -2635,12 +2614,6 @@ public abstract class AbstractMapper {
 	
 	/* ------------ Static fields ----------- */
 
-	public static long lastBothUnmapped=0;
-	public static long lastBothUnmappedBases=0;
-
-	public static long lastReadsUsed=0;
-	public static long lastBasesUsed=0;
-
 	static final int AMBIG_BEST=0;
 	static final int AMBIG_TOSS=1;
 	static final int AMBIG_RANDOM=2;
@@ -2703,9 +2676,6 @@ public abstract class AbstractMapper {
 	/** Only allow sites with identity of at least this */
 	static float IDFILTER=0f;
 	
-	/** Rename reads to indicate their mapped insert size */
-	static boolean RenameByInsert=false;
-	
 	/** Quality-trim left side of read before mapping */
 	static boolean qtrimLeft=false;
 	/** Quality-trim right side of read before mapping */
@@ -2764,7 +2734,6 @@ public abstract class AbstractMapper {
 	static boolean SYSIN=false;
 	static int verbose_stats=0;
 	static boolean waitForMemoryClear=false;
-	static int DEFAULT_OUTPUT_FORMAT=FileFormat.SAM;
 	
 	public static boolean errorState=false;
 	

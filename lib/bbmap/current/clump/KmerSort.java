@@ -12,13 +12,14 @@ import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
 import fileIO.ReadWrite;
-import jgi.BBMerge;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -40,14 +41,11 @@ public class KmerSort {
 	 */
 	public static void main(String[] args){
 		final boolean pigz=ReadWrite.USE_PIGZ, unpigz=ReadWrite.USE_UNPIGZ;
-		final int zld=ReadWrite.ZIP_THREAD_DIVISOR, mzt=ReadWrite.MAX_ZIP_THREADS;
 		Timer t=new Timer();
 		KmerSort ks=new KmerSort(args);
 		ks.process(t);
 		ReadWrite.USE_PIGZ=pigz;
 		ReadWrite.USE_UNPIGZ=unpigz;
-		ReadWrite.ZIP_THREAD_DIVISOR=zld;
-		ReadWrite.MAX_ZIP_THREADS=mzt;
 	}
 	
 	/**
@@ -69,7 +67,7 @@ public class KmerSort {
 		Shared.READ_BUFFER_LENGTH=Tools.min(200, Shared.READ_BUFFER_LENGTH);
 		ReadWrite.USE_PIGZ=ReadWrite.USE_UNPIGZ=true;
 		ReadWrite.MAX_ZIP_THREADS=Shared.threads();
-		ReadWrite.ZIP_THREAD_DIVISOR=1;
+		
 		
 		Parser parser=new Parser();
 		for(int i=0; i<args.length; i++){
@@ -93,27 +91,21 @@ public class KmerSort {
 				minCount=Integer.parseInt(b);
 			}else if(a.equals("comparisons") || a.equals("c")){
 				comparisons=Integer.parseInt(b);
+			}else if(a.equals("divisor") || a.equals("div") || a.equals("mindivisor")){
+				minDivisor=Tools.parseKMG(b);
 			}else if(a.equals("rename") || a.equals("addname")){
 				addName=Tools.parseBoolean(b);
-			}else if(a.equals("shortname") || a.equals("shortnames")){
-				shortName=Tools.parseBoolean(b);
 //			}else if(a.equals("cache")){
 //				KmerComparator.useCache=Tools.parseBoolean(b);//Obsolete
 			}else if(a.equals("rcomp") || a.equals("reversecomplement")){
 				rcomp=Tools.parseBoolean(b);
-			}else if(a.equals("ecco")){
-				ecco=Tools.parseBoolean(b);
-			}else if(a.equals("condense") || a.equals("consensus") || a.equals("concensus")){//Note the last one is intentionally misspelled
+			}else if(a.equals("condense") || a.equals("consensus")){
 				condense=Tools.parseBoolean(b);
 			}else if(a.equals("prefilter")){
 				KmerReduce.prefilter=Tools.parseBoolean(b);
 			}else if(a.equals("groups") || a.equals("g") || a.equals("sets")){
 				groups=Integer.parseInt(b);
 				splitInput=(groups>1);
-			}else if(a.equals("seed")){
-				KmerComparator.setSeed(Long.parseLong(b));
-			}else if(a.equals("hashes")){
-				KmerComparator.setHashes(Integer.parseInt(b));
 			}else{
 				outstream.println("Unknown parameter "+args[i]);
 				assert(false) : "Unknown parameter "+args[i];
@@ -226,16 +218,13 @@ public class KmerSort {
 
 		String rpstring=(readsProcessed<100000 ? ""+readsProcessed : readsProcessed<100000000 ? (readsProcessed/1000)+"k" : (readsProcessed/1000000)+"m");
 		String bpstring=(basesProcessed<100000 ? ""+basesProcessed : basesProcessed<100000000 ? (basesProcessed/1000)+"k" : (basesProcessed/1000000)+"m");
-		String cpstring=""+clumpsProcessed;
 
 		while(rpstring.length()<8){rpstring=" "+rpstring;}
 		while(bpstring.length()<8){bpstring=" "+bpstring;}
-		while(cpstring.length()<8){cpstring=" "+cpstring;}
 		
 		outstream.println("Time:                         \t"+t);
 		outstream.println("Reads Processed:    "+rpstring+" \t"+String.format("%.2fk reads/sec", rpnano*1000000));
 		outstream.println("Bases Processed:    "+bpstring+" \t"+String.format("%.2fm bases/sec", bpnano*1000));
-		outstream.println("Clumps Formed:      "+cpstring);
 		
 		if(errorState){
 			throw new RuntimeException(getClass().getName()+" terminated in an error state; the output may be corrupt.");
@@ -245,9 +234,8 @@ public class KmerSort {
 	/** Collect and sort the reads */
 	void processInner(final ConcurrentReadInputStream[] crisArray, final ConcurrentReadOutputStream ros){
 		if(verbose){outstream.println("Making comparator.");}
-		KmerComparator kc=new KmerComparator(k);
+		KmerComparator kc=new KmerComparator(k, minDivisor);
 		kc.addName=addName;
-		kc.shortName=shortName;
 		kc.rcompReads=rcomp;
 		
 		int i=0;
@@ -261,9 +249,7 @@ public class KmerSort {
 
 			if(verbose){outstream.println("Sorting.");}
 			Collections.sort(reads, kc);
-			
-			clumpsProcessed+=countClumps(reads);
-			
+
 			if(condense){
 				if(verbose){outstream.println("Condensing.");}
 				reads=condenseReads(reads);
@@ -281,20 +267,6 @@ public class KmerSort {
 		}
 		
 		if(verbose){outstream.println("Done!");}
-	}
-	
-	public int countClumps(ArrayList<Read> list){
-		int count=0;
-		long currentKmer=-1;
-		for(final Read r : list){
-			final long[] obj=(long[])r.obj;
-			final long kmer=obj[0];
-			if(kmer!=currentKmer){
-				currentKmer=kmer;
-				count++;
-			}
-		}
-		return count;
 	}
 	
 	public ArrayList<Read> fetchReads(final ConcurrentReadInputStream cris, final KmerComparator kc){
@@ -336,7 +308,7 @@ public class KmerSort {
 			list.addAll(ht.storage);
 		}
 		
-		assert(list.size()==readsThisPass || (cris.paired() && list.size()*2==readsThisPass));
+		assert(list.size()==readsThisPass);
 		return list;
 	}
 	
@@ -377,15 +349,10 @@ public class KmerSort {
 			ArrayList<Read> reads=(ln!=null ? ln.list : null);
 			
 			while(reads!=null && reads.size()>0){
-				if(ecco){
-					for(Read r : reads){
-						if(r.mate!=null){BBMerge.findOverlapStrict(r, r.mate, true);}
-					}
-				}
 				kc.hash(reads, table, minCount);
 				for(Read r : reads){
-					readsProcessedT+=1+r.mateCount();
-					basesProcessedT+=r.length()+r.mateLength();
+					readsProcessedT++;
+					basesProcessedT+=r.length();
 				}
 				storage.addAll(reads);
 				cris.returnList(ln.id, ln.list.isEmpty());
@@ -414,6 +381,7 @@ public class KmerSort {
 	private int k=31;
 	private int minCount=0;
 	private int comparisons=3;
+	private long minDivisor=80000000;
 	
 	private int groups=1;
 	
@@ -434,15 +402,12 @@ public class KmerSort {
 	
 	protected long readsProcessed=0;
 	protected long basesProcessed=0;
-	protected long clumpsProcessed=0;
 	
 	private long maxReads=-1;
-	private boolean addName=false;
-	private boolean shortName=false;
-	private boolean rcomp=false;
+	private boolean addName=true;
+	private boolean rcomp=true;
 	private boolean condense=false;
 	private boolean splitInput=false;
-	private boolean ecco=false;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Final Fields         ----------------*/

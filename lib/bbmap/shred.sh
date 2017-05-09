@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified September 1, 2016
+Last modified August 21, 2015
 Description:  Shreds sequences into shorter, potentially overlapping sequences.
 
 Usage:	shred.sh in=<file> out=<file> length=<number> minlength=<number> overlap=<number>
@@ -17,8 +17,6 @@ minlength=1   Shortest allowed shred.  The last shred of each input sequence may
 overlap=0     Amount of overlap between successive reads.
 reads=-1      If nonnegative, stop after this many input sequences.
 equal=f       Shred each sequence into subsequences of equal size of at most 'length', instead of a fixed size.
-median=0      If nonzero, randomly shred reads to a length with this median.
-variance=0    If median is nonzero, shred to lengths of median +-variance.
 
 Please contact Brian Bushnell at bbushnell@lbl.gov if you encounter any problems.
 "

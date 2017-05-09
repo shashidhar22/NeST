@@ -14,7 +14,7 @@ import stream.ConcurrentReadOutputStream;
 import stream.Read;
 import stream.ReadStreamWriter;
 import stream.SamLine;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
@@ -22,10 +22,11 @@ import fileIO.ByteFile1;
 import fileIO.ByteFile2;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
-import align2.TrimRead;
 
 /**
  * @author Brian Bushnell
@@ -70,7 +71,9 @@ public class FilterReadsByName {
 			if(b==null || b.equalsIgnoreCase("null")){b=null;}
 			while(a.startsWith("-")){a=a.substring(1);} //In case people use hyphens
 
-			if(a.equals("verbose")){
+			if(parser.parse(arg, a, b)){
+				//do nothing
+			}else if(a.equals("verbose")){
 				verbose=Tools.parseBoolean(b);
 				ByteFile1.verbose=verbose;
 				ByteFile2.verbose=verbose;
@@ -101,28 +104,12 @@ public class FilterReadsByName {
 				exclude=!Tools.parseBoolean(b);
 			}else if(a.equals("exclude") || a.equals("remove")){
 				exclude=Tools.parseBoolean(b);
-			}else if(a.equals("prefix") || a.equals("prefixmode")){
-				prefixmode=Tools.parseBoolean(b);
 			}else if(a.equals("minlen") || a.equals("minlength")){
 				minLength=(int)Tools.parseKMG(b);
-			}else if(a.equals("from")){
-				fromPos=(int)Tools.parseKMG(b);
-			}else if(a.equals("to")){
-				toPos=(int)Tools.parseKMG(b);
-			}else if(a.equals("pos") || a.equals("range")){
-				String[] split2=b.split("-");
-				fromPos=(int)Tools.parseKMG(split2[0]);
-				toPos=(int)Tools.parseKMG(split2[1]);
-			}else if(a.equals("truncate")){
-				truncateWhitespace=truncateHeaderSymbol=Tools.parseBoolean(b);
-			}else if(a.equals("truncatewhitespace") || a.equals("tws")){
-				truncateWhitespace=Tools.parseBoolean(b);
-			}else if(a.equals("truncateheadersymbol") || a.equals("ths")){
+			}else if(a.equals("truncateheadersymbol") || a.equals("truncate") || a.equals("ths")){
 				truncateHeaderSymbol=Tools.parseBoolean(b);
 			}else if(parser.in1==null && i==0 && !arg.contains("=") && (arg.toLowerCase().startsWith("stdin") || new File(arg).exists())){
 				parser.in1=arg;
-			}else if(parser.parse(arg, a, b)){
-				//do nothing
 			}else{
 				outstream.println("Unknown parameter "+args[i]);
 				assert(false) : "Unknown parameter "+args[i];
@@ -144,16 +131,13 @@ public class FilterReadsByName {
 				names.add(s.toLowerCase());
 			}
 		}
-		if(truncateHeaderSymbol || truncateWhitespace){
+		if(truncateHeaderSymbol){
 			String[] x=names.toArray(new String[names.size()]);
 			names.clear();
 			for(String s : x){
 				String s2=s;
-				if(truncateHeaderSymbol && s.length()>1 && (s.charAt(0)=='@' || s.charAt(0)=='>')){s2=s.substring(1);}
-				if(truncateWhitespace){s2=s.trim();}
-				if(s2.length()>0){
-					names.add(s2);
-				}
+				if(s.length()>1 && (s.charAt(0)=='@' || s.charAt(0)=='>')){s2=s.substring(1);}
+				names.add(s2);
 			}
 		}
 		
@@ -242,9 +226,13 @@ public class FilterReadsByName {
 		ffin1=FileFormat.testInput(in1, FileFormat.FASTQ, extin, true, true);
 		ffin2=FileFormat.testInput(in2, FileFormat.FASTQ, extin, true, true);
 		
-		if(ffin1!=null && ffout1!=null && ffin1.samOrBam() && ffout1.samOrBam()){
-			useSharedHeader=true;
-		}
+//		if(ffin1!=null && ffout1!=null && ffin1.samOrBam()){
+//			if(ffout1.samOrBam()){
+//				useSharedHeader=true;
+//			}else if(ffout1.bread()){
+//				SamLine.CONVERT_CIGAR_TO_MATCH=true;
+//			}
+//		}
 	}
 	
 	void process(Timer t){
@@ -308,21 +296,12 @@ public class FilterReadsByName {
 					readsProcessed+=1+r1.mateCount();
 					basesProcessed+=initialLength1+initialLength2;
 					
-					final String header;
-					{
-						String temp=(ignoreCase ? r1.id.toLowerCase() : r1.id);
-						temp=truncateWhitespace ? temp.trim() : temp;
-						header=temp;
-					}
+					final String header=(ignoreCase ? r1.id.toLowerCase() : r1.id);
 					String prefix=null;
 					for(int x=1; x<header.length(); x++){
-						char prev=x>=2 ? header.charAt(x-2) : 'X';
 						char c=header.charAt(x-1);
 						char next=header.charAt(x);
 						if(Character.isWhitespace(c) || (c=='/' && (next=='1' || next=='2'))){
-							prefix=header.substring(0, x).trim();
-							break;
-						}else if(Character.isWhitespace(prev) && (c=='1' || c=='2') && next==':'){
 							prefix=header.substring(0, x).trim();
 							break;
 						}
@@ -337,10 +316,6 @@ public class FilterReadsByName {
 								if((headerSubstringOfName && name.contains(header)) || (nameSubstringOfHeader && header.contains(name))){match=true;}
 								else if(prefix!=null && ((headerSubstringOfName && name.contains(prefix)) || (nameSubstringOfHeader && prefix.contains(name)))){match=true;}
 							}
-						}else if(!match && prefixmode){
-							for(String name : names){
-								if(header.startsWith(name)){match=true;} //TODO: Fast hashing like in DemuxByName
-							}
 						}
 						keepThisRead=(match!=exclude);
 					}
@@ -348,12 +323,9 @@ public class FilterReadsByName {
 //					assert(false) : names.contains(name)+", "+name+", "+prefix+", "+exclude;
 					
 					if(keepThisRead){
-						if(fromPos>=0){
-							TrimRead.trimToPosition(r1, fromPos, toPos, 1);
-						}
 						retain.add(r1);
 						readsOut+=1+r1.mateCount();
-						basesOut+=r1.length()+r1.mateLength();
+						basesOut+=initialLength1+initialLength2;
 					}
 				}
 				
@@ -435,17 +407,12 @@ public class FilterReadsByName {
 
 	private long maxReads=-1;
 	private boolean exclude=true;
-	private boolean prefixmode=false;
 	private boolean nameSubstringOfHeader=false;
 	private boolean headerSubstringOfName=false;
 	private boolean ignoreCase=true;
 	private boolean truncateHeaderSymbol=false;
-	private boolean truncateWhitespace=false;
-
+	
 	private int minLength=0;
-
-	private int fromPos=-1;
-	private int toPos=-1;
 	
 	private LinkedHashSet<String> names=new LinkedHashSet<String>();
 	

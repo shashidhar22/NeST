@@ -123,6 +123,8 @@ public class BBQC {
 				artifactFileDna=b;
 			}else if(a.equals("phixref")){
 				phixRef=b;
+			}else if(a.equals("append") || a.equals("app")){
+				append=ReadStats.append=Tools.parseBoolean(b);
 			}else if(a.equals("overwrite") || a.equals("ow")){
 				overwrite=Tools.parseBoolean(b);
 			}else if(a.equals("ml") || a.equals("minlen") || a.equals("minlength")){
@@ -149,8 +151,6 @@ public class BBQC {
 				rnaFlag=Tools.parseBoolean(b);
 			}else if(a.equals("phix")){
 				phixFlag=Tools.parseBoolean(b);
-			}else if(a.equals("lambda")){
-				lambdaFlag=Tools.parseBoolean(b);
 			}else if(a.equals("pjet")){
 				pjetFlag=Tools.parseBoolean(b);
 			}else if(a.equals("ktrim")){
@@ -239,8 +239,6 @@ public class BBQC {
 				indexPath=b;
 			}else if(a.equals("mapref")){
 				mapRef=b;
-			}else if(a.equals("copyundefined") || a.equals("cu")){
-				copyUndefined=Tools.parseBoolean(b);
 			}else if(a.equals("qtrim")){
 				if(b==null){qtrim="rl";}
 				else if(b.equalsIgnoreCase("left") || b.equalsIgnoreCase("l")){qtrim="l";}
@@ -502,8 +500,6 @@ public class BBQC {
 			if(rqcStatsName!=null){argList.add("rqc=hashmap");}
 			if(kmerStatsName!=null){argList.add("outduk="+kmerStatsName_kt);}
 			if(scaffoldStatsName!=null){argList.add("stats="+scaffoldStatsName_kt);}
-			
-			if(copyUndefined){argList.add("cu");}
 		}
 		
 		{//Add BBDuk references
@@ -600,12 +596,9 @@ public class BBQC {
 		{//Add BBDuk references
 			filterrefs.add(mainArtifactFile);
 			filterrefs.add(rnaFlag ? artifactFileRna : artifactFileDna);
-
-			if(phixFlag){filterrefs.add(phixRef);}
-			if(lambdaFlag){filterrefs.add(lambdaRef);}
-			if(pjetFlag){filterrefs.add(pjetRef);}
 			
-			if(copyUndefined){argList.add("cu");}
+			if(phixFlag){filterrefs.add(phixRef);}
+			if(pjetFlag){filterrefs.add(pjetRef);}
 			
 
 			StringBuilder refstring=new StringBuilder();
@@ -955,8 +948,6 @@ public class BBQC {
 	private boolean rnaFlag=false;
 	/** True if phix should be filtered out */
 	private boolean phixFlag=true;
-	/** True if lambda should be filtered out by kmer-match */
-	private boolean lambdaFlag=true;
 	/** True if pjet should be filtered out */
 	private boolean pjetFlag=true;
 	
@@ -1014,11 +1005,10 @@ public class BBQC {
 	private int minhits=1;
 	private boolean fast=true;
 	private boolean local=true;
-	private boolean copyUndefined=false;
 	
 	private boolean verbose=false;
 	private boolean overwrite=true;
-//	private boolean append=false;
+	private boolean append=false;
 	private boolean compress=true;
 	
 	/** Arguments to pass to BBDuk */
@@ -1036,7 +1026,7 @@ public class BBQC {
 	private String outDir="";
 	
 	/** Directory in which to write all temp files */
-	private String tmpDir=Shared.tmpdir();
+	private String tmpDir=Shared.TMPDIR;
 	
 	private final String tempSalt;
 	
@@ -1086,7 +1076,6 @@ public class BBQC {
 	private String artifactFileRna = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/RNA_spikeins.artifacts.2012.10.NoPolyA.fa";
 	private String artifactFileDna = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/DNA_spikeins.artifacts.2012.10.fa";
 	private String phixRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/phix174_ill.ref.fa";
-	private String lambdaRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/lambda.fa.gz";
 	private String pjetRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/pJET1.2.fasta";
 
 	private String allArtifactsLatest = "/global/projectb/sandbox/rqc/qcdb/illumina.artifacts/Illumina.artifacts.fa";

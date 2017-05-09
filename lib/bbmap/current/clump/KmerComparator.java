@@ -10,7 +10,7 @@ import align2.Tools;
 
 import kmer.KmerTableSet;
 import kmer.Primes;
-import sketch.SketchTool;
+
 import stream.Read;
 
 /**
@@ -20,13 +20,14 @@ import stream.Read;
  */
 public class KmerComparator implements Comparator<Read> {
 	
-	public KmerComparator(int k_){
+	public KmerComparator(int k_, long minDivisor_){
 		k=k_;
 		assert(k>0 && k<32);
 		
 		shift=2*k;
 		shift2=shift-2;
 		mask=~((-1L)<<shift);
+		divisor=Primes.primeAtLeast(minDivisor_);
 	}
 	
 	public void hashThreaded(ArrayList<Read> list){
@@ -108,63 +109,6 @@ public class KmerComparator implements Comparator<Read> {
 		return fillMax(r, kmers, null, 0);
 	}
 	
-//	/** Finds the global maximum */
-//	public long fillMax(Read r, long[] kmers, KmerTableSet table, int minCount){
-////		Arrays.fill(kmers, -1);
-//		kmers[0]=0;
-//		kmers[1]=k-1;
-//		final byte[] bases=r.bases;
-//		long kmer=0;
-//		long rkmer=0;
-//		int len=0;
-//		
-//		if(bases==null || bases.length<k){return -1;}
-//		
-//		long topMod=-1;
-//		boolean rcomp=false;
-//		
-//		for(int i=0; i<bases.length; i++){
-//			byte b=bases[i];
-//			long x=Dedupe.baseToNumber[b];
-//			long x2=Dedupe.baseToComplementNumber[b];
-//			kmer=((kmer<<2)|x)&mask;
-//			rkmer=(rkmer>>>2)|(x2<<shift2);
-//			if(b=='N'){len=0;}else{len++;}
-//			if(len>=k){
-//				final long kmax=Tools.max(kmer, rkmer);
-//				final long mod=kmax%divisor;
-//				if(mod>topMod){
-//					if(minCount<2 || table.getCount(kmer, rkmer)>=minCount){
-//						topMod=mod;
-//						kmers[0]=kmax;
-//						kmers[1]=i;
-//						rcomp=(kmax!=kmer);
-//					}
-//				}
-//			}
-//		}
-//		rcomp&=rcompReads;
-//		
-//		if(topMod<0 && minCount>1){
-//			return fillMax(r, kmers, null, 0);
-//		}
-//		
-////		r.id+=" "+kmers[1]+","+rcomp+","+(bases.length-kmers[1]+k-2);
-//		if(rcomp){
-//			r.reverseComplement();
-//			r.setSwapped(true);
-//			kmers[1]=bases.length-kmers[1]+k-2;
-//		}
-//		if(shortName){
-//			r.id=r.numericID+" 1:"+(rcomp ? "t" : "f");
-//			if(r.mate!=null){
-//				r.mate.id=r.numericID+" 2:f";
-//			}
-//		}else if(addName){r.id+=" "+kmers[1]+(rcomp ? ",t" : ",f")+","+kmers[0];}
-//		assert(kmers[0]>=0 && kmers[1]>=0) : Arrays.toString(kmers)+"\n"+r;
-//		return kmers[0];
-//	}
-	
 	/** Finds the global maximum */
 	public long fillMax(Read r, long[] kmers, KmerTableSet table, int minCount){
 //		Arrays.fill(kmers, -1);
@@ -177,7 +121,7 @@ public class KmerComparator implements Comparator<Read> {
 		
 		if(bases==null || bases.length<k){return -1;}
 		
-		long topCode=-1;
+		long topMod=-1;
 		boolean rcomp=false;
 		
 		for(int i=0; i<bases.length; i++){
@@ -189,10 +133,10 @@ public class KmerComparator implements Comparator<Read> {
 			if(b=='N'){len=0;}else{len++;}
 			if(len>=k){
 				final long kmax=Tools.max(kmer, rkmer);
-				final long code=hash(kmax);
-				if(code>topCode){
+				final long mod=kmax%divisor;
+				if(mod>topMod){
 					if(minCount<2 || table.getCount(kmer, rkmer)>=minCount){
-						topCode=code;
+						topMod=mod;
 						kmers[0]=kmax;
 						kmers[1]=i;
 						rcomp=(kmax!=kmer);
@@ -202,7 +146,7 @@ public class KmerComparator implements Comparator<Read> {
 		}
 		rcomp&=rcompReads;
 		
-		if(topCode<0 && minCount>1){
+		if(topMod<0 && minCount>1){
 			return fillMax(r, kmers, null, 0);
 		}
 		
@@ -212,12 +156,7 @@ public class KmerComparator implements Comparator<Read> {
 			r.setSwapped(true);
 			kmers[1]=bases.length-kmers[1]+k-2;
 		}
-		if(shortName){
-			r.id=r.numericID+" 1:"+(rcomp ? "t" : "f");
-			if(r.mate!=null){
-				r.mate.id=r.numericID+" 2:f";
-			}
-		}else if(addName){r.id+=" "+kmers[1]+(rcomp ? ",t" : ",f")+","+kmers[0];}
+		if(addName){r.id+=" "+kmers[1]+(rcomp ? ",t" : ",f")+","+kmers[0];}
 		assert(kmers[0]>=0 && kmers[1]>=0) : Arrays.toString(kmers)+"\n"+r;
 		return kmers[0];
 	}
@@ -238,10 +177,10 @@ public class KmerComparator implements Comparator<Read> {
 		
 		if(bases==null || bases.length<k){return -1;}
 		
-		long topCode=-1;
+		long topMod=-1;
 		boolean rcomp=false;
 		
-		long code1=-1, code2=-1;
+		long mod1=-1, mod2=-1;
 		long kmax1=-1;//, kmax2=-1;
 		boolean rcomp1=false;//, rcomp2=false;
 		
@@ -253,23 +192,23 @@ public class KmerComparator implements Comparator<Read> {
 			rkmer=(rkmer>>>2)|(x2<<shift2);
 			if(b=='N'){
 				len=0;
-				code1=code2=-1;
+				mod1=mod2=-1;
 				kmax1=-1;//kmax2=-1;
 			}else{len++;}
 			if(len>=k){
 				final long kmax0=Tools.max(kmer, rkmer);
-				final long mod0=hash(kmax0);
+				final long mod0=kmax0%divisor;
 				final boolean rcomp0=(kmax0!=kmer);
-				if(len>k+1 && code1>topCode && code1>code2 && code1>mod0){//Local maximum
+				if(len>k+1 && mod1>topMod && mod1>mod2 && mod1>mod0){//Local maximum
 					if(minCount<2 || table.getCount(kmer, rkmer)>=minCount){
-						topCode=code1;
+						topMod=mod1;
 						kmers[0]=kmax1;
 						kmers[1]=i-1;
 						rcomp=(rcomp1);
 					}
 				}
-				code2=code1;
-				code1=mod0;
+				mod2=mod1;
+				mod1=mod0;
 //				kmax2=kmax1;
 				kmax1=kmax0;
 //				rcomp2=rcomp1;
@@ -277,7 +216,7 @@ public class KmerComparator implements Comparator<Read> {
 			}
 		}
 		
-		if(topCode<0){//There was no local maximum
+		if(topMod<0){//There was no local maximum
 			if(minCount>1){return fillLocalMax(r, kmers, null, 0);}
 			else{return fillMax(r, kmers, table, minCount);}
 		}
@@ -289,13 +228,7 @@ public class KmerComparator implements Comparator<Read> {
 			r.setSwapped(true);
 			kmers[1]=bases.length-kmers[1]+k-2;
 		}
-		
-		if(shortName){
-			r.id=r.numericID+" 1:"+(rcomp ? "t" : "f");
-			if(r.mate!=null){
-				r.mate.id=r.numericID+" 2:f";
-			}
-		}else if(addName){r.id+=" "+kmers[1]+(rcomp ? ",t" : ",f")+","+kmers[0];}
+		if(addName){r.id+=" "+kmers[1]+(rcomp ? ",t" : ",f")+","+kmers[0];}
 		assert(kmers[0]>=0 && kmers[1]>=0) : Arrays.toString(kmers);
 		return kmers[0];
 	}
@@ -308,29 +241,6 @@ public class KmerComparator implements Comparator<Read> {
 			}
 		}
 		return 0;
-	}
-	
-	public static synchronized void setSeed(){setSeed(seed);}
-	
-	public static synchronized void setSeed(long seed_){
-		if(codes==null || seed!=seed_ || seed_<0){
-			codes=SketchTool.makeCodes(8, 256, seed_);
-		}
-		seed=seed_;
-	}
-	
-	public static synchronized void setHashes(int x){
-		hashes=Tools.mid(0, x, 8);
-	}
-	
-	public static final long hash(long kmer){
-		long code=kmer;
-		for(int i=0; i<hashes; i++){//4 only half-hashes; 8 does full hashing
-			int x=(int)(kmer&0xFF);
-			kmer>>=8;
-			code^=codes[i][x];
-		}
-		return code;
 	}
 	
 	private class HashThread extends Thread{
@@ -360,18 +270,10 @@ public class KmerComparator implements Comparator<Read> {
 	final int shift2;
 	final long mask;
 	
-//	public final long divisor;
-	public boolean addName=false;
-	public boolean shortName=false;
-	public boolean rcompReads=false;
-	
-	private static long seed=1;
-	public static int hashes=4;
+	public final long divisor;
+	public boolean addName=true;
+	public boolean rcompReads=true;
 	
 	public static final boolean LOCAL_MAX=false; //Should improve compression, but decreases compression...?
-	
-	private static long[][] codes;
-	
-	static {setSeed(seed);}
 
 }

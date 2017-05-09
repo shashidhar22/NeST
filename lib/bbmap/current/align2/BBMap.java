@@ -140,10 +140,6 @@ public final class BBMap extends AbstractMapper {
 			maxKeyDensity*=1.2f;
 			minKeyDensity*=1.2f;
 		}
-		
-		if(excludeFraction>=0){
-			BBIndex.setFractionToExclude(excludeFraction);
-		}
 		return args;
 	}
 	

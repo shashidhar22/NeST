@@ -268,7 +268,7 @@ public abstract class KmerNode extends AbstractKmerTable {
 	}
 	
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		throw new RuntimeException("Not supported.");
 	}
 	

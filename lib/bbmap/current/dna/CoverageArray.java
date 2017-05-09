@@ -2,8 +2,9 @@ package dna;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import align2.IntList;
+
 import fileIO.ReadWrite;
-import structures.IntList;
 
 
 public abstract class CoverageArray implements Serializable {

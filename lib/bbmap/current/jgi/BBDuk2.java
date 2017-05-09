@@ -20,8 +20,9 @@ import stream.ConcurrentReadOutputStream;
 import stream.KillSwitch;
 import stream.Read;
 import stream.SamLine;
-import structures.IntList;
-import structures.ListNum;
+
+import align2.IntList;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -93,9 +94,7 @@ public class BBDuk2 {
 		ReadWrite.MAX_ZIP_THREADS=8;
 		
 		
-		if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-			ByteFile.FORCE_MODE_BF2=true;
-		}
+		ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		
 		/* Initialize local variables with defaults */
 		boolean setOut=false, setOutb=false;
@@ -613,7 +612,7 @@ public class BBDuk2 {
 			{
 				long memory=Runtime.getRuntime().maxMemory();
 				double xmsRatio=Shared.xmsRatio();
-				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+				usableMemory=(long)Tools.max(((memory-96000000-(20*400000 /* for atomic arrays */))*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 				tableMemory=(long)(usableMemory*.95);
 			}
 
@@ -986,56 +985,45 @@ public class BBDuk2 {
 		outstream.println("\nInput:                  \t"+readsIn+" reads \t\t"+basesIn+" bases.");
 		
 		if(kfilter){
-			outstream.println("Contaminants:           \t"+readsKFiltered+" reads ("+toPercent(readsKFiltered, readsIn)+") \t"+
-					basesKFiltered+" bases ("+toPercent(basesKFiltered, basesIn)+")");
+			outstream.println("Contaminants:           \t"+readsKFiltered+" reads ("+String.format("%.2f",readsKFiltered*100.0/readsIn)+"%) \t"+
+					basesKFiltered+" bases ("+String.format("%.2f",basesKFiltered*100.0/basesIn)+"%)");
 			outstream.flush();
 		}
 		if(qtrimLeft || qtrimRight){
-			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+toPercent(readsQTrimmed, readsIn)+") \t"+
-					basesQTrimmed+" bases ("+toPercent(basesQTrimmed, basesIn)+")");
+			outstream.println("QTrimmed:               \t"+readsQTrimmed+" reads ("+String.format("%.2f",readsQTrimmed*100.0/readsIn)+"%) \t"+
+					basesQTrimmed+" bases ("+String.format("%.2f",basesQTrimmed*100.0/basesIn)+"%)");
 		}
 		if(forceTrimLeft>0 || forceTrimRight>0 || forceTrimRight2>0 || forceTrimModulo>0){  
-			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+toPercent(readsFTrimmed, readsIn)+") \t"+
-					basesFTrimmed+" bases ("+toPercent(basesFTrimmed, basesIn)+")");
+			outstream.println("FTrimmed:               \t"+readsFTrimmed+" reads ("+String.format("%.2f",readsFTrimmed*100.0/readsIn)+"%) \t"+
+					basesFTrimmed+" bases ("+String.format("%.2f",basesFTrimmed*100.0/basesIn)+"%)");
 		}
 		if(ktrimLeft || ktrimRight || ktrimN){
-			outstream.println("KTrimmed:               \t"+readsKTrimmed+" reads ("+toPercent(readsKTrimmed, readsIn)+") \t"+
-					basesKTrimmed+" bases ("+toPercent(basesKTrimmed, basesIn)+")");
+			outstream.println("KTrimmed:               \t"+readsKTrimmed+" reads ("+String.format("%.2f",readsKTrimmed*100.0/readsIn)+"%) \t"+
+					basesKTrimmed+" bases ("+String.format("%.2f",basesKTrimmed*100.0/basesIn)+"%)");
 		}
 		if(trimByOverlap){
-			outstream.println("Trimmed by overlap:     \t"+readsTrimmedByOverlap+" reads ("+toPercent(readsTrimmedByOverlap, readsIn)+") \t"+
-					basesTrimmedByOverlap+" bases ("+toPercent(basesTrimmedByOverlap, basesIn)+")");
+			outstream.println("Trimmed by overlap:     \t"+readsTrimmedByOverlap+" reads ("+String.format("%.2f",readsTrimmedByOverlap*100.0/readsIn)+"%) \t"+
+					basesTrimmedByOverlap+" bases ("+String.format("%.2f",basesTrimmedByOverlap*100.0/basesIn)+"%)");
 		}
 		if(filterGC){
-			outstream.println("Filtered by GC:         \t"+badGcReads+" reads ("+toPercent(badGcReads, readsIn)+") \t"+
-					badGcBases+" bases ("+toPercent(badGcBases, basesIn)+")");
+			outstream.println("Filtered by GC:         \t"+badGcReads+" reads ("+String.format("%.2f",badGcReads*100.0/readsIn)+"%) \t"+
+					badGcBases+" bases ("+String.format("%.2f",badGcBases*100.0/basesIn)+"%)");
 		}
 		if(minAvgQuality>0 || maxNs>=0 || minBaseFrequency>0 || chastityFilter || removeBadBarcodes){
-			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+toPercent(readsQFiltered, readsIn)+") \t"+
-					basesQFiltered+" bases ("+toPercent(basesQFiltered, basesIn)+")");
+			outstream.println("Low quality discards:   \t"+readsQFiltered+" reads ("+String.format("%.2f",readsQFiltered*100.0/readsIn)+"%) \t"+
+					basesQFiltered+" bases ("+String.format("%.2f",basesQFiltered*100.0/basesIn)+"%)");
 		}
 		if(calcEntropy){
-			outstream.println("Low entropy discards:   \t"+readsEFiltered+" reads ("+toPercent(readsEFiltered, readsIn)+") \t"+
-					basesEFiltered+" bases ("+toPercent(basesEFiltered, basesIn)+")");
+			outstream.println("Low entropy discards:   \t"+readsEFiltered+" reads ("+String.format("%.2f",readsEFiltered*100.0/readsIn)+"%) \t"+
+					basesEFiltered+" bases ("+String.format("%.2f",basesEFiltered*100.0/basesIn)+"%)");
 		}
-
-		final long readsRemoved=readsIn-readsOut;
-		final long basesRemoved=basesIn-basesOut;
 		
-		outstream.println("Total Removed:          \t"+readsRemoved+" reads ("+toPercent(readsRemoved, readsIn)+") \t"+
-				basesRemoved+" bases ("+toPercent(basesRemoved, basesIn)+")");
-		
-		outstream.println("Result:                 \t"+readsOut+" reads ("+toPercent(readsOut, readsIn)+") \t"+
-				basesOut+" bases ("+toPercent(basesOut, basesIn)+")");
+		outstream.println("Result:                 \t"+readsOut+" reads ("+String.format("%.2f",readsOut*100.0/readsIn)+"%) \t"+
+				basesOut+" bases ("+String.format("%.2f",basesOut*100.0/basesIn)+"%)");
 		
 		if(loglog!=null){
 			outstream.println("Unique "+loglog.k+"-mers:         \t"+loglog.cardinality());
 		}
-	}
-	
-	private String toPercent(long numerator, long denominator){
-		if(denominator<1){return "0.00%";}
-		return String.format("%.2f%%",numerator*100.0/denominator);
 	}
 	
 	/**
@@ -1073,8 +1061,8 @@ public class BBDuk2 {
 		
 		long rsum=0, bsum=0;
 		
-		/* Create StringCount list of scaffold names and hitcounts */
-		ArrayList<StringCount> list=new ArrayList<StringCount>();
+		/* Create StringNum list of scaffold names and hitcounts */
+		ArrayList<StringNum> list=new ArrayList<StringNum>();
 		for(int i=1; i<scaffoldNames.size(); i++){
 			final long num1=scaffoldReadCounts.get(i), num2=scaffoldBaseCounts.get(i);
 			if(num1>0 || !printNonZeroOnly){
@@ -1082,7 +1070,7 @@ public class BBDuk2 {
 				bsum+=num2;
 				final String s=scaffoldNames.get(i);
 				final int len=scaffoldLengths.get(i);
-				final StringCount sn=new StringCount(s, len, num1, num2);
+				final StringNum sn=new StringNum(s, len, num1, num2);
 				list.add(sn);
 			}
 		}
@@ -1097,7 +1085,7 @@ public class BBDuk2 {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",rsum,rmult*rsum));
 			tsw.print("#Name\tReads\tReadsPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult)));
 			}
 		}else{
@@ -1105,7 +1093,7 @@ public class BBDuk2 {
 			tsw.print(String.format("#Matched\t%d\t%.5f%%\n",rsum,rmult*rsum,bsum,bsum*bmult));
 			tsw.print("#Name\tReads\tReadsPct\tBases\tBasesPct\n");
 			for(int i=0; i<list.size(); i++){
-				StringCount sn=list.get(i);
+				StringNum sn=list.get(i);
 				tsw.print(String.format("%s\t%d\t%.5f%%\t%d\t%.5f%%\n",sn.name,sn.reads,(sn.reads*rmult),sn.bases,(sn.bases*bmult)));
 			}
 		}
@@ -2264,7 +2252,7 @@ public class BBDuk2 {
 //							int bestInsert=BBMergeOverlapper.mateByOverlap(r1, r2, aprob, bprob, overlapVector, minOverlap0, minOverlap,
 //									overlapMargin, overlapMaxMismatches0, overlapMaxMismatches, overlapMinq);
 							int bestInsert=BBMergeOverlapper.mateByOverlapRatio(r1, r2, aprob, bprob, overlapVector, minOverlap0, minOverlap,
-									minInsert0, minInsert, maxRatio, 0.12f, ratioMargin, ratioOffset, 0.95f, 0.95f, useQualityForOverlap);
+									minInsert0, minInsert, maxRatio, ratioMargin, ratioOffset, 0.95f, 0.95f, useQualityForOverlap);
 							
 							if(bestInsert<minInsert){bestInsert=-1;}
 							boolean ambig=(overlapVector[4]==1);
@@ -3313,6 +3301,38 @@ public class BBDuk2 {
 		private long badGcReadsT=0;
 		
 		private int xsum=0, rktsum=0;
+	}
+	
+	/*--------------------------------------------------------------*/
+	
+	/**
+	 * Object holding a String and numbers, for tracking the number of read and base hits per scaffold.
+	 */
+	private static class StringNum implements Comparable<StringNum>{
+		
+		public StringNum(String name_, int len_, long reads_, long bases_){
+			name=name_;
+			length=len_;
+			reads=reads_;
+			bases=bases_;
+		}
+		public final int compareTo(StringNum o){
+			if(bases!=o.bases){return o.bases>bases ? 1 : -1;}
+			if(reads!=o.reads){return o.reads>reads ? 1 : -1;}
+			return name.compareTo(o.name);
+		}
+		public final boolean equals(StringNum o){
+			return compareTo(o)==0;
+		}
+		public final String toString(){
+			return name+"\t"+length+"\t"+reads+"\t"+bases;
+		}
+		
+		/*--------------------------------------------------------------*/
+		
+		public final String name;
+		public final int length;
+		public final long reads, bases;
 	}
 	
 	/*--------------------------------------------------------------*/

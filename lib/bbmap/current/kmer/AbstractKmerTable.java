@@ -101,11 +101,11 @@ public abstract class AbstractKmerTable {
 
 
 	/**
-	 * Removes entries with a value of the limit or less.
+	 * Removes entries with a value of zero or less.
 	 * Rehashes the remainder.
 	 * @return Number removed.
 	 */
-	abstract long regenerate(int limit);
+	abstract long regenerate();
 
 	final void lock(){getLock().lock();}
 	final void unlock(){getLock().unlock();}
@@ -126,7 +126,6 @@ public abstract class AbstractKmerTable {
 			synchronized(killMessage){
 				e.printStackTrace();
 				System.err.println(killMessage);
-				Shared.printMemory();
 				KillSwitch.killSilent();
 			}
 		}
@@ -141,7 +140,6 @@ public abstract class AbstractKmerTable {
 			synchronized(killMessage){
 				e.printStackTrace();
 				System.err.println(killMessage);
-				Shared.printMemory();
 				KillSwitch.killSilent();
 			}
 		}
@@ -156,7 +154,6 @@ public abstract class AbstractKmerTable {
 			synchronized(killMessage){
 				e.printStackTrace();
 				System.err.println(killMessage);
-				Shared.printMemory();
 				KillSwitch.killSilent();
 			}
 		}
@@ -171,7 +168,6 @@ public abstract class AbstractKmerTable {
 			synchronized(killMessage){
 				e.printStackTrace();
 				System.err.println(killMessage);
-				Shared.printMemory();
 				KillSwitch.killSilent();
 			}
 		}
@@ -186,7 +182,6 @@ public abstract class AbstractKmerTable {
 			synchronized(killMessage){
 				e.printStackTrace();
 				System.err.println(killMessage);
-				Shared.printMemory();
 				KillSwitch.killSilent();
 			}
 		}

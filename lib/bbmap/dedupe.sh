@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell and Jonathan Rood
-Last modified May 26, 2016
+Last modified October 27, 2015
 
 Description:  Accepts one or more files containing sets of sequences (reads or scaffolds).
 Removes duplicate sequences, which may be specified to be exact matches, subsequences, or sequences within some percent identity.
@@ -89,13 +89,10 @@ depthratio=0          (dr) When non-zero, overlaps will only be formed between r
                       by running KmerNormalize (khist.sh, bbnorm.sh, or ecc.sh) with the flag 'rename'
 k=31                  Seed length used for finding containments and overlaps.  Anything shorter than k will not be found.
 numaffixmaps=1        (nam) Number of prefixes/suffixes to index per contig. Higher is more sensitive, if edits are allowed.
-hashns=f              Set to true to search for matches using kmers containing Ns.  Can lead to extreme slowdown in some cases.
 #ignoreaffix1=f       (ia1) Ignore first affix (for testing).
 #storesuffix=f        (ss) Store suffix as well as prefix.  Automatically set to true when doing inexact matches.
 
 Other Parameters
-qtrim=f               Set to qtrim=rl to trim leading and trailing Ns.
-trimq=6              Quality trim level.
 forcetrimleft=-1      (ftl) If positive, trim bases to the left of this position (exclusive, 0-based).
 forcetrimright=-1     (ftr) If positive, trim bases to the right of this position (exclusive, 0-based).
 

@@ -515,7 +515,7 @@ public class Shaver1 extends Shaver {
 			}
 			
 			table.clearOwnership();
-			kmersRemovedT+=table.regenerate(0);
+			kmersRemovedT+=table.regenerate();
 //			outstream.println(x);
 			return true;
 		}

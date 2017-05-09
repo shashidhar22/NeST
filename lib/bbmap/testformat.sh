@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified August 4, 2016
+Last modified February 17, 2015
 
 Description:  Tests file extensions and contents to determine format, quality, compression, interleaving, and read length.
 

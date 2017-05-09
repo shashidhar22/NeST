@@ -13,7 +13,8 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -58,9 +59,7 @@ public final class SplitPairsAndSingles {
 		ReadWrite.MAX_ZIP_THREADS=Shared.threads();
 		
 		
-		if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-			ByteFile.FORCE_MODE_BF2=true;
-		}
+		ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		
 		Parser parser=new Parser();
 		parser.trimq=trimq;

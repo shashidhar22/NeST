@@ -6,8 +6,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
-import align2.Shared;
-
 /**
  * Monitors CPU utilization to determine if the program has crashed.
  * @author Brian Bushnell
@@ -197,7 +195,6 @@ public final class KillSwitch extends Thread {
 		synchronized(MemKillMessage){
 			e.printStackTrace();
 			System.err.println(MemKillMessage);
-			Shared.printMemory();
 			killSilent();
 		}
 	}

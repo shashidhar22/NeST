@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import align2.Shared;
-import align2.Tools;
 import assemble.Tadpole;
 import dna.Parser;
 
@@ -47,8 +46,6 @@ public class NormAndCorrectWrapper {
 				in=b;
 			}else if(a.equals("out")){
 				out=b;
-			}else if(a.equals("correctfirst")){
-				correctFirst=Tools.parseBoolean(b);
 			}else if(a.equals("ow") || a.equals("overwrite")){
 				out=b;
 			}else{
@@ -61,24 +58,12 @@ public class NormAndCorrectWrapper {
 	public void process(){
 		
 		Random randy=new Random();
+		String temp=Shared.TMPDIR+"normalized_"+((randy.nextLong()&Long.MAX_VALUE)^in.hashCode())+".fq.gz";
 		
-		String temp;
-		if(correctFirst){
-			temp=Shared.tmpdir()+"corrected_"+((randy.nextLong()&Long.MAX_VALUE)^in.hashCode())+".fq.gz";
-			String[] tadArgs=new String[] {"in="+in, "out="+temp, "mode=correct", "pigz", "unpigz", "ow="+overwrite}; 
-			Tadpole.main(tadArgs);
-			System.gc();
-			String[] normArgs=new String[] {"in="+temp, "out="+out, "bits=32", "min=2", "target=100", "pigz", "unpigz", "ow="+overwrite}; 
-			KmerNormalize.main(normArgs);
-		}else{
-			temp=Shared.tmpdir()+"normalized_"+((randy.nextLong()&Long.MAX_VALUE)^in.hashCode())+".fq.gz";
-			String[] normArgs=new String[] {"in="+in, "out="+temp, "bits=32", "min=2", "target=100", "pigz", "unpigz", "ow="+overwrite}; 
-			KmerNormalize.main(normArgs);
-			System.gc();
-			String[] tadArgs=new String[] {"in="+temp, "out="+out, "mode=correct", "pigz", "unpigz", "ow="+overwrite}; 
-			Tadpole.main(tadArgs);
-		}
-		
+		String[] normArgs=new String[] {"in="+in, "out="+temp, "bits=32", "min=2", "target=100", "pigz", "unpigz", "ow="+overwrite}; 
+		KmerNormalize.main(normArgs);
+		String[] tadArgs=new String[] {"in="+temp, "out="+out, "mode=correct", "pigz", "unpigz", "ow="+overwrite}; 
+		Tadpole.main(tadArgs);
 		File f=new File(temp);
 		if(f.exists()){
 			f.delete();
@@ -88,6 +73,5 @@ public class NormAndCorrectWrapper {
 	public PrintStream outstream=System.err;
 	public String in="reads.fq.gz", out="corrected.fq.gz";
 	public boolean overwrite=true;
-	public boolean correctFirst=false;
 	
 }

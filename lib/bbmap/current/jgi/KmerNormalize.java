@@ -22,8 +22,9 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
 import ukmer.Kmer;
+
+import align2.ListNum;
 import align2.ReadErrorComparator;
 import align2.ReadStats;
 import align2.Shared;
@@ -768,7 +769,7 @@ public class KmerNormalize {
 	private static String getTempPrefix(String inFname, String outFname, int pass, int pairnum){
 		String tempOut=null, tempOutPrefix=null;
 		for(int i=0; i<2000 && tempOut==null; i++){
-			tempOutPrefix=(useTmpdir() ? Shared.tmpdir() : "")+"TEMPFILE_BBNORM_P"+pass+"_R"+pairnum+"_"+getSalt(inFname, i)+"_";
+			tempOutPrefix=(useTmpdir() ? Shared.TMPDIR : "")+"TEMPFILE_BBNORM_P"+pass+"_R"+pairnum+"_"+getSalt(inFname, i)+"_";
 			tempOut=getTempOut(outFname, tempOutPrefix);
 			if(new File(tempOut).exists()){
 				tempOut=null;
@@ -1699,7 +1700,6 @@ public class KmerNormalize {
 					errorsMarked+=ct.errorsMarked;
 					errorsCorrected+=ct.errorsCorrected;
 					basesTrimmed+=ct.basesTrimmed;
-					errorState|=ct.errorState;
 
 					for(int j=0; j<ct.hist.length; j++){
 						khistogram.addAndGet(j, ct.hist[j]);
@@ -2035,8 +2035,6 @@ public class KmerNormalize {
 			outstream.println("Base depth standard deviation:\t"+String.format("%.2f", base_stdev_all));
 		}
 		
-		if(errorState){throw new RuntimeException("BBNorm terminated in an error state; the output may be corrupt.");}
-		
 		return totalBases;
 	}
 	
@@ -2270,8 +2268,7 @@ public class KmerNormalize {
 		
 		for(int i=0, j=1-k; i<bases.length; i++, j++){
 			byte b=bases[i];
-			long x=AminoAcid.baseToNumber[b];
-//			assert(x>=0) : "This program does not allow degenerate bases other than N.  Invalid symbol: ASCII character "+b+" ("+(char)(b<33 ? ' ' : b)+")";
+			int x=AminoAcid.baseToNumber[b];
 			if(x<0){
 				len=0;
 				kmer=0;
@@ -2626,12 +2623,15 @@ public class KmerNormalize {
 		
 		for(int i=0; i<suffix.length && min>0; i++){
 			byte b=suffix[i];
-			long x=AminoAcid.baseToNumber[b];
-			if(x<0){
+			if(b=='N'){
 				//TODO: Find best next letter
 				return 0;
 			}
+			assert(b!='N');
+			int x=AminoAcid.baseToNumber[b];
+			assert(x>=0);
 			
+
 			kmer=((kmer<<2)|x)&mask;
 			int cov=kca.read(kmer, k, true);
 			min=Tools.min(min, cov);
@@ -2661,11 +2661,15 @@ public class KmerNormalize {
 		
 		for(int i=0; i<suffix.length && min>0; i++){
 			byte b=suffix[i];
-			long x=AminoAcid.baseToNumber[b];
-			if(x<0){
+			if(b=='N'){
 				//TODO: Find best next letter
 				return 0;
 			}
+			assert(b!='N');
+			long x=AminoAcid.baseToNumber[b];
+			assert(x>=0);
+			
+//			System.out.println("b="+b+", x="+x);
 
 			kmer=((kmer>>2)|(x<<shift));
 			int cov=kca.read(kmer, k, true);
@@ -2792,14 +2796,12 @@ public class KmerNormalize {
 		}
 		
 		public void run(){
-			errorState=true;
 			randy=ThreadLocalRandom.current();
 			if(COUNTUP){
 				normalizeInThreadByCountup();
 			}else{
 				normalizeInThread();
 			}
-			errorState=false;
 		}
 		
 		void normalizeInThread() {
@@ -2808,7 +2810,7 @@ public class KmerNormalize {
 			
 			ListNum<Read> ln=cris.nextList();
 			ArrayList<Read> reads=(ln!=null ? ln.list : null);
-			
+
 			final ArrayList<Read> keepList=(rosk==null ? null : new ArrayList<Read>(Shared.READ_BUFFER_LENGTH));
 			final ArrayList<Read> tossList=(rost==null ? null : new ArrayList<Read>(Shared.READ_BUFFER_LENGTH));
 			final ArrayList<Read> lowList=(rosl==null ? null : new ArrayList<Read>(Shared.READ_BUFFER_LENGTH));
@@ -3448,8 +3450,6 @@ public class KmerNormalize {
 		public long errorsCorrected=0;
 		public long errorsMarked=0;
 		public long basesTrimmed=0;
-		
-		boolean errorState=false;
 	}
 	
 	public static PrintStream outstream=Data.sysout;
@@ -3603,7 +3603,7 @@ public class KmerNormalize {
 	
 	public static boolean REMOVE_TEMP_FILES=true;
 	public static boolean USE_TMPDIR=true;
-	public static String TMPDIR=Shared.tmpdir();
+	public static String TMPDIR=Shared.TMPDIR;
 	public static boolean useTmpdir(){return USE_TMPDIR && TMPDIR!=null;}
 	
 	private static HashSet<String> temp_file_set=null;

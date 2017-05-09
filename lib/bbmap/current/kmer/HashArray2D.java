@@ -182,7 +182,7 @@ public final class HashArray2D extends HashArray {
 	
 	@Deprecated
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		assert(false) : "This is not tested or intended for use.";
 		long sum=0;
 		assert(owners==null) : "Clear ownership before regeneration.";

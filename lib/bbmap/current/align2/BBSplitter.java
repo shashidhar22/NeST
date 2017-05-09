@@ -67,7 +67,6 @@ public class BBSplitter {
 			Data.sysout.println("Converted arguments to "+Arrays.toString(args));
 		}
 		
-		AbstractMapper.DEFAULT_OUTPUT_FORMAT=FileFormat.FASTQ;
 		ReadWrite.ZIPLEVEL=2;
 		
 		Timer t=new Timer();

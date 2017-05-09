@@ -118,11 +118,12 @@ public class A_Sample_Textfile {
 		
 		{
 			String line;
-			while((maxReads<0 || linesProcessed<maxReads) && (line=tf.nextLine())!=null){
+			while((line=tf.nextLine())!=null){
 				linesProcessed++;
 				charsProcessed+=line.length();
 				String result=processLine(line);
 				if(tsw!=null && result!=null){tsw.println(result);}
+				if(linesProcessed>=maxReads){break;}
 			}
 		}
 		

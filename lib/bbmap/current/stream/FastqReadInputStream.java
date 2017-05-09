@@ -44,9 +44,9 @@ public class FastqReadInputStream extends ReadInputStream {
 //				
 //				s=s[0].split("-");
 				
-//				if(s.length!=8 && s.length!=9){
-//					if(Data.WINDOWS){System.err.println("Note: Filename indicates non-synthetic data, but FASTQ.PARSE_CUSTOM="+FASTQ.PARSE_CUSTOM);}
-//				}
+				if(s.length!=8 && s.length!=9){
+					if(Data.WINDOWS){System.err.println("Note: Filename indicates non-synthetic data, but FASTQ.PARSE_CUSTOM="+FASTQ.PARSE_CUSTOM);}
+				}
 				
 //				minChrom=Gene.toChromosome(s[0]);
 //				maxChrom=Gene.toChromosome(s[1]);
@@ -54,7 +54,7 @@ public class FastqReadInputStream extends ReadInputStream {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				//			e.printStackTrace();
-//				if(Data.WINDOWS){System.err.println("Note: Filename indicates non-synthetic data, but FASTQ.PARSE_CUSTOM="+FASTQ.PARSE_CUSTOM);}
+				if(Data.WINDOWS){System.err.println("Note: Filename indicates non-synthetic data, but FASTQ.PARSE_CUSTOM="+FASTQ.PARSE_CUSTOM);}
 			}
 		}
 //		interleaved=false;

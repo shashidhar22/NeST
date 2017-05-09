@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import align2.IntList;
+import align2.LongList;
 import align2.Tools;
 
 import dna.AminoAcid;
@@ -16,8 +18,6 @@ import dna.Timer;
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
 import fileIO.TextStreamWriter;
-import structures.IntList;
-import structures.LongList;
 
 
 /**
@@ -31,6 +31,30 @@ public final class AssemblyStats2 {
 	
 	private static void printOptions(){
 		System.err.println("Please consult the shellscript for usage information.");
+//		System.out.println("\nUsage: java -Xmx120m jgi.AssemblyStats2 <input file>");
+//		System.out.println("\nOptional flags:");
+//		System.out.println("in=<file>    \tThe 'in=' flag is only needed if the input file is not the first parameter.  'in=stdin' will pipe from standard in.");
+//		System.out.println("format=1     \tUses variable units like MB and KB, and is designed for compatibility with existing tools.");
+//		System.out.println("format=2     \tUses only whole numbers of bases, with no commas in numbers, and is designed for machine parsing.");
+//		System.out.println("format=3     \tOutputs stats in 2 rows of tab-delimited columns: a header row and a data row.");
+//		System.out.println("format=4     \tLike 3 but with scaffold data only.");
+//		System.out.println("format=5     \tLike 3 but with contig data only.");
+//		System.out.println("format=6     \tLike 3 but the header starts with a #.");
+//		System.out.println("format=7     \tLike 1 but without scaffold data.");
+//		System.out.println("gc=<file>    \tPrint gc statistics per scaffold to a file (or stdout).");
+//		System.out.println("gcformat=1   \tid start stop A C G T N GC");
+//		System.out.println("gcformat=2   \tid gc");
+//		System.out.println("gcformat=3   \tid length A C G T N GC");
+//		System.out.println("gcformat=4   \tid length gc");
+//		System.out.println("gchist=<file>\tPrint gc content histogram to this file.");
+//		System.out.println("gcbins=200   \tNumber of bins in gc histogram.");
+//		System.out.println("n=10         \tMinimum number of consecutive Ns between contigs.");
+//		System.out.println("k=13         \tDisplay BBMap's estimated memory usage for this genome with specified kmer length.");
+//		System.out.println("showspeed=t  \tSet to 'f' to suppress display of processing speed.");
+//		System.out.println("minscaf=0    \tIgnore scaffolds shorter than this.");
+//		System.out.println("n_=t         \tThis flag will prefix the terms 'contigs' and 'scaffolds' with 'n_' in formats 3-6.");
+//		System.out.println("verbose=t    \tSet to false to remove superfluous info.");
+//		System.out.println("Output is always tab-delimited.  AGCT are fractions of defined bases; N is fraction of total bases.");
 	}
 	
 	/*--------------------------------------------------------------*/
@@ -124,10 +148,6 @@ public final class AssemblyStats2 {
 					cutoff=Tools.parseKMG(b);
 				}else if(a.equals("k") || a.equals("bbmapkmer")){
 					bbmapkmer=Integer.parseInt(b);
-				}else if(a.equals("printl90") || a.equals("l90") || a.equals("printn90") || a.equals("n90")){
-					printL90=Tools.parseBoolean(b);
-				}else if(a.equals("printextended") || a.equals("extended")){
-					printExtended=Tools.parseBoolean(b);
 				}else if(a.equals("overwrite") || a.equals("ow")){
 					overwrite=Tools.parseBoolean(b);
 				}else if(a.equals("n_")){
@@ -148,17 +168,9 @@ public final class AssemblyStats2 {
 					skipDuplicateLines=!Tools.parseBoolean(b);
 				}else if(a.equals("showbbmap")){
 					if(!Tools.parseBoolean(b)){bbmapkmer=0;}
-				}else if(a.equals("contigbreak") || (arg.contains("=") && (a.equals("n")))){
+				}else if(a.equals("contigbreak") || (arg.contains("=") && (a.equals("n") || a.equals("-n")))){
 					maxNs=Integer.parseInt(b);
-				}
-				
-				else if(a.equals("logsumoffset") || a.equals("logoffset")){
-					logSumOffset=Integer.parseInt(b);
-				}else if(a.equals("logsumbase") || a.equals("logbase")){
-					logSumBase=Double.parseDouble(b);
-				}
-				
-				else if(i>0 && (a.equals("n") || a.equals("-n")) && b!=null){
+				}else if(i>0 && (a.equals("n") || a.equals("-n")) && b!=null){
 					maxNs=Integer.parseInt(b);
 				}else if(in==null && i==0 && !arg.contains("=")){
 					in=arg;
@@ -166,10 +178,6 @@ public final class AssemblyStats2 {
 					throw new RuntimeException("Unknown parameter "+arg);
 				}
 			}
-		}
-		
-		if(printExtended){
-			printL90=true;
 		}
 		
 		{//Process parser fields
@@ -837,58 +845,6 @@ public final class AssemblyStats2 {
 		System.err.println(String.format("Uncompressed Speed:\t%.2f MBytes/s",mbps2));
 	}
 	
-	public static double calcLogSumContigs(LongList clist, LongList llist, int cutoff, double base){
-		return calcLogSumCounts(clist, cutoff, base)+calcLogSumLengths(llist, cutoff, base);
-	}
-	
-	public static double calcLogSumScaffolds(LongList slist, ArrayList<Triple> tlist, int cutoff, double base){
-		return calcLogSumCounts(slist, cutoff, base)+calcLogSumTriples(tlist, cutoff, base);
-	}
-	
-	public static double calcLogSumCounts(LongList counts, int cutoff, double base){
-		final double mult=1/Math.log(base);
-		
-		double sum=0;
-		for(int i=cutoff, max=counts.size(); i<max; i++){
-			long count=counts.get(i);
-			if(count>0){
-				double log=mult*Math.log(i);
-				double incr=log*count*i;
-				sum+=incr;
-			}
-		}
-		return sum;
-	}
-	
-	public static double calcLogSumLengths(LongList lengths, int cutoff, double base){
-		final double mult=1/Math.log(base);
-		
-		double sum=0;
-		for(int i=0, max=lengths.size(); i<max; i++){
-			long length=lengths.get(i);
-			if(length>=cutoff){
-				double log=mult*Math.log(length);
-				double incr=log*length;
-				sum+=incr;
-			}
-		}
-		return sum;
-	}
-	
-	public static double calcLogSumTriples(ArrayList<Triple> triples, int cutoff, double base){
-		final double mult=1/Math.log(base);
-		
-		double sum=0;
-		for(int i=0, max=triples.size(); i<max; i++){
-			long length=triples.get(i).length;
-			if(length>=cutoff){
-				double log=mult*Math.log(length);
-				double incr=log*length;
-				sum+=incr;
-			}
-		}
-		return sum;
-	}
 	
 	public static void printResults(Timer t, long[] counts, long sum, double gc_std, String in, LongList clist, LongList slist, LongList sclist1, LongList sclist2, 
 			LongList llist, ArrayList<Triple> tlist, String out){
@@ -1030,26 +986,17 @@ public final class AssemblyStats2 {
 		long clen=contiglen;
 		long slen=scaflen;
 		
-		long ln50=-1;
-		long ll50=-1;
 		long cn50=-1;
+		long ln50=-1;
 		long cl50=-1;
-
-		long ln90=-1;
-		long ll90=-1;
-		long cn90=-1;
-		long cl90=-1;
-
-		long s50=slen/2;
-		long c50=clen/2;
+		long ll50=-1;
 		
-		long s90=(int)(slen*0.9f);
-		long c90=(int)(clen*0.9f);
+		long shalf=slen/2;
+		long chalf=clen/2;
 
 		final int numOverCutoff=(FORMAT==7 ? 1000 : 50000);
 		final int numOverCutoffPlusOne=numOverCutoff+1;
 		long numOver50=0;
-		long basesOver50=0;
 		float fractionOver50=0;
 		
 		
@@ -1110,7 +1057,6 @@ public final class AssemblyStats2 {
 
 				if(i==numOverCutoffPlusOne){
 					numOver50=ssum;
-					basesOver50=slen;
 					fractionOver50=slen*100f/scaflen;
 				}
 
@@ -1126,14 +1072,9 @@ public final class AssemblyStats2 {
 					slen-=(b*i);
 				}
 
-				if(ln50==-1 && slen<=s50){
+				if(ln50==-1 && slen<=shalf){
 					ln50=i;
 					ll50=ssum+b;
-				}
-
-				if(ln90==-1 && slen<=s90){
-					ln90=i;
-					ll90=ssum+b;
 				}
 				//			System.out.println("<A4>\tb="+b+", c="+c+", d="+d+", csum="+csum+", ssum="+ssum+", clen="+clen+", slen="+slen);
 
@@ -1163,7 +1104,6 @@ public final class AssemblyStats2 {
 
 				if(numOver50==0 && tp.length>numOverCutoff){
 					numOver50=ssum;
-					basesOver50=slen;
 					fractionOver50=slen*100f/scaflen;
 				}
 
@@ -1179,14 +1119,9 @@ public final class AssemblyStats2 {
 					slen-=b;
 				}
 
-				if(ln50==-1 && slen<=s50){
+				if(ln50==-1 && slen<=shalf){
 					ln50=b;
 					ll50=ssum+1;
-				}
-
-				if(ln90==-1 && slen<=s90){
-					ln90=b;
-					ll90=ssum+1;
 				}
 
 			}
@@ -1204,14 +1139,9 @@ public final class AssemblyStats2 {
 			csum-=a;
 			clen-=a*i;
 			
-			if(cn50==-1 && clen<=c50){
+			if(cn50==-1 && clen<=chalf){
 				cn50=i;
 				cl50=csum+a;
-			}
-			
-			if(cn90==-1 && clen<=c90){
-				cn90=i;
-				cl90=csum+a;
 			}
 		}
 
@@ -1221,43 +1151,25 @@ public final class AssemblyStats2 {
 			csum-=1;
 			clen-=a;
 			
-			if(cn50==-1 && clen<=c50){
+			if(cn50==-1 && clen<=chalf){
 				cn50=a;
 				cl50=csum+1;
 			}
-			
-			if(cn90==-1 && clen<=c90){
-				cn90=a;
-				cl90=csum+1;
-			}
 		}
-
-		ln50=Tools.max(ln50, 0);
-		ll50=Tools.max(ll50, 0);
+		
 		cn50=Tools.max(cn50, 0);
+		ln50=Tools.max(ln50, 0);
 		cl50=Tools.max(cl50, 0);
-		
-		ln90=Tools.max(ln90, 0);
-		ll90=Tools.max(ll90, 0);
-		cn90=Tools.max(cn90, 0);
-		cl90=Tools.max(cl90, 0);
-		
-		double sLogSum=calcLogSumScaffolds(slist, tlist, logSumOffset, 2);
-		double cLogSum=calcLogSumContigs(clist, llist, logSumOffset, 2);
-		
+		ll50=Tools.max(ll50, 0);
+
 //		ByteStreamWriter tsw=new ByteStreamWriter((out==null ? "stdout" : out) , overwrite, append, false);
 		TextStreamWriter tsw=new TextStreamWriter((out==null ? "stdout" : out) , overwrite, append, false);
 		tsw.start();
 		
 		lastL50=ln50;
-		lastL90=ln90;
 		lastSize=contiglen;
 		lastContigs=contigs;
 		lastMaxContig=maxContig;
-		lastLogSum=sLogSum;
-
-		String sLogSumString=String.format((sLogSum/logSumOffset>=10000 ? "%.0f" : "%.3f"), sLogSum/logSumOffset);
-		String cLogSumString=String.format((cLogSum/logSumOffset>=10000 ? "%.0f" : "%.3f"), cLogSum/logSumOffset);
 		
 		if(FORMAT<1){
 			//Do nothing
@@ -1266,21 +1178,9 @@ public final class AssemblyStats2 {
 			if(addfilename){sb.append("Filename:                           \t"+name+"\n");}
 			sb.append("Main genome scaffold N/L50:         \t"+ll50+"/"+formatKB(ln50, 3, 0)+"\n");
 			sb.append("Main genome contig N/L50:           \t"+cl50+"/"+formatKB(cn50, 3, 0)+"\n");
-			if(printL90){
-				sb.append("Main genome scaffold N/L90:         \t"+ll90+"/"+formatKB(ln90, 3, 0)+"\n");
-				sb.append("Main genome contig N/L90:           \t"+cl90+"/"+formatKB(cn90, 3, 0)+"\n");
-			}
-			if(printExtended){
-				sb.append("Main genome scaffold logsum:        \t"+sLogSumString+"\n");
-//				sb.append("Main genome contig logsum:          \t"+cLogSumString+"\n");
-			}
 			sb.append("Max scaffold length:                \t"+formatKB(maxScaf, 3, 0)+"\n");
 			sb.append("Max contig length:                  \t"+formatKB(maxContig, 3, 0)+"\n");
 			sb.append("Number of scaffolds > 50 KB:        \t"+numOver50+"\n");
-			if(printExtended){
-				sb.append("Number of bases in scaffolds>50 KB: \t"+basesOver50+"\n");
-			}
-			
 			sb.append("% main genome in scaffolds > 50 KB: \t"+String.format("%.2f%%", fractionOver50)+"\n");
 			if(printheadersize){sb.append("Header:\t"+formatKB(HEADERLENSUM, 3, 0)+(HEADERLENSUM<1000 ? " bytes" : ""));}
 			
@@ -1323,22 +1223,9 @@ public final class AssemblyStats2 {
 				sb.append("scaf_L50\t");
 				sb.append("ctg_N50\t");
 				sb.append("ctg_L50\t");
-				if(printL90){
-					sb.append("scaf_N90\t");
-					sb.append("scaf_L90\t");
-					sb.append("ctg_N90\t");
-					sb.append("ctg_L90\t");
-				}
-				if(printExtended){
-					sb.append("scaf_logsum\t");
-					sb.append("ctg_logsum\t");
-				}
 				sb.append("scaf_max\t");
 				sb.append("ctg_max\t");
 				sb.append("scaf_n_gt50K\t");
-				if(printExtended){
-					sb.append("scaf_l_gt50k\t");
-				}
 				sb.append("scaf_pct_gt50K\t");
 				sb.append("gc_avg\t");
 				sb.append("gc_std");
@@ -1356,22 +1243,9 @@ public final class AssemblyStats2 {
 			sb.append(formatKB(ln50, 3, 0)+"\t");
 			sb.append(cl50+"\t");
 			sb.append(formatKB(cn50, 3, 0)+"\t");
-			if(printL90){
-				sb.append(ll90+"\t");
-				sb.append(formatKB(ln90, 3, 0)+"\t");
-				sb.append(cl90+"\t");
-				sb.append(formatKB(cn90, 3, 0)+"\t");
-			}
-			if(printExtended){
-				sb.append(sLogSumString+"\t");
-//				sb.append(cLogSumString+"\t");
-			}
 			sb.append(formatKB(maxScaf, 3, 0)+"\t");
 			sb.append(formatKB(maxContig, 3, 0)+"\t");
 			sb.append(numOver50+"\t");
-			if(printExtended){
-				sb.append(basesOver50+"\t");
-			}
 			sb.append(String.format("%.3f", fractionOver50)+"\t");
 			sb.append(String.format("%.5f", (counts[1]+counts[2])*1.0/(counts[0]+counts[1]+counts[2]+counts[3]))+"\t");
 			sb.append(String.format("%.5f", gc_std));
@@ -1390,21 +1264,11 @@ public final class AssemblyStats2 {
 //			sb.append("gap_pct\t");
 			sb.append("scaf_N50\t");
 			sb.append("scaf_L50\t");
-			if(printL90){
-				sb.append("scaf_N90\t");
-				sb.append("scaf_L90\t");
-			}
-			if(printExtended){
-				sb.append("scaf_logsum\t");
-			}
 //			sb.append("ctg_N50\t");
 //			sb.append("ctg_L50\t");
 			sb.append("scaf_max\t");
 //			sb.append("ctg_max\t");
 			sb.append("scaf_n_gt50K\t");
-			if(printExtended){
-				sb.append("scaf_l_gt50k\t");
-			}
 			sb.append("scaf_pct_gt50K");
 //			sb.append("gc_avg");
 //			sb.append("gc_std");
@@ -1420,21 +1284,11 @@ public final class AssemblyStats2 {
 //			sb.append(String.format("%.3f",(scaflen-contiglen)*100f/scaflen)+"\t");
 			sb.append(ll50+"\t");
 			sb.append(formatKB(ln50, 3, 0)+"\t");
-			if(printL90){
-				sb.append(ll90+"\t");
-				sb.append(formatKB(ln90, 3, 0)+"\t");
-			}
-			if(printExtended){
-				sb.append(sLogSumString+"\t");
-			}
 //			sb.append(cl50+"\t");
 //			sb.append(formatKB(cn50, 3, 0)+"\t");
 			sb.append(formatKB(maxScaf, 3, 0)+"\t");
 //			sb.append(formatKB(maxContig, 3, 0)+"\t");
 			sb.append(numOver50+"\t");
-			if(printExtended){
-				sb.append(basesOver50+"\t");
-			}
 			sb.append(String.format("%.3f", fractionOver50));
 //			sb.append(String.format("%.5f", (counts[1]+counts[2])*1.0/(counts[0]+counts[1]+counts[2]+counts[3])));
 			if(addfilename){sb.append('\t').append(name);}
@@ -1452,13 +1306,6 @@ public final class AssemblyStats2 {
 //			sb.append("scaf_L50\t");
 			sb.append("ctg_N50\t");
 			sb.append("ctg_L50\t");
-			if(printL90){
-				sb.append("ctg_N90\t");
-				sb.append("ctg_L90\t");
-			}
-			if(printExtended){
-				sb.append("ctg_logsum\t");
-			}
 //			sb.append("scaf_max\t");
 			sb.append("ctg_max\t");
 //			sb.append("scaf_n_gt50K\t");
@@ -1479,13 +1326,6 @@ public final class AssemblyStats2 {
 //			sb.append(formatKB(ln50, 3, 0)+"\t");
 			sb.append(cl50+"\t");
 			sb.append(formatKB(cn50, 3, 0)+"\t");
-			if(printL90){
-				sb.append(ll90+"\t");
-				sb.append(formatKB(ln90, 3, 0)+"\t");
-			}
-			if(printExtended){
-				sb.append(cLogSumString+"\t");
-			}
 //			sb.append(formatKB(maxScaf, 3, 0)+"\t");
 			sb.append(formatKB(maxContig, 3, 0)+"\t");
 //			sb.append(numOver50+"\t");
@@ -1498,12 +1338,6 @@ public final class AssemblyStats2 {
 
 			if(addfilename){sb.append("Filename:                           \t"+name+"\n");}
 			sb.append("Main genome contig N/L50:           \t"+cl50+"/"+formatKB(cn50, 3, 0)+"\n");
-			if(printL90){
-				sb.append("Main genome contig N/L90:           \t"+cl90+"/"+formatKB(cn90, 3, 0)+"\n");
-			}
-			if(printExtended){
-//				sb.append("Main genome contig logsum:          \t"+cLogSumString+"\n");
-			}
 			sb.append("Max contig length:                  \t"+formatKB(maxContig, 3, 0)+"\n");
 			sb.append("Number of contigs > 1 KB:           \t"+numOver50+"\n");
 			sb.append("% main genome in contigs > 1 KB:    \t"+String.format("%.2f%%", fractionOver50)+"\n");
@@ -1864,10 +1698,6 @@ public final class AssemblyStats2 {
 	public static boolean append=false;
 	public static boolean useheader=true;
 	public static boolean addfilename=false;
-	public static boolean printL90=true;
-	public static boolean printExtended=false;
-	public static int logSumOffset=1000;
-	public double logSumBase=2;
 	public static boolean showspeed=false;//true;
 	public static boolean printheadersize=false;
 	public static boolean skipDuplicateLines=true;
@@ -1928,9 +1758,7 @@ public final class AssemblyStats2 {
 	
 	/** gc standard deviation, using base counts rather than scaffold counts */
 	private double gc_bb_std;
-
-	public static double lastLogSum;
-	public static long lastL90;
+	
 	public static long lastL50;
 	public static long lastSize;
 	public static long lastContigs;

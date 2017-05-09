@@ -4,11 +4,11 @@
 function usage(){
 echo "
 Written by Brian Bushnell
-Last modified September 12, 2016
+Last modified May 2, 2016
 
 Description:  Reformats reads to change ASCII quality encoding, interleaving, file format, or compression format.
 Optionally performs additional functions such as quality trimming, subsetting, and subsampling.
-Supports fastq, fasta, fasta+qual, scarf, oneline, sam, bam, gzip, bz2.
+Supports sam, fastq, fasta, fasta+qual, scarf, gzip, zip.
 
 Usage:  reformat.sh in=<file> in2=<file2> out=<outfile> out2=<outfile2>
 
@@ -80,7 +80,6 @@ ehist=<file>            Errors-per-read histogram.
 qahist=<file>           Quality accuracy histogram of error rates versus quality score.
 indelhist=<file>        Indel length histogram.
 mhist=<file>            Histogram of match, sub, del, and ins rates by read location.
-ihist=<file>            Insert size histograms.  Requires paired reads interleaved in sam file.
 idhist=<file>           Histogram of read count versus percent identity.
 idbins=100              Number idhist bins.  Set to 'auto' to use read length.
 
@@ -130,22 +129,8 @@ requiredbits=0          (rbits) Toss sam lines with any of these flag bits unset
 filterbits=0            (fbits) Toss sam lines with any of these flag bits set.  Similar to samtools -F.
 stoptag=f               Set to true to write a tag indicating read stop location, prefixed by YS:i:
 sam=                    Set to 'sam=1.3' to convert '=' and 'X' cigar symbols (from sam 1.4+ format) to 'M'.
-idfilter=0              Discard reads with identity below this.
-
-
-Sam and bam alignment filtering options (require sam format 1.4 or higher, or MD tags):
-
-subfilter=-1            Discard reads with more than this many substitutions.
-insfilter=-1            Discard reads with more than this many insertions.
-delfilter=-1            Discard reads with more than this many deletions.
-indelfilter=-1          Discard reads with more than this many indels.
-editfilter=-1           Discard reads with more than this many edits.
-inslenfilter=-1         Discard reads with an insertion longer than this.
-dellenfilter=-1         Discard reads with a deletion longer than this.
-
 
 Cardinality estimation:
-
 cardinality=f           (loglog) Count unique kmers using the LogLog algorithm.
 loglogk=31              Use this kmer length for counting.
 loglogbuckets=1999      Use this many buckets for counting.

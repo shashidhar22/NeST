@@ -127,11 +127,6 @@ public final class BBMapPacBio extends AbstractMapper  {
 			maxKeyDensity*=1.2f;
 			minKeyDensity*=1.2f;
 		}
-		
-		if(excludeFraction>=0){
-			BBIndexPacBio.setFractionToExclude(excludeFraction);
-		}
-		
 		return args;
 	}
 	

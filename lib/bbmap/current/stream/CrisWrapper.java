@@ -4,7 +4,8 @@ import java.util.ArrayList;
 
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
-import structures.ListNum;
+
+import align2.ListNum;
 
 /**
  * Wraps a cris to allow single-read next() capability, and the ability to go back.

@@ -136,8 +136,6 @@ Scarf: scarf (an old Illumina format; input only)
 Phylip: phylip (only supported by phylip2fasta; input only)
 Text: txt (used for logs, stats, and histograms)
 Header: header (use this extension to write read names only)
-One Line: oneline (name <tab> sequence)
-Sketch: sketch (for Sketch tools).
 
 List of supported compression extensions:
 

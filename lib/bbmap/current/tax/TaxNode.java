@@ -69,8 +69,6 @@ public class TaxNode implements Serializable{
 	}
 	
 	public String levelString(){return level<0 ? "unknown" : TaxTree.levelToString(level);}
-
-	public String levelToStringShort() {return level<0 ? "x" : TaxTree.levelToStringShort(level);}
 	
 	public static class CountComparator implements Comparator<TaxNode>{
 		

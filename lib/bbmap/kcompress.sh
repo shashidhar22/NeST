@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified May 19, 2015
+Last modified September 28, 2015
 
 Description:  Compresses sequence data into a fasta file containing each kmer
 exactly once.  Allows arbitrary kmer set operations via multiple passes.
@@ -48,8 +48,6 @@ Assembly parameters:
 mincount=1          (min) Only retain kmers that occur at least this many times.
 maxcount=2147483647 (max) Only retain kmers that occur at most this many times.
 requiresamecount    (rsc) Only build contigs from kmers with exactly the same count.
-rcomp=t             Store forward and reverse kmers together.  Setting this to
-                    false will only use forward kmers.
 
 
 Java Parameters:

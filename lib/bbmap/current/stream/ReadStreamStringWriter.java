@@ -19,7 +19,7 @@ public class ReadStreamStringWriter extends ReadStreamWriter {
 	@Override
 	public void run() {
 		
-		if(!OUTPUT_SAM && !OUTPUT_FASTQ && !OUTPUT_FASTA && !OUTPUT_ATTACHMENT && !OUTPUT_HEADER && !OUTPUT_ONELINE){
+		if(!OUTPUT_SAM && !OUTPUT_FASTQ && !OUTPUT_FASTA && !OUTPUT_ATTACHMENT && !OUTPUT_HEADER){
 			if(OUTPUT_INTERLEAVED){
 //				assert(false) : OUTPUT_SAM+", "+OUTPUT_FASTQ+", "+OUTPUT_FASTA+", "+OUTPUT_ATTACHMENT+", "+OUTPUT_INTERLEAVED+", "+SITES_ONLY;
 				myWriter.print("#INTERLEAVED\n");
@@ -230,47 +230,6 @@ public class ReadStreamStringWriter extends ReadStreamWriter {
 								final Read r2=r1.mate;
 								assert(r2!=null && r2.mate==r1 && r2!=r1) : r1.toText(false);
 								job.writer.print(r2.toFasta(FASTA_WRAP).append('\n'));
-								readsWritten++;
-								basesWritten+=(r2.bases!=null ? r2.length() : 0);
-								validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);
-								validBasesWritten+=(r2.valid() && r2.mapped() && r2.bases!=null ? r2.length() : 0);
-							}
-						}
-					}
-				}else if(OUTPUT_ONELINE){
-					if(read1){
-						for(final Read r : job.list){
-							if(r!=null){
-								job.writer.print(r.id);
-								job.writer.print('\t');
-								job.writer.print(new String(r.bases));
-								job.writer.print('\n');
-								readsWritten++;
-								basesWritten+=(r.bases!=null ? r.length() : 0);
-								validReadsWritten+=(r.valid() && r.mapped() ? 1 : 0);
-								validBasesWritten+=(r.valid() && r.mapped() && r.bases!=null ? r.length() : 0);
-								Read r2=r.mate;
-								if(OUTPUT_INTERLEAVED && r2!=null){
-									job.writer.print(r2.id);
-									job.writer.print('\t');
-									job.writer.print(new String(r2.bases));
-									job.writer.print('\n');
-									readsWritten++;
-									basesWritten+=(r2.bases!=null ? r2.length() : 0);
-									validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);
-									validBasesWritten+=(r2.valid() && r2.mapped() && r2.bases!=null ? r2.length() : 0);
-								}
-							}
-						}
-					}else{
-						for(final Read r1 : job.list){
-							if(r1!=null){
-								final Read r2=r1.mate;
-								assert(r2!=null && r2.mate==r1 && r2!=r1) : r1.toText(false);
-								job.writer.print(r2.id);
-								job.writer.print('\t');
-								job.writer.print(new String(r2.bases));
-								job.writer.print('\n');
 								readsWritten++;
 								basesWritten+=(r2.bases!=null ? r2.length() : 0);
 								validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);

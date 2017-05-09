@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified September 14, 2016
+Last modified November 16, 2015
 
 Description:  Sorts sequences to put similar reads near each other.
 This is a wrapper for KmerSplit and KmerSort.
@@ -19,30 +19,18 @@ Optional parameters (and their defaults)
 in=<file>           Input file.
 out=<file>          Output file.  May not be standard out.
 groups=16           Use this many intermediate files (to save memory).
-rcomp=f             Give read clumps the same orientation.
+rcomp=t             Give read clumps the same orientation.
                     Should be disabled for paired reads.
-addname=f           Add kmer information to the name.
-shortname=f         Make the name as short as possible.
-                    May not be used with addname.
-consensus=f         Generate consensus reads from clumps.
+rename=t            Add kmer information to the name.
+consensus=t         Generate consensus reads from clumps.
+divisor=80m         (div) Use a prime number at least this big as the divisor.
 k=31                Use kmers of this length (1-31).
 mincount=0          Ignore pivot kmers with count less than this.
-prefilter=t         Use a prefilter if counting kmers.  Has no effect unless
-                    mincount is at least 1.
-ecco=f              For paired reads, error-correct via overlap.
+prefilter=t         Use a prefilter if counting kmers.
 overwrite=f         (ow) Set to false to force the program to abort rather 
                     than overwrite an existing file.
 ziplevel=2          (zl) Set to 1 (lowest) through 9 (max) to change 
                     compression level; lower compression is faster.
-delete=t            Delete temporary files.
-usetmpdir=t         Use tmpdir for temp files.
-compresstemp=auto   Gzip temporary files.  By default temp files will be
-                    compressed if the output file is compressed.
-tmpdir=             By default, this is the environment variable TMPDIR.
-seed=1              Random seed for hashing.  Set to a negative number
-                    to use a random seed.
-hashes=4            Use this many masks when hashing.  0 uses raw kmers.
-
 
 Java Parameters:
 -Xmx                This will be passed to Java to set memory usage, overriding

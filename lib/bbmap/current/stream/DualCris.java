@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
-import structures.ListNum;
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 

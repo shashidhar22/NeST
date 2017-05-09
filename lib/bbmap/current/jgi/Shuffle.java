@@ -11,7 +11,7 @@ import stream.ConcurrentReadInputStream;
 import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
@@ -20,6 +20,8 @@ import fileIO.ByteFile2;
 import fileIO.ByteStreamWriter;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadComparatorID;
 import align2.ReadComparatorMapping;
 import align2.ReadComparatorName;

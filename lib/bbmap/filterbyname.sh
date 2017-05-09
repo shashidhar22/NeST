@@ -4,7 +4,7 @@
 function usage(){
 echo "
 Written by Brian Bushnell
-Last modified September 1, 2016
+Last modified July 23, 2015
 
 Description:  Filters reads by name.
 
@@ -12,12 +12,6 @@ Usage:  filterbyname.sh in=<file> in2=<file2> out=<outfile> out2=<outfile2> name
 
 in2 and out2 are for paired reads and are optional.
 If input is paired and there is only one output file, it will be written interleaved.
-Important!  Leading > and @ symbols are NOT part of sequence names;  they are part of
-the fasta, fastq, and sam specifications.  Therefore, this is correct:
-names=e.coli_K12
-And these are incorrect:
-names=>e.coli_K12
-names=@e.coli_K12
 
 
 Parameters:
@@ -27,7 +21,6 @@ substring=f         Allow one name to be a substring of the other, rather than a
                          t: Bidirectional substring matching.
                          header: Allow input read headers to be substrings of names in list.
                          name: Allow names in list to be substrings of input read headers.
-prefix=f            Allow names to match read header prefixes.
 casesensitive=t     (case) Match case also.
 ow=t                (overwrite) Overwrites files that already exist.
 app=f               (append) Append to files that already exist.
@@ -36,16 +29,7 @@ int=f               (interleaved) Determines whether INPUT file is considered in
 names=              A list of strings or files.  The files can have one name per line, or
                     be a standard read file (fasta, fastq, or sam).
 minlen=0            Do not output reads shorter than this.
-ths=f               (truncateheadersymbol) Ignore a leading @ or > symbol in the names file.
-tws=f               (truncatewhitespace) Ignore leading or trailing whitespace in the names file.
-truncate=f          Set both ths and tws at the same time.
-
-Positional parameters:
-These optionally allow you to output only a portion of a sequence.  Zero-based, inclusive.
-Intended for a single sequence and include=t mode.
-from=-1             Only print bases starting at this position.
-to=-1               Only print bases up to this position.
-range=              Set from and to with a single flag.
+truncate=f          (ths) Ignore a leading @ or > symbol in the names file.
 
 
 Java Parameters:

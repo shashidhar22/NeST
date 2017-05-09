@@ -204,10 +204,10 @@ public class HashBuffer extends AbstractKmerTable {
 		throw new RuntimeException("Unimplemented.");
 	}
 	
-	public long regenerate(final int limit){
+	public long regenerate(){
 		long sum=0;
 		for(AbstractKmerTable table : tables){
-			sum+=table.regenerate(limit);
+			sum+=table.regenerate();
 		}
 		return sum;
 	}

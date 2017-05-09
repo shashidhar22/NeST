@@ -1168,8 +1168,8 @@ public class ReadWrite {
 	
 	public static String compressionType(String fname){
 		fname=fname.toLowerCase(Locale.ENGLISH);
-		for(int i=0; i<compressedExtensions.length; i++){
-			if(fname.endsWith(compressedExtensions[i])){return compressedExtensionMap[i];}
+		for(String s : compressedExtensions){
+			if(fname.endsWith(s)){return s.substring(1);}
 		}
 		return null;
 	}
@@ -1475,13 +1475,13 @@ public class ReadWrite {
 		}
 		if(ross!=null){
 			for(ConcurrentReadOutputStream ros : ross){
+				if(verbose){System.err.println("Closing ros "+ros+"; error="+errorState);}
 				if(ros!=null){
-					if(verbose){System.err.println("Closing ros "+ros+"; error="+errorState);}
 					ros.close();
 					ros.join();
 					errorState|=(ros.errorState() || !ros.finishedSuccessfully());
-					if(verbose){System.err.println("Closed ros; error="+errorState);}
 				}
+				if(verbose){System.err.println("Closed ros; error="+errorState);}
 			}
 		}
 		return errorState;
@@ -1602,9 +1602,8 @@ public class ReadWrite {
 	private static final String diskSync=new String("DISKSYNC");
 	
 	public static final HashSet<String> loadedFiles=new HashSet<String>();
-
+	
 	private static final String[] compressedExtensions=new String[] {".gz", ".gzip", ".zip", ".bz2", ".xz", ".dsrc"};
-	private static final String[] compressedExtensionMap=new String[] {"gz", "gz", "zip", "bz2", "xz", "dsrc"};
 
 //	private static HashMap<String, Process> inputProcesses=new HashMap<String, Process>(8);
 //	private static HashMap<String, Process> outputProcesses=new HashMap<String, Process>(8);

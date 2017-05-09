@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified June 22, 2016
+Last modified Aug 3, 2015
 
 Description:  Summarizes the stats output of Seal for evaluation of 
 cross-contamination.  The intended use is to map multiple libraries or 
@@ -28,7 +28,6 @@ You can alternately run 'summarizeseal.sh *.txt out=out.txt'
 Parameters:
 in=<file>             A list of stats files, or a text file containing one stats file name per line.
 out=<file>            Destination for summary.
-printtotal=t          (pt) Print a line summarizing the total contamination rate of all assemblies.
 ignoresametaxa=f      Ignore secondary hits sharing taxonomy. 
 ignoresamebarcode=f   Ignore secondary hits sharing a barcode.
 ignoresamelocation=f  Ignore secondary hits sharing a sampling site.

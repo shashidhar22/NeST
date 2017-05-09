@@ -11,12 +11,14 @@ import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.KillSwitch;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;

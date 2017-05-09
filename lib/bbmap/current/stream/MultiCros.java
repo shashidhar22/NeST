@@ -3,12 +3,12 @@ package stream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
-import structures.ListNum;
 
 /**
  * Allows output of reads to multiple different output streams.

@@ -1,8 +1,8 @@
 package kmer;
 
 import stream.ByteBuilder;
-import structures.IntList;
-import structures.LongList;
+import align2.IntList;
+import align2.LongList;
 
 /**
  * @author Brian Bushnell

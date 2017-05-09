@@ -22,8 +22,9 @@ import ukmer.KmerTableSetU;
 import stream.ByteBuilder;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.IntList;
-import structures.LongList;
+
+import align2.IntList;
+import align2.LongList;
 import align2.ReadLengthComparator;
 import align2.ReadStats;
 import align2.Shared;
@@ -107,9 +108,7 @@ public class KmerCompressor {
 			ReadWrite.USE_UNPIGZ=true;
 			ReadWrite.USE_PIGZ=true;
 			FastaReadInputStream.SPLIT_READS=false;
-			if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-				ByteFile.FORCE_MODE_BF2=true;
-			}
+			ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 			AbstractKmerTableSet.defaultMinprob=0.5;
 		}
 		
@@ -203,8 +202,6 @@ public class KmerCompressor {
 				verbose2=Tools.parseBoolean(b);
 			}else if(a.equals("ilb") || a.equals("ignoreleftbranches") || a.equals("ignoreleftjunctions") || a.equals("ibb") || a.equals("ignorebackbranches")){
 				extendThroughLeftJunctions=Tools.parseBoolean(b);
-			}else if(a.equals("rcomp")){
-				doRcomp=Tools.parseBoolean(b);
 			}
 			
 			else if(KmerTableSetU.isValidArgument(a)){
@@ -581,16 +578,10 @@ public class KmerCompressor {
 				}
 			}
 //			System.err.print("C");
-			
 			bb.reverseComplementInPlace();
 			if(verbose  /*|| true*/){System.err.println("Extending rcomp to right; current length "+bb.length());}
 			{
-				final int status;
-				if(doRcomp){
-					status=extendToRight(bb, rightCounts, id);
-				}else{
-					status=extendToRight_RcompOnly(bb, rightCounts, id);
-				}
+				final int status=extendToRight(bb, rightCounts, id);
 				
 				if(status==DEAD_END){
 					//do nothing
@@ -696,7 +687,7 @@ public class KmerCompressor {
 			return BAD_SEED;
 		}
 		
-		final int maxLen=Tools.max(100000, bb.length()+90000);
+		final int maxLen=bb.length()+90000;
 		
 		while(bb.length()<maxLen){
 			
@@ -736,126 +727,10 @@ public class KmerCompressor {
 				return DEAD_END;
 			}//TODO: Explore on failure
 		}
+		assert(owner!=id);
 		if(verbose){
 			outstream.println("Current contig length: "+bb.length()+"\nReturning TOO_LONG");
 		}
-//		assert(owner!=id) : owner+"!="+id+"; maxLen="+maxLen+"; len="+bb.length();
-		return TOO_LONG;
-	}
-	
-	
-	/**
-	 * Extend these bases into a contig.
-	 * Stops at both left and right junctions.
-	 * Claims ownership.
-	 */
-	public int extendToRight_RcompOnly(final ByteBuilder bb, final int[] rightCounts, final int id){
-		if(bb.length()<k){return BAD_SEED;}
-		final int shift=2*k;
-		final int shift2=shift-2;
-		final long mask=~((-1L)<<shift);
-		long kmer=0;
-		long rkmer=0;
-		int len=0;
-		
-		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts, to get the rightmost kmer */
-		{
-			final int bblen=bb.length();
-			final byte[] bases=bb.array;
-			for(int i=bblen-k; i<bblen; i++){
-				final byte b=bases[i];
-				final long x=AminoAcid.baseToNumber[b];
-				final long x2=AminoAcid.baseToComplementNumber[b];
-				kmer=((kmer<<2)|x)&mask;
-				rkmer=(rkmer>>>2)|(x2<<shift2);
-				if(x<0){
-					len=0;
-					kmer=rkmer=0;
-				}else{len++;}
-				if(verbose){outstream.println("A: Scanning i="+i+", len="+len+", kmer="+kmer+", rkmer="+rkmer+"\t"+new String(bases, Tools.max(0, i-k2), Tools.min(i+1, k)));}
-			}
-		}
-		
-		if(len<k){
-			if(verbose){outstream.println("Returning BAD_SEED 1");}
-			return BAD_SEED;
-		}
-		else{assert(len==k);}
-		
-		/* Now the trailing kmer has been initialized. */
-		
-		long key=rkmer;
-		HashArray1D table=tables.getTableForKey(key);
-		int count=table.getValue(key);
-		if(count<minCount || count>maxCount){
-			if(verbose){
-				outstream.println("Returning because count was too low: "+count);
-				outstream.println("Returning BAD_SEED 2");
-			}
-			return BAD_SEED;
-		}
-		
-		int owner=table.getOwner(key);
-		if(verbose){outstream.println("Owner: "+owner);}
-		if(owner>-1 && owner!=id){
-			if(verbose){outstream.println("Returning BAD_SEED 3");}
-			return BAD_SEED;
-		}
-		
-		owner=table.setOwner(key, id);
-		if(verbose){outstream.println("A. Owner is now "+id+" for key "+key);}
-		if(owner!=id){
-			if(verbose){
-				outstream.println("Returning early because owner was "+owner+" for thread "+id+".");
-				outstream.println("Returning BAD_SEED 4");
-			}
-			return BAD_SEED;
-		}
-		
-		final int maxLen=Tools.max(100000, bb.length()+90000);
-		
-		while(bb.length()<maxLen){
-			
-			fillRightCountsRcompOnly(kmer, rkmer, rightCounts, mask, shift2);
-			int selected=-1;
-			for(int i=0; i<4; i++){
-				final int count2=rightCounts[i];
-				if(count2>=minCount && count2<=maxCount && (!REQUIRE_SAME_COUNT || count2==count)){
-					final long y=i;
-					final long y2=AminoAcid.numberToComplement[i];
-					final long kmer2=((kmer<<2)|(long)y)&mask;
-					final long rkmer2=(rkmer>>>2)|(y2<<shift2);
-					final long key2=rkmer2;
-					HashArray1D table2=tables.getTableForKey(key2);
-					if(table2.getOwner(key2)<0){
-						if(table2.setOwner(key2, id)==id){
-							selected=i;
-							kmer=kmer2;
-							rkmer=rkmer2;
-							key=key2;
-							count=count2;
-							final byte b=AminoAcid.numberToBase[selected];
-							bb.append(b);
-							break;
-						}
-					}
-				}
-			}
-			
-			if(verbose){
-				outstream.println("kmer: "+toText(kmer)+", "+toText(rkmer));
-				outstream.println("Counts: "+count+", "+Arrays.toString(rightCounts));
-			}
-			
-			if(selected<0){
-				if(verbose){outstream.println("Returning DEAD_END");}
-				return DEAD_END;
-			}//TODO: Explore on failure
-		}
-		if(verbose){
-			outstream.println("Current contig length: "+bb.length()+"\nReturning TOO_LONG");
-		}
-//		assert(owner!=id) : owner+"!="+id+"; maxLen="+maxLen+"; len="+bb.length();
 		return TOO_LONG;
 	}
 	
@@ -864,7 +739,6 @@ public class KmerCompressor {
 	/*----------------        Helper Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	/** Currently unused */
 	protected final Kmer getKmer(byte[] bases, int loc, Kmer kmer){
 		kmer.clear();
 		for(int i=loc, lim=loc+kmer.k; i<lim; i++){
@@ -889,7 +763,6 @@ public class KmerCompressor {
 	private final int findOwner(ByteBuilder bb, int id){return tables.findOwner(bb, id);}
 	private final void release(long key, int id){tables.release(key, id);}
 	private final int fillRightCounts(long kmer, long rkmer, int[] counts, long mask, int shift2){return tables.fillRightCounts(kmer, rkmer, counts, mask, shift2);}
-	private final int fillRightCountsRcompOnly(long kmer, long rkmer, int[] counts, long mask, int shift2){return tables.fillRightCountsRcompOnly(kmer, rkmer, counts, mask, shift2);}
 	private final StringBuilder toText(long kmer){return AbstractKmerTable.toText(kmer, k);}
 	
 	/*--------------------------------------------------------------*/
@@ -988,8 +861,6 @@ public class KmerCompressor {
 	public static boolean verbose=false;
 	/** Debugging verbose messages */
 	public static boolean verbose2=false;
-	/** Reverse-complement */
-	public static boolean doRcomp=true;
 	/** Number of load threads */
 	public static int LOAD_THREADS=Shared.threads();
 	/** Number of build threads */

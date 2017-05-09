@@ -14,13 +14,16 @@ import stream.RTextInputStream;
 import stream.Read;
 import stream.SiteScore;
 import stream.SiteScoreR;
-import structures.ListNum;
+
+
 import dna.Data;
 import dna.Parser;
 import dna.Timer;
 
 import fileIO.ReadWrite;
 import fileIO.TextFile;
+
+import align2.ListNum;
 import align2.MultiStateAligner9ts;
 import align2.Tools;
 import align2.TranslateColorspaceRead;

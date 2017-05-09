@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell.
-Last modified May 11, 2016
+Last modified December 15, 2015
 
 Description:  Renames fasta sequences with gi numbers to NCBI taxa IDs.
 

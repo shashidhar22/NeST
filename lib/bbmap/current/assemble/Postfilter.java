@@ -69,9 +69,7 @@ public class Postfilter {
 			ReadWrite.USE_UNPIGZ=true;
 			ReadWrite.USE_PIGZ=true;
 			FastaReadInputStream.SPLIT_READS=false;
-			if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-				ByteFile.FORCE_MODE_BF2=true;
-			}
+			ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		}
 		
 		/* Parse arguments */

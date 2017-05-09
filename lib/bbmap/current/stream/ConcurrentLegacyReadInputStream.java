@@ -3,7 +3,7 @@ package stream;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import structures.ListNum;
+import align2.ListNum;
 
 public class ConcurrentLegacyReadInputStream extends ConcurrentReadInputStream {
 	

@@ -3,12 +3,11 @@ package jgi;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import kmer.Primes;
-import dna.AminoAcid;
+
 import dna.Parser;
 import dna.Timer;
 
@@ -19,8 +18,9 @@ import stream.ConcurrentGenericReadInputStream;
 import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
 import ukmer.Kmer;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -34,26 +34,13 @@ public class LogLog {
 	
 	public static void main(String[] args){
 		LogLogWrapper llw=new LogLogWrapper(args);
-		
-		final boolean vic=Read.VALIDATE_IN_CONSTRUCTOR;
-		Read.VALIDATE_IN_CONSTRUCTOR=Shared.threads()<4;
-		
 		llw.process();
-		
-		Read.VALIDATE_IN_CONSTRUCTOR=vic;
 	}
 	
 	public final long cardinality(){
 		long sum=0;
-		assert(atomic);
-		if(atomic){
-			for(int i=0; i<maxArray.length(); i++){
-				sum+=maxArray.get(i);
-			}
-		}else{
-			for(int i=0; i<maxArray2.length; i++){
-				sum+=maxArray2[i];
-			}
+		for(int i=0; i<maxArray.length(); i++){
+			sum+=maxArray.get(i);
 		}
 		double mean=sum/(double)buckets;
 		long cardinality=(long)((((Math.pow(2, mean)-1)*buckets*SKIPMOD))/1.262);
@@ -72,18 +59,16 @@ public class LogLog {
 	}
 	
 	public LogLog(Parser p){
-		this(p.loglogbuckets, p.loglogbits, p.loglogk, p.loglogseed, p.loglogMinprob);
+		this(p.loglogbuckets, p.loglogbits, p.loglogk, p.loglogseed);
 	}
 	
-	public LogLog(int buckets_, int bits_, int k_, long seed, float minProb_){
+	public LogLog(int buckets_, int bits_, int k_, long seed){
 //		hashes=hashes_;
 		buckets=buckets_;
 		bits=bits_;
 		k=Kmer.getKbig(k_);
-		minProb=minProb_;
-		assert(atomic);
 		maxArray=(atomic ? new AtomicIntegerArray(buckets) : null);
-		maxArray2=(atomic ? null : new int[buckets]);
+		maxArray2=(atomic ? null : new long[buckets]);
 		steps=(63+bits)/bits;
 		tables=new long[numTables][][];
 		for(int i=0; i<numTables; i++){
@@ -110,21 +95,20 @@ public class LogLog {
 	}
 	
 	public void hash(Read r){
-		if(r!=null && r.length()>=k){hash(r.bases, r.quality);}
-		if(r.mateLength()>=k){hash(r.mate.bases, r.quality);}
+		if(r!=null && r.length()>=k){hash(r.bases);}
+		if(r.mateLength()>=k){hash(r.mate.bases);}
 	}
 	
-	public void hash(byte[] bases, byte[] quals){
-		if(k<32){hashSmall(bases, quals);}
-		else{hashBig(bases, quals);}
+	public void hash(byte[] bases){
+		if(k<32){hashSmall(bases);}
+		else{hashBig(bases);}
 	}
 	
-	public void hashSmall(byte[] bases, byte[] quals){
+	public void hashSmall(byte[] bases){
 		final int shift=2*k;
 		final int shift2=shift-2;
 		final long mask=~((-1L)<<shift);
 		int len=0;
-		float prob=1;
 		
 		long kmer=0, rkmer=0;
 		for(int i=0; i<bases.length; i++){
@@ -133,66 +117,33 @@ public class LogLog {
 			long x2=Dedupe.baseToComplementNumber[b];
 			kmer=((kmer<<2)|x)&mask;
 			rkmer=(rkmer>>>2)|(x2<<shift2);
-			
-			if(minProb>0 && quals!=null){//Update probability
-				prob=prob*PROB_CORRECT[quals[i]];
-				if(len>k){
-					byte oldq=quals[i-k];
-					prob=prob*PROB_CORRECT_INVERSE[oldq];
-				}
-			}
-			if(AminoAcid.isFullyDefined(b)){
-				len++;
-			}else{
-				len=0;
-				prob=1;
-			}
-			if(len>=k && prob>=minProb){
+			if(b=='N'){len=0;}else{len++;}
+			if(len>=k){
 				add(Tools.max(kmer, rkmer));
 			}
 		}
 	}
 	
-	public void hashBig(byte[] bases, byte[] quals){
+	public void hashBig(byte[] bases){
 		
-		Kmer kmer=getLocalKmer();
+		Kmer kmer=localKmer.get();
+		if(kmer==null){
+			localKmer.set(new Kmer(k));
+			kmer=localKmer.get();
+		}
 		int len=0;
-		float prob=1;
 		
 		for(int i=0; i<bases.length; i++){
 			byte b=bases[i];
 			long x=Dedupe.baseToNumber[b];
 			kmer.addRightNumeric(x);
-			if(minProb>0 && quals!=null){//Update probability
-				prob=prob*PROB_CORRECT[quals[i]];
-				if(len>k){
-					byte oldq=quals[i-k];
-					prob=prob*PROB_CORRECT_INVERSE[oldq];
-				}
-			}
-			if(AminoAcid.isFullyDefined(b)){
-				len++;
-			}else{
-				len=0;
-				prob=1;
-			}
-			if(len>=k && prob>=minProb){
+			if(b=='N'){len=0;}else{len++;}
+			if(len>=k){
 				add(kmer.xor());
 			}
 		}
 	}
 	
-	public void add(LogLog log){
-		if(maxArray!=null && maxArray!=log.maxArray){
-			for(int i=0; i<buckets; i++){
-				maxArray.set(maxArray.get(i), log.maxArray.get(i));
-			}
-		}else{
-			for(int i=0; i<buckets; i++){
-				maxArray2[i]=Tools.max(maxArray2[i], log.maxArray2[i]);
-			}
-		}
-	}
 	
 	public void hash(final long number){
 		if(number%SKIPMOD!=0){return;}
@@ -207,16 +158,16 @@ public class LogLog {
 		if(leading<3){return;}
 		final int bucket=(int)((number&Integer.MAX_VALUE)%buckets);
 		
-		if(maxArray!=null){
+//		if(maxArray!=null){
 			int x=maxArray.get(bucket);
 			while(leading>x){
 				boolean b=maxArray.compareAndSet(bucket, x, leading);
 				if(b){x=leading;}
 				else{x=maxArray.get(bucket);}
 			}
-		}else{
-			maxArray2[bucket]=Tools.max(leading, maxArray2[bucket]);
-		}
+//		}else{
+//			maxArray2[bucket]=Tools.max(leading, maxArray2[bucket]);
+//		}
 	}
 	
 	private static long[][] makeCodes(int length, int bits, long seed){
@@ -244,31 +195,22 @@ public class LogLog {
 	public final int k;
 	public final int numTables=4;
 	public final int bits;
-	public final float minProb;
 //	public final int hashes;
 	public final int steps;
 	private final long[][][] tables;
 	public final AtomicIntegerArray maxArray;
-	public final int[] maxArray2;
+	public final long[] maxArray2;
+//	public final long[] counts=new long[64];
 	public int buckets;
 	private final ThreadLocal<Kmer> localKmer=new ThreadLocal<Kmer>();
 	
-	protected Kmer getLocalKmer(){
-		Kmer kmer=localKmer.get();
-		if(kmer==null){
-			localKmer.set(new Kmer(k));
-			kmer=localKmer.get();
-		}
-		kmer.clearFast();
-		return kmer;
-	}
 	
 	private static class LogLogWrapper{
 		
 		public LogLogWrapper(String[] args){
 
 			Shared.READ_BUFFER_LENGTH=Tools.min(200, Shared.READ_BUFFER_LENGTH);
-			Shared.capBuffers(8);
+			Shared.capBuffers(4);
 			ReadWrite.USE_PIGZ=ReadWrite.USE_UNPIGZ=true;
 			ReadWrite.MAX_ZIP_THREADS=Shared.threads();
 			
@@ -293,17 +235,10 @@ public class LogLog {
 					k=Integer.parseInt(b);
 				}else if(a.equals("seed") || a.equals("loglogseed")){
 					seed=Long.parseLong(b);
-				}else if(a.equals("minprob") || a.equals("loglogminprob")){
-					minProb=Float.parseFloat(b);
 				}else if(a.equals("verbose")){
 					verbose=Tools.parseBoolean(b);
-				}else if(a.equals("atomic")){
-					assert(false) : "Atomic flag disabled.";
-//					atomic=Tools.parseBoolean(b);
 				}else if(a.equals("parse_flag_goes_here")){
 					//Set a variable here
-				}else if(in1==null && i==0 && !arg.contains("=") && (arg.toLowerCase().startsWith("stdin") || new File(arg).exists())){
-					parser.in1=b;
 				}else{
 					outstream.println("Unknown parameter "+args[i]);
 					assert(false) : "Unknown parameter "+args[i];
@@ -349,8 +284,8 @@ public class LogLog {
 		
 		void process(){
 			Timer t=new Timer();
+			LogLog log=new LogLog(buckets, bits, k, seed);
 			
-			LogLog log=new LogLog(buckets, bits, k, seed, minProb);
 			
 			for(int ffnum=0; ffnum<ffin1.length; ffnum++){
 				ConcurrentReadInputStream cris=ConcurrentGenericReadInputStream.getReadInputStream(maxReads, false, ffin1[ffnum], ffin2[ffnum]);
@@ -358,7 +293,7 @@ public class LogLog {
 
 				LogLogThread[] threads=new LogLogThread[Shared.threads()];
 				for(int i=0; i<threads.length; i++){
-					threads[i]=new LogLogThread((atomic ? log : new LogLog(buckets, bits, k, seed, minProb)), cris);
+					threads[i]=new LogLogThread(log, cris);
 				}
 				for(LogLogThread llt : threads){
 					llt.start();
@@ -372,18 +307,15 @@ public class LogLog {
 							e.printStackTrace();
 						}
 					}
-					if(!atomic){log.add(llt.log);}
 				}
 
 				errorState|=ReadWrite.closeStreams(cris);
 			}
 			
-			final int[] max=new int[buckets];
-			if(atomic){
-				for(int i=0; i<log.maxArray.length(); i++){
-					//				System.err.println(log.maxArray.get(i));
-					max[i]=log.maxArray.get(i);
-				}
+			int[] copy=new int[log.maxArray.length()];
+			for(int i=0; i<log.maxArray.length(); i++){
+//				System.err.println(log.maxArray.get(i));
+				copy[i]=log.maxArray.get(i);
 			}
 			
 			t.stop();
@@ -422,8 +354,6 @@ public class LogLog {
 				while(reads!=null && reads.size()>0){
 					
 					for(Read r : reads){
-//						if(!r.validated()){r.validate(true);}
-//						if(r.mate!=null && !r.mate.validated()){r.mate.validate(true);}
 						log.hash(r);
 					}
 					
@@ -447,7 +377,6 @@ public class LogLog {
 		private int bits=8;
 		private int k=31;
 		private long seed=-1;
-		private float minProb=0;
 		
 		
 		private String[] in1=null;
@@ -477,12 +406,9 @@ public class LogLog {
 		/*--------------------------------------------------------------*/
 	}
 	
-	public static final float[] PROB_CORRECT=Arrays.copyOf(align2.QualityTools.PROB_CORRECT, 127);
-	public static final float[] PROB_CORRECT_INVERSE=Arrays.copyOf(align2.QualityTools.PROB_CORRECT_INVERSE, 127);
-	
 	private static PrintStream outstream=System.err;
 	public static boolean verbose=false;
-	public static final boolean atomic=true;
+	public static boolean atomic=true;
 	private static final long SKIPMOD=3;
 	public static long lastCardinality=-1;
 	

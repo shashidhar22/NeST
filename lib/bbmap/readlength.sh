@@ -16,7 +16,7 @@ out=<file>   	Write the histogram to this file.  Default is stdout.
 bin=10       	Set the histogram bin size.
 max=80000    	Set the max read length to track.
 round=f      	Places reads in the closest bin, rather than the highest bin of at least readlength.
-nzo=t        	(nonzeroonly) Do not print empty bins.
+nzo=f        	(nonzeroonly) Do not print empty bins.
 reads=-1     	If nonnegative, stop after this many reads.
 
 Please contact Brian Bushnell at bbushnell@lbl.gov if you encounter any problems.

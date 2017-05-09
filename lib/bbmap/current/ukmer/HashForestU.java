@@ -427,7 +427,7 @@ public final class HashForestU extends AbstractKmerTableU implements Iterable<Km
 	}
 	
 	@Override
-	long regenerate(final int limit) {
+	long regenerate() {
 		throw new RuntimeException("Not implemented.");
 	}
 	

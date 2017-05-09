@@ -3,9 +3,9 @@
 
 usage(){
 echo "
-BBMap v36.x
+BBMap v35.x
 Written by Brian Bushnell, from Dec. 2010 - present
-Last modified July 6, 2016
+Last modified May 2, 2016
 
 Description:  Fast and accurate splice-aware read aligner.
 
@@ -120,11 +120,9 @@ usejni=f                (jni) Do alignments faster, in C code.  Requires
                         compiling the C code; details are in /jni/README.txt.
 maxsites2=800           Don't analyze (or print) more than this many alignments 
                         per read.
-ignorefrequentkmers=t   (ifk) Discard low-information kmers that occur often.
-excludefraction=0.03    (ef) Fraction of kmers to ignore.  For example, 0.03
-                        will ignore the most common 3% of kmers.
-greedy=t                Use a greedy algorithm to discard the least-useful
-                        kmers on a per-read basis.
+monitor=f               Kill this process if CPU usage drops to zero for
+                        a long time.  monitor=600,0.01 would kill after 600
+                        seconds under 1% usage.
 
 Quality and Trimming Parameters:
 
@@ -182,7 +180,6 @@ printunmappedcount=f    Print the total number of unmapped reads and bases.
 showprogress=0          If positive, print a '.' every X reads.
 showprogress2=0         If positive, print the number of seconds since the
                         last progress update (instead of a '.').
-renamebyinsert=f        Renames reads based on their mapped insert size.
 
 Post-Filtering Parameters:
 

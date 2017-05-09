@@ -2,10 +2,10 @@ package assemble;
 
 import java.util.ArrayList;
 
+import align2.LongList;
 import stream.ByteBuilder;
 import stream.ConcurrentReadInputStream;
 import stream.Read;
-import structures.LongList;
 
 /**
  * @author Brian Bushnell

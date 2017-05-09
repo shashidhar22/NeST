@@ -3,11 +3,9 @@ package kmer;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 
 import stream.Read;
-import structures.IntList;
-import ukmer.Kmer;
+
 import jgi.CallPeaks;
 import align2.Shared;
 import align2.Tools;
@@ -87,7 +85,7 @@ public abstract class AbstractKmerTableSet {
 			throw new RuntimeException(getClass().getSimpleName()+" terminated in an error state; the output may be corrupt.");
 		}
 	}
-
+	
 	
 	public abstract void clear();
 	
@@ -97,49 +95,25 @@ public abstract class AbstractKmerTableSet {
 		/* Start phase timer */
 		Timer t=new Timer();
 
-//		if(DISPLAY_PROGRESS){
-//			outstream.println("Before loading:");
-//			Shared.printMemory();
-//			outstream.println();
-//		}
+		if(DISPLAY_PROGRESS){
+			outstream.println("Before loading:");
+			Shared.printMemory();
+			outstream.println();
+		}
 		
+		System.err.println("Estimated kmer capacity: \t"+estimatedKmerCapacity());
 		prefilterArray=makePrefilter(new KCountArray[1], null);
 		if(prefilterArray!=null){
 			prefilterArray.purgeFilter();
 			filterMax2=Tools.min(filterMax, prefilterArray.maxValue-1);
-			
-			/* This is already getting printed in makePrefilter */
-//			if(DISPLAY_PROGRESS){
-//				outstream.println("After prefilter:");
-//				Shared.printMemory();
-//				outstream.println();
-//			}
 		}
 //		assert(false) : prefilterArray.cellBits+", "+prefilterArray.maxValue+", "+filterMax+", "+filterMax2;
-		
-		System.err.println("Estimated kmer capacity: \t"+estimatedKmerCapacity());
-		
-		assert(!allocated);
-		allocateTables();
-		allocated=true;
-		
-		if(DISPLAY_PROGRESS){
-			outstream.println("After table allocation:");
-			Shared.printMemory();
-			outstream.println();
-		}
 		
 		/* Fill tables with kmers */
 		long added=loadKmers();
 		
 		/* Clear prefilter; no longer needed */
 		prefilterArray=null;
-		
-//		long removed=0;
-//		if(prefilter && filterMax>0){
-//			removed=removeKmersAtMost(filterMax);
-//			System.err.println("Removed "+removed+" low-depth kmers.");
-//		}
 		
 		return added;
 	}
@@ -268,9 +242,8 @@ public abstract class AbstractKmerTableSet {
 	/*----------------         Inner Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	private final long loadKmers(){
-		//allocateTables();
-		assert(allocated);
+	public final long loadKmers(){
+		allocateTables();
 		kmersLoaded=0;
 		final boolean vic=Read.VALIDATE_IN_CONSTRUCTOR;
 		Read.VALIDATE_IN_CONSTRUCTOR=false;
@@ -297,7 +270,7 @@ public abstract class AbstractKmerTableSet {
 	/*----------------        Helper Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	public abstract long regenerate(int limit);
+	public abstract long regenerate();
 	
 	public abstract Object getTable(int tnum);
 	
@@ -307,11 +280,6 @@ public abstract class AbstractKmerTableSet {
 	
 	public abstract void clearOwnership();
 	
-	public abstract int ways();
-	
-	public abstract int fillCounts(byte[] bases, IntList counts, Kmer kmer);
-	
-	public abstract int regenerateCounts(byte[] bases, IntList counts, Kmer kmer, BitSet changed);
 	
 	/*--------------------------------------------------------------*/
 	/*----------------       Printing Methods       ----------------*/
@@ -425,7 +393,6 @@ public abstract class AbstractKmerTableSet {
 	/*--------------------------------------------------------------*/
 	
 	protected abstract void allocateTables();
-	protected boolean allocated=false;
 
 	/** Print messages to this stream */
 	public static PrintStream outstream=System.err;

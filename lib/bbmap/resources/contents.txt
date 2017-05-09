@@ -1,13 +1,7 @@
-Note: Unless otherwise mentioned, adapter sequences in this directory should be trimmed to the right.  For BBDuk, that means using the flag "ktrim=r".
+Not: Unless otherwise mentioned, adapter sequences in this directory should be trimmed to the right.  For BBDuk, that means using the flag "ktrim=r".
 
 adapters.fa
 All adapters in one file, provided for convenience.
-
-adapters_no_transposase.fa.gz
-This should be used instead of adapters.fa when trimming Nextera Long-Mate Pair libraries.
-
-sequencing_artifacts.fa.gz
-Artificial contaminants filtered by JGI.
 
 truseq.fa.gz
 Illumina Truseq DNA adapters.

@@ -134,6 +134,6 @@ public class LoadThread<X> extends Thread{
 	public X output=null;
 	
 	private static final int[] RUNNING=new int[1];
-	public static int LIMIT=Tools.min(12, Tools.max(Shared.threads(), 1));
+	public static int LIMIT=Tools.min(8, Tools.max(Shared.threads(), 1));
 	
 }

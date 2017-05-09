@@ -137,7 +137,7 @@ public class GenerateMultiChrom {
 				a++;
 				b++;
 			}else{//indel
-				boolean ins=Tools.nextBoolean(randy);
+				boolean ins=randy.nextBoolean();
 				int len=Tools.min(randy.nextInt(ERROR_LENGTH), randy.nextInt(ERROR_LENGTH), randy.nextInt(ERROR_LENGTH+1))+1;
 				if(ins && dif+len>MAX_DIF){
 					ins=false;

@@ -3,7 +3,6 @@ package ukmer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 
 import jgi.BBMerge;
 import kmer.AbstractKmerTableSet;
@@ -13,8 +12,8 @@ import stream.ByteBuilder;
 import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.IntList;
-import structures.ListNum;
+import align2.IntList;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -224,7 +223,7 @@ public class KmerTableSetU extends AbstractKmerTableSet {
 			long memory=Runtime.getRuntime().maxMemory();
 			double xmsRatio=Shared.xmsRatio();
 //			long tmemory=Runtime.getRuntime().totalMemory();
-			usableMemory=(long)Tools.max(((memory-96000000)*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+			usableMemory=(long)Tools.max(((memory-96000000)*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 			if(prepasses==0 || !prefilter){
 				filterMemory0=filterMemory1=0;
 			}else{
@@ -635,111 +634,46 @@ public class KmerTableSetU extends AbstractKmerTableSet {
 	/*----------------          Convenience         ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	public int regenerateCounts(byte[] bases, IntList counts, final int ca, final Kmer kmer){
-		final int b=ca+kbig; //first base changed
-		final int lim=Tools.min(counts.size, ca+kbig+1); //count limit
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim);
-//		System.err.println("Regen from count "+(ca+1)+"-"+lim);
+	public void regenerateCounts(byte[] bases, IntList counts, final int a, final Kmer kmer){
+		final int loc=a+kbig;
+		final int lim=Tools.min(counts.size, a+kbig+1);
 		int len=0;
-		int valid=0;
 		kmer.clear();
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim+", "+counts);
 		
 		//Generate initial kmer
-		for(int i=b-kbig; i<b; i++){
-			final byte base=bases[i];
-			final long x=AminoAcid.baseToNumber[base];
+		for(int i=a; i<loc; i++){
+			final byte b=bases[i];
+			final long x=AminoAcid.baseToNumber[b];
 			
-			kmer.addRight(base);
+			kmer.addRight(b);
 			
 			if(x<0){
 				len=0;
 			}else{len++;}
 			assert(len==kmer.len);
 		}
-		assert(len==kbig || Tools.indexOf(bases, (byte)'N')>=ca) : new String(bases)+"\n"+ca+", "+len;
+		assert(len==kbig || Tools.indexOf(bases, (byte)'N')>=a) : new String(bases)+"\n"+a+", "+len;
 		
-		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts.
-		 * i is an index in the base array, j is an index in the count array. */
-		for(int i=b, j=ca+1; j<lim; i++, j++){
-			final byte base=bases[i];
-			final long x=AminoAcid.baseToNumber[base];
+		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts */
+		for(int i=loc, j=a+1; j<lim; i++, j++){
+			final byte b=bases[i];
+			final long x=AminoAcid.baseToNumber[b];
 			
-			kmer.addRight(base);
+			kmer.addRight(b);
 			
 			if(x<0){len=0;}
 			else{len++;}
 			assert(len==kmer.len);
 			
 			if(len>=kbig){
-				valid++;
 				int count=getCount(kmer);
 				counts.set(j, count);
 			}else{
 				counts.set(j, 0);
 			}
 		}
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim+", "+counts);
-		return valid;
 	}
 	
-	@Override
-	public int regenerateCounts(byte[] bases, IntList counts, final Kmer kmer, BitSet changed){
-		assert(!changed.isEmpty());
-		final int firstBase=changed.nextSetBit(0), lastBase=changed.length()-1;
-		final int ca=firstBase-kbig;
-//		final int b=changed.nextSetBit(0);ca+kbig; //first base changed
-		final int firstCount=Tools.max(firstBase-kbig+1, 0), lastCount=Tools.min(counts.size-1, lastBase); //count limit
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim);
-//		System.err.println("Regen from count "+(ca+1)+"-"+lim);
-		int len=0;
-		int valid=0;
-		kmer.clear();
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim+", "+counts);
-		
-		//Generate initial kmer
-		for(int i=Tools.max(0, firstBase-kbig+1); i<firstBase; i++){
-			final byte base=bases[i];
-			final long x=AminoAcid.baseToNumber[base];
-			
-			kmer.addRight(base);
-			
-			if(x<0){
-				len=0;
-			}else{len++;}
-			assert(len==kmer.len);
-		}
-		assert(len==kbig-1 || Tools.indexOf(bases, (byte)'N')>=0 || firstBase<kbig) : 
-			new String(bases)+"\n"+ca+", "+len+", "+firstBase;
-		
-		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts.
-		 * i is an index in the base array, j is an index in the count array. */
-		for(int i=firstBase, lim=Tools.min(lastBase+k-1, bases.length-1); i<=lim; i++){
-			final byte base=bases[i];
-			final long x=AminoAcid.baseToNumber[base];
-			
-			kmer.addRight(base);
-			
-			if(x<0){len=0;}
-			else{len++;}
-			assert(len==kmer.len);
-			
-			final int c=i-kbig+1;
-			if(i>=firstBase){
-				if(len>=kbig){
-					valid++;
-					int count=getCount(kmer);
-					counts.set(c, count);
-				}else if(c>=0){
-					counts.set(c, 0);
-				}
-			}
-		}
-//		System.err.println("ca="+ca+", b="+b+", lim="+lim+", "+counts);
-		return valid;
-	}
-	
-	@Override
 	public int fillCounts(byte[] bases, IntList counts, final Kmer kmer){
 		counts.clear();
 		
@@ -761,10 +695,10 @@ public class KmerTableSetU extends AbstractKmerTableSet {
 		
 		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts */
 		for(int i=kbig; i<bases.length; i++){
-			final byte base=bases[i];
-			final long x=AminoAcid.baseToNumber[base];
+			final byte b=bases[i];
+			final long x=AminoAcid.baseToNumber[b];
 			
-			kmer.addRight(base);
+			kmer.addRight(b);
 			
 			if(x<0){len=0;}
 			else{len++;}
@@ -786,11 +720,10 @@ public class KmerTableSetU extends AbstractKmerTableSet {
 	/*----------------        Helper Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		long sum=0;
 		for(AbstractKmerTableU akt : tables){
-			sum+=akt.regenerate(limit);
+			sum+=akt.regenerate();
 		}
 		return sum;
 	}
@@ -1145,26 +1078,15 @@ public class KmerTableSetU extends AbstractKmerTableSet {
 	/*--------------------------------------------------------------*/
 	/*----------------       Final Primitives       ----------------*/
 	/*--------------------------------------------------------------*/
-
-	@Override
-	public int kbig(){return kbig;}
-	@Override
-	public long filterMemory(int pass){return ((pass&1)==0) ? filterMemory0 : filterMemory1;}
-	@Override
-	public boolean ecco(){return ecco;}
-	@Override
-	public boolean qtrimLeft(){return qtrimLeft;}
-	@Override
-	public boolean qtrimRight(){return qtrimRight;}
-	@Override
-	public byte minAvgQuality(){return minAvgQuality;}
-	@Override
-	public long tableMemory(){return tableMemory;}
-	@Override
-	public long estimatedKmerCapacity(){return estimatedKmerCapacity;}
-	@Override
-	public int ways(){return ways;}
 	
+	public int kbig(){return kbig;}
+	public long filterMemory(int pass){return ((pass&1)==0) ? filterMemory0 : filterMemory1;}
+	public boolean ecco(){return ecco;}
+	public boolean qtrimLeft(){return qtrimLeft;}
+	public boolean qtrimRight(){return qtrimRight;}
+	public byte minAvgQuality(){return minAvgQuality;}
+	public long tableMemory(){return tableMemory;}
+	public long estimatedKmerCapacity(){return estimatedKmerCapacity;}
 	
 	/** Hold kmers.  A kmer X such that X%WAYS=Y will be stored in tables[Y] */
 	private AbstractKmerTableU[] tables;

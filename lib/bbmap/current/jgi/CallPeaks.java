@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import stream.ByteBuilder;
-import structures.LongList;
+import align2.LongList;
 import align2.ReadStats;
 import align2.Tools;
 

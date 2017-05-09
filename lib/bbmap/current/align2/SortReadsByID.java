@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import stream.ConcurrentReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Data;
 import dna.Parser;
 import dna.Timer;

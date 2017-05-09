@@ -905,7 +905,11 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		int start=Integer.parseInt(split[4]);
 		int stop=Integer.parseInt(split[5]);
 		
+//		boolean cs=(Integer.parseInt(split[6])==1);
+//		boolean paired=(Integer.parseInt(split[7])==1);
+		
 		int flags=Integer.parseInt(split[6], 2);
+		boolean cs=((flags&COLORMASK)!=0);
 		
 		int copies=Integer.parseInt(split[7]);
 
@@ -924,6 +928,16 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		
 		byte[] basesOriginal=split[10].getBytes();
 		byte[] qualityOriginal=(split[11].equals(".") ? null : split[11].getBytes());
+		
+		if(cs){
+			for(int i=0; i<basesOriginal.length; i++){
+				byte b=basesOriginal[i];
+				if(b>='0' && b<='3'){
+					b=(byte) (b-'0');
+				}
+				basesOriginal[i]=b;
+			}
+		}
 		
 		if(qualityOriginal!=null){
 			for(int i=0; i<qualityOriginal.length; i++){
@@ -1291,12 +1305,12 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		clearSite();
 		match=null;
 		sites=null;
-		flags=(flags&(SYNTHMASK|PAIRNUMMASK|SWAPMASK));
+		flags=(flags&(SYNTHMASK|COLORMASK|PAIRNUMMASK|SWAPMASK));
 		if(clearMate && mate!=null){
 			mate.clearSite();
 			mate.match=null;
 			mate.sites=null;
-			mate.flags=(mate.flags&(SYNTHMASK|PAIRNUMMASK|SWAPMASK));
+			mate.flags=(mate.flags&(SYNTHMASK|COLORMASK|PAIRNUMMASK|SWAPMASK));
 		}
 //		assert(mate==null || (pairnum()==0 && mate.pairnum()==1)) : pairnum()+", "+mate.pairnum();
 	}
@@ -1477,48 +1491,6 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		}else{
 			return identitySkewed(match);
 		}
-	}
-	
-	public final boolean hasLongInsertion(int maxlen){
-		return hasLongInsertion(match, maxlen);
-	}
-	
-	public final boolean hasLongDeletion(int maxlen){
-		return hasLongDeletion(match, maxlen);
-	}
-	
-	public static final boolean hasLongInsertion(byte[] match, int maxlen){
-		if(match==null || match.length<maxlen){return false;}
-		byte prev='0';
-		int len=0;
-		for(byte b : match){
-			if(b=='I' || b=='X' || b=='Y'){
-				if(b==prev){len++;}
-				else{len=1;}
-				if(len>maxlen){return true;}
-			}else{
-				len=0;
-			}
-			prev=b;
-		}
-		return false;
-	}
-	
-	public static final boolean hasLongDeletion(byte[] match, int maxlen){
-		if(match==null || match.length<maxlen){return false;}
-		byte prev='0';
-		int len=0;
-		for(byte b : match){
-			if(b=='D'){
-				if(b==prev){len++;}
-				else{len=1;}
-				if(len>maxlen){return true;}
-			}else{
-				len=0;
-			}
-			prev=b;
-		}
-		return false;
 	}
 	
 	/**
@@ -1735,35 +1707,13 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 	}
 	
 	/** Average based on summing error probabilities */
-	public double avgQualityByProbabilityDouble(boolean countUndefined, int maxBases){
-		if(bases==null || bases.length==0){return 0;}
-		return avgQualityByProbability(bases, quality, countUndefined, maxBases);
-	}
-	
-	/** Average based on summing error probabilities */
-	public double probabilityErrorFree(boolean countUndefined, int maxBases){
-		if(bases==null || bases.length==0){return 0;}
-		return probabilityErrorFree(bases, quality, countUndefined, maxBases);
-	}
-	
-	/** Average based on summing error probabilities */
 	public static int avgQualityByProbability(byte[] bases, byte[] quality, boolean countUndefined, int maxBases){
 		if(quality==null){return 40;}
 		if(quality.length==0){return 0;}
 		float e=expectedErrors(bases, quality, countUndefined, maxBases);
 		final int div=(maxBases<1 ? quality.length : Tools.min(maxBases, quality.length));
 		float p=e/div;
-		return QualityTools.probErrorToPhred(p);
-	}
-	
-	/** Average based on summing error probabilities */
-	public static double avgQualityByProbabilityDouble(byte[] bases, byte[] quality, boolean countUndefined, int maxBases){
-		if(quality==null){return 40;}
-		if(quality.length==0){return 0;}
-		float e=expectedErrors(bases, quality, countUndefined, maxBases);
-		final int div=(maxBases<1 ? quality.length : Tools.min(maxBases, quality.length));
-		float p=e/div;
-		return QualityTools.probErrorToPhredDouble(p);
+		return QualityTools.probCorrectToPhred(1-p);
 	}
 
 	/** Average based on summing quality scores */
@@ -2134,24 +2084,6 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		return expectedErrors(bases, quality, countUndefined, maxBases);
 	}
 	
-	public static float probabilityErrorFree(byte[] bases, byte[] quality, boolean countUndefined, int maxBases){
-		if(quality==null){return 0;}
-		final int limit=(maxBases<1 ? quality.length : Tools.min(maxBases, quality.length));
-		final float[] array=QualityTools.PROB_CORRECT;
-		assert(array[0]>0 && array[0]<1);
-		float product=1;
-		for(int i=0; i<limit; i++){
-			byte b=bases[i];
-			byte q=quality[i];
-			if(AminoAcid.isFullyDefined(b)){
-				product*=array[q];
-			}else if(countUndefined){
-				return 0;
-			}
-		}
-		return product;
-	}
-	
 	public static float expectedErrors(byte[] bases, byte[] quality, boolean countUndefined, int maxBases){
 		if(quality==null){return 0;}
 		final int limit=(maxBases<1 ? quality.length : Tools.min(maxBases, quality.length));
@@ -2325,12 +2257,6 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		return r;
 	}
 	
-	public void toLongMatchString(){
-		assert(shortmatch());
-		match=toLongMatchString(match);
-		setShortMatch(false);
-	}
-	
 	public static byte[] toLongMatchString(byte[] shortmatch){
 		if(shortmatch==null){return null;}
 		assert(shortmatch.length>0);
@@ -2475,6 +2401,7 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 	public boolean mapped(){return (flags&MAPPEDMASK)==MAPPEDMASK;}
 	public boolean paired(){return (flags&PAIREDMASK)==PAIREDMASK;}
 	public boolean synthetic(){return (flags&SYNTHMASK)==SYNTHMASK;}
+//	public boolean colorspace(){return (flags&COLORMASK)==COLORMASK;}
 	public boolean ambiguous(){return (flags&AMBIMASK)==AMBIMASK;}
 	public boolean perfect(){return (flags&PERFECTMASK)==PERFECTMASK;}
 //	public boolean semiperfect(){return perfect() ? true : list!=null && list.size()>0 ? list.get(0).semiperfect : false;} //TODO: This is a hack.  Add a semiperfect flag.
@@ -2787,10 +2714,8 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 		final int overlap=Tools.min(insert, lengthSum-insert);
 		
 //		System.err.println(insert);
-		final byte[] bases=new byte[insert], abases=a.bases, bbases=b.bases;
-		final byte[] aquals=a.quality, bquals=b.quality;
-		final byte[] quals=(aquals==null || bquals==null ? null : new byte[insert]);
-		assert(aquals==null || (aquals.length==abases.length && bquals.length==bbases.length));
+		final byte[] bases=new byte[insert];
+		final byte[] quals=(a.quality==null || b.quality==null ? null : new byte[insert]);
 		
 		int mismatches=0;
 		
@@ -2800,26 +2725,26 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 			int lim=insert-b.length();
 			if(quals==null){
 				for(int i=0; i<a.length(); i++){
-					bases[i]=abases[i];
+					bases[i]=a.bases[i];
 				}
 				for(int i=a.length(); i<lim; i++){
 					bases[i]='N';
 				}
 				for(int i=0; i<b.length(); i++){
-					bases[i+lim]=bbases[i];
+					bases[i+lim]=b.bases[i];
 				}
 			}else{
 				for(int i=0; i<a.length(); i++){
-					bases[i]=abases[i];
-					quals[i]=aquals[i];
+					bases[i]=a.bases[i];
+					quals[i]=a.quality[i];
 				}
 				for(int i=a.length(); i<lim; i++){
 					bases[i]='N';
 					quals[i]=0;
 				}
 				for(int i=0; i<b.length(); i++){
-					bases[i+lim]=bbases[i];
-					quals[i+lim]=bquals[i];
+					bases[i+lim]=b.bases[i];
+					quals[i+lim]=b.quality[i];
 				}
 			}
 			
@@ -2831,8 +2756,8 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 //			final int lim1=a.length()-overlap;
 //			final int lim2=a.length();
 //			for(int i=0; i<lim1; i++){
-//				bases[i]=abases[i];
-//				quals[i]=aquals[i];
+//				bases[i]=a.bases[i];
+//				quals[i]=a.quality[i];
 //			}
 //			for(int i=lim1, j=0; i<lim2; i++, j++){
 //				assert(false) : "TODO";
@@ -2840,16 +2765,16 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 //				quals[i]=0;
 //			}
 //			for(int i=lim2, j=overlap; i<bases.length; i++, j++){
-//				bases[i]=bbases[j];
-//				quals[i]=bquals[j];
+//				bases[i]=b.bases[j];
+//				quals[i]=b.quality[j];
 //			}
 		}else{ //reads go off ends of molecule.
 			if(quals==null){
 				for(int i=0; i<a.length() && i<bases.length; i++){
-					bases[i]=abases[i];
+					bases[i]=a.bases[i];
 				}
 				for(int i=bases.length-1, j=b.length()-1; i>=0 && j>=0; i--, j--){
-					byte ca=bases[i], cb=bbases[j];
+					byte ca=bases[i], cb=b.bases[j];
 					if(ca==0 || ca=='N'){
 						bases[i]=cb;
 					}else if(ca==cb){
@@ -2860,12 +2785,12 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 				}
 			}else{
 				for(int i=0; i<a.length() && i<bases.length; i++){
-					bases[i]=abases[i];
-					quals[i]=aquals[i];
+					bases[i]=a.bases[i];
+					quals[i]=a.quality[i];
 				}
 				for(int i=bases.length-1, j=b.length()-1; i>=0 && j>=0; i--, j--){
-					byte ca=bases[i], cb=bbases[j];
-					byte qa=quals[i], qb=bquals[j];
+					byte ca=bases[i], cb=b.bases[j];
+					byte qa=quals[i], qb=b.quality[j];
 					if(ca==0 || ca=='N'){
 						bases[i]=cb;
 						quals[i]=qb;
@@ -3424,7 +3349,7 @@ public final class Read implements Comparable<Read>, Cloneable, Serializable{
 	public static final int PERFECTMASK=(1<<3);
 	public static final int AMBIMASK=(1<<4);
 	public static final int RESCUEDMASK=(1<<5);
-//	public static final int COLORMASK=(1<<6); //TODO:  Change to semiperfectmask?
+	public static final int COLORMASK=(1<<6);
 	public static final int SYNTHMASK=(1<<7);
 	public static final int DISCARDMASK=(1<<8);
 	public static final int INVALIDMASK=(1<<9);

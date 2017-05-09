@@ -5,7 +5,7 @@ import java.util.BitSet;
 
 import jgi.Dedupe;
 import stream.Read;
-import structures.IntList;
+import align2.IntList;
 import align2.Tools;
 import dna.AminoAcid;
 import dna.Parser;

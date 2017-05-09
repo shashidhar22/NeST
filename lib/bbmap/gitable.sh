@@ -4,15 +4,14 @@
 usage(){
 echo "
 Written by Brian Bushnell.
-Last modified May 11, 2016
+Last modified December 15, 2015
 
-Description:  Creates gitable.int1d from gi_taxid_nucl.dmp and/or gi_taxid_prot.dmp.
+Description:  Creates gitable.int1d from gi_taxid_nucl.dmp.
 gitable.int1d is a much more efficient representation,
 allowing easy translation of gi numbers to ncbi taxids.
-Dump files are at ftp://ftp.ncbi.nih.gov/pub/taxonomy/
+gi_taxid_nucl.dmp is at ftp://ftp.ncbi.nih.gov/pub/taxonomy/
 
-Usage:  gitable.sh gi_taxid_nucl.dmp.gz,gi_taxid_prot.dmp.gz gitable.int1d.gz
-
+Usage:  gitable.sh gi_taxid_nucl.dmp.gz gitable.int1d.gz
 
 Java Parameters:
 -Xmx    This will be passed to Java to set memory usage, overriding the program's automatic memory detection.

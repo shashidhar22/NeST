@@ -8,12 +8,12 @@ import dna.Data;
 public class Shared {
 	
 	private static int THREADS=setThreads(-1);
-	
+
 	public static int READ_BUFFER_LENGTH=200;
 	private static int READ_BUFFER_NUM_BUFFERS=setBuffers();
 	public static long READ_BUFFER_MAX_DATA=400000;
 	
-	/** Temporary, for testing; should be made non-global */
+	/** Temporary, for testing; will be made non-global */
 	public static boolean AMINO_IN=false;
 	
 	//TODO:  For some reason, it seems as though GAPBUFFER must equal exactly 1/2 of GAPLEN.  Not good; 1/4 would be far better.
@@ -25,7 +25,7 @@ public class Shared {
 	public static final int GAPCOST=Tools.max(1, GAPLEN/64);
 	public static final byte GAPC='-';
 	
-	public static String BBMAP_VERSION_STRING="36.32";
+	public static String BBMAP_VERSION_STRING="35.92";
 	
 	public static boolean TRIM_READ_COMMENTS=false;
 	
@@ -51,28 +51,18 @@ public class Shared {
 		{
 			long memory=Runtime.getRuntime().maxMemory();
 			double xmsRatio=Shared.xmsRatio();
-			usableMemory=(long)Tools.max(((memory-96000000-(20*400000))*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+			usableMemory=(long)Tools.max(((memory-96000000-(20*400000))*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 		}
 		return usableMemory;
 	}
-	
+
 	/** Directory in which to write temp files */
-	private static String TMPDIR=(System.getenv("TMPDIR")==null ? null : (System.getenv("TMPDIR")+"/").replaceAll("//", "/"));
+	public static String TMPDIR=(System.getenv("TMPDIR")==null ? null : (System.getenv("TMPDIR")+"/").replaceAll("//", "/"));
 //	static{assert(false) : "TMPDIR="+TMPDIR;}
-	
-	public static String tmpdir(){return TMPDIR;}
-	
-	public static String setTmpdir(String s){
-		if(s==null){TMPDIR=null;}
-		s=s.replaceAll("\\", "/");
-		if(!s.endsWith("/")){s=s+"/";}
-		TMPDIR=s.replaceAll("//", "/");
-		return TMPDIR;
-	}
 	
 	/** Anomaly probably resolved as of v.20.1 
 	 * This variable should be TRUE for normal users and FALSE for me. */
-	public static boolean anomaly=!(System.getProperty("user.dir")+"").contains("/bushnell/") && !Data.WINDOWS;
+	public static boolean anomaly=!System.getProperty("user.dir").contains("/bushnell/") && !Data.WINDOWS;
 	
 	public static final char[] getTLCB(int len){
 		char[] buffer=TLCB.get();
@@ -83,7 +73,7 @@ public class Shared {
 		return buffer;
 	}
 	private static final ThreadLocal<char[]> TLCB=new ThreadLocal<char[]>();
-	
+
 	public static int setThreads(String x){
 		int y=Data.LOGICAL_PROCESSORS;
 		if(x!=null && !x.equalsIgnoreCase("auto")){
@@ -91,7 +81,7 @@ public class Shared {
 		}
 		return setThreads(y);
 	}
-	
+
 	public static int setThreads(int x){
 		if(x>0){
 			THREADS=x;
@@ -110,7 +100,7 @@ public class Shared {
 	public static int capBuffers(int num){
 		return setBuffers(Tools.min(num, READ_BUFFER_NUM_BUFFERS));
 	}
-	
+
 	public static int setBuffers(){
 		return setBuffersFromThreads(THREADS);
 	}
@@ -138,18 +128,16 @@ public class Shared {
 	
 	/** Print statistics about current memory use and availability */
 	public static final void printMemory(){
-		try{
-			if(GC_BEFORE_PRINT_MEMORY){
-				System.gc();
-				System.gc();
-			}
-			Runtime rt=Runtime.getRuntime();
-			long mmemory=rt.maxMemory()/1000000;
-			long tmemory=rt.totalMemory()/1000000;
-			long fmemory=rt.freeMemory()/1000000;
-			long umemory=tmemory-fmemory;
-			System.err.println("Memory: "+"max="+mmemory+/*"m, total="+tmemory+*/"m, "+"free="+fmemory+"m, used="+umemory+"m");
-		}catch(Throwable t){}
+		if(GC_BEFORE_PRINT_MEMORY){
+			System.gc();
+			System.gc();
+		}
+		Runtime rt=Runtime.getRuntime();
+		long mmemory=rt.maxMemory()/1000000;
+		long tmemory=rt.totalMemory()/1000000;
+		long fmemory=rt.freeMemory()/1000000;
+		long umemory=tmemory-fmemory;
+		System.err.println("Memory: "+"max="+mmemory+/*"m, total="+tmemory+*/"m, "+"free="+fmemory+"m, used="+umemory+"m");
 	}
 	
 	/** Do garbage collection prior to printing memory usage */

@@ -4,25 +4,18 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified August 18, 2016
+Last modified October 15, 2015
 
 Description:  Generates multiple assemblies with Tadpole
 to estimate the optimal kmer length.
 
 Usage:
-tadwrapper.sh in=reads.fq out=contigs%.fa k=31,62,93
+tadwrapper.sh in=reads.fq out=contigs%.fq k=31,62,93
+
 
 Parameters:
 out=<file>          Output file name.  Must contain a % symbol.
-outfinal=<file>     Optional.  If set, the best assembly file 
-                    will be renamed to this.
 k=31                Comma-delimited list of kmer lengths.
-delete=f            Delete assemblies before terminating.
-quitearly=f         Quit once metrics stop improving with longer kmers.
-bisect=f            Recursively assemble with the kmer midway between
-                    the two best kmers until improvement halts.
-expand=f            Recursively assemble with kmers shorter or longer
-                    than the current best until improvement halts.
 
 All other parameters are passed to Tadpole.
 "

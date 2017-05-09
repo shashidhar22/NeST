@@ -174,7 +174,7 @@ public final class HashArray1D extends HashArray {
 	}
 	
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		long sum=0;
 		assert(owners==null) : "Clear ownership before regeneration.";
 		for(int pos=0; pos<values.length; pos++){
@@ -184,7 +184,7 @@ public final class HashArray1D extends HashArray {
 				values[pos]=NOT_PRESENT;
 				array[pos]=NOT_PRESENT;
 				size--;
-				if(value>limit){
+				if(value>0){
 					set(key, value);
 				}else{
 					sum++;
@@ -196,7 +196,7 @@ public final class HashArray1D extends HashArray {
 		victims.clear();
 		for(KmerNode node : nodes){
 			int value=node.value();
-			if(value<=limit){
+			if(value<1){
 				sum++;
 			}else{
 				set(node.pivot, node.value());

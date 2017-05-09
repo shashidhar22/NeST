@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 import align2.Shared;
 import align2.Tools;
-import dna.AminoAcid;
+
 import dna.Data;
 import dna.Gene;
 import fileIO.ByteFile;
@@ -386,9 +386,7 @@ public class FASTQ {
 				final byte q=(byte)(Shared.FAKE_QUAL+ASCII_OFFSET_OUT);
 				final int blen=bases.length;
 				bb.ensureExtra(blen);
-				for(int i=0, j=bb.length; i<blen; i++, j++){
-					bb.array[j]=(AminoAcid.isFullyDefined(bases[i]) ? q : ASCII_OFFSET_OUT);
-				}
+				for(int i=0, j=bb.length; i<blen; i++, j++){bb.array[j]=q;}
 				bb.length+=blen;
 				if(verbose){System.err.println("C:\n"+bb);}
 			}else{
@@ -800,21 +798,15 @@ public class FASTQ {
 						r.setSynthetic(true);
 					} catch (NumberFormatException e) {
 						PARSE_CUSTOM=false;
-						if(PARSE_CUSTOM_WARNING){
-							System.err.println("Turned off PARSE_CUSTOM because could not parse "+new String(quad[0]));
-						}
+						System.err.println("Turned off PARSE_CUSTOM because could not parse "+new String(quad[0]));
 					}
 				}else{
 					PARSE_CUSTOM=false;
-					if(PARSE_CUSTOM_WARNING){
-						System.err.println("Turned off PARSE_CUSTOM because answer="+Arrays.toString(answer));
-					}
+					System.err.println("Turned off PARSE_CUSTOM because answer="+Arrays.toString(answer));
 				}
 			}else{
 				PARSE_CUSTOM=false;
-				if(PARSE_CUSTOM_WARNING){
-					System.err.println("Turned off PARSE_CUSTOM because quad[0]="+new String(quad[0])+", index="+Tools.indexOf(quad[0], (byte)'_'));
-				}
+				System.err.println("Turned off PARSE_CUSTOM because quad[0]="+new String(quad[0])+", index="+Tools.indexOf(quad[0], (byte)'_'));
 			}
 		}
 		if(r==null){
@@ -879,7 +871,6 @@ public class FASTQ {
 	private static long incr=10000000000L;
 
 	public static boolean PARSE_CUSTOM=false;
-	public static boolean PARSE_CUSTOM_WARNING=true;
 	public static boolean TAG_CUSTOM=false;
 	public static boolean TAG_CUSTOM_SIMPLE=false;
 	public static boolean DELETE_OLD_NAME=false;

@@ -19,7 +19,7 @@ import stream.RTextInputStream;
 import stream.Read;
 import stream.ReadStreamStringWriter;
 import stream.ReadStreamWriter;
-import structures.ListNum;
+
 import dna.AminoAcid;
 import dna.Data;
 import dna.Parser;

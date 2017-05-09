@@ -125,11 +125,6 @@ public final class BBMapPacBioSkimmer extends AbstractMapper  {
 			maxKeyDensity*=1.2f;
 			minKeyDensity*=1.2f;
 		}
-		
-		if(excludeFraction>=0){
-			BBIndexPacBioSkimmer.setFractionToExclude(excludeFraction);
-		}
-		
 		return args;
 	}
 	

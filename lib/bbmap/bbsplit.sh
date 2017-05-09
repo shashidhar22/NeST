@@ -2,7 +2,7 @@
 
 function usage(){
 echo "
-BBSplit / BBMap v36.x
+BBSplit / BBMap v35.x
 Written by Brian Bushnell, from Dec. 2010 - present
 Last modified October 9, 2015
 

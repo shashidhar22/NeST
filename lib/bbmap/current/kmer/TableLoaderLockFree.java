@@ -10,8 +10,8 @@ import jgi.Dedupe;
 
 import stream.ConcurrentReadInputStream;
 import stream.Read;
-import structures.IntList;
-import structures.ListNum;
+import align2.IntList;
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 import dna.AminoAcid;

@@ -16,15 +16,13 @@ public abstract class BandedAligner {
 	}
 	
 	public static final BandedAligner makeBandedAligner(int width_){
-		//TODO: Remove the false condition when BandedAlignerJNI yields identical results to BandedAlignerConcrete.
-		BandedAligner ba=((Shared.USE_JNI && false) ? new BandedAlignerJNI(width_) : new BandedAlignerConcrete(width_));
+		BandedAligner ba=(Shared.USE_JNI ? new BandedAlignerJNI(width_) : new BandedAlignerConcrete(width_));
 		return ba;
 	}
 	
 	public final int alignQuadrupleProgressive(final byte[] query, final byte[] ref, int minEdits, int maxEdits, final boolean exact){
 		maxEdits=Tools.min(maxEdits, Tools.max(query.length, ref.length));
 		minEdits=Tools.min(minEdits, maxEdits);
-		//System.err.println("maxEdits="+maxEdits+", "+minEdits);
 		for(long i=minEdits, me=-1; me<maxEdits; i=i*4){
 			me=Tools.min(i, maxEdits);
 			if(me*2>maxEdits){me=maxEdits;}

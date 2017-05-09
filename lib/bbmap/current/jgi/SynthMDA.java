@@ -13,7 +13,7 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.KillSwitch;
 import stream.Read;
-import structures.ListNum;
+import align2.ListNum;
 import align2.RandomReads3;
 import align2.ReadStats;
 import align2.Shared;
@@ -104,12 +104,10 @@ public class SynthMDA {
 				paired=Tools.parseBoolean(b);
 			}else if(a.equals("amp")){
 				amp=Integer.parseInt(b);
-			}
-//			else if(a.equals("build")){
-//				assert(false) : "Build should have been parsed by parser.";
-//				build=Integer.parseInt(b);
-//			}
-			else if(a.equals("ref")){
+			}else if(a.equals("build")){
+				assert(false) : "Build should have been parsed by parser.";
+				build=Integer.parseInt(b);
+			}else if(a.equals("ref")){
 				ref=b;
 			}else if(a.equals("prefix")){
 				prefix=b;
@@ -347,7 +345,7 @@ public class SynthMDA {
 			final long initialLength=dest.length();
 			final int start=randy.nextInt(slen);
 			final int len0=minlen+randy.nextInt(range);
-			final boolean forward=Tools.nextBoolean(randy);
+			final boolean forward=randy.nextBoolean();
 			if(initialLength+(long)len0>1500000000){break;}
 //			System.err.println(forward+", "+start+", "+len0);
 			if(forward){
@@ -376,7 +374,7 @@ public class SynthMDA {
 			dest.append('$');
 			long added=dest.length()-initialLength;
 //			System.err.println("added "+added+"/"+len0+" ("+initialLength+" -> "+dest.length()+")");
-//			if(added<Tools.min(200, minlen) || (added<Tools.min(1000, minlen) && Tools.nextBoolean(randy))){dest.setLength(initialLength);}
+//			if(added<Tools.min(200, minlen) || (added<Tools.min(1000, minlen) && randy.nextBoolean())){dest.setLength(initialLength);}
 			if(added<Tools.min(minlen2, minlen)){dest.setLength((int)initialLength);}
 		}
 		return dest;

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import kmer.Primes;
-import structures.IntList2;
+
+import align2.IntList2;
 import align2.Tools;
 
 /**
@@ -297,7 +298,7 @@ public final class HashArrayUHybrid extends HashArrayU {
 	
 	@Deprecated
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		throw new RuntimeException("Not supported.");
 	}
 	

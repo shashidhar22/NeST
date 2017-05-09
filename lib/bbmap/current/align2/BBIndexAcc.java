@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import stream.Read;
 import stream.SiteScore;
-import structures.LongM;
+
 import dna.AminoAcid;
 import dna.Data;
 import dna.Gene;

@@ -111,7 +111,7 @@ public abstract class AbstractRemoveThread extends Thread{
 			}
 			
 			table.clearOwnership();
-			kmersRemovedT+=table.regenerate(0);
+			kmersRemovedT+=table.regenerate();
 			return true;
 		}
 		
@@ -155,7 +155,7 @@ public abstract class AbstractRemoveThread extends Thread{
 			}
 			
 			table.clearOwnership();
-			kmersRemovedT+=table.regenerate(0);
+			kmersRemovedT+=table.regenerate();
 			return true;
 		}
 		

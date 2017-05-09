@@ -15,7 +15,7 @@ import stream.ConcurrentReadInputStream;
 import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 import dna.Parser;
@@ -65,7 +65,7 @@ public class CalcUniqueness {
 		ReadWrite.USE_UNPIGZ=true;
 		ReadWrite.MAX_ZIP_THREADS=8;
 		
-		int k_=25;
+		int k_=20;
 		
 		Parser parser=new Parser();
 		for(int i=0; i<args.length; i++){
@@ -89,20 +89,14 @@ public class CalcUniqueness {
 				ReadWrite.verbose=verbose;
 			}else if(a.equals("cumulative")){
 				cumulative=Tools.parseBoolean(b);
-			}else if(a.equals("offset")){
-				singleOffset=Integer.parseInt(b);
 			}else if(a.equals("percent") || a.equals("percents")){
 				showPercents=Tools.parseBoolean(b);
 			}else if(a.equals("count") || a.equals("counts")){
 				showCounts=Tools.parseBoolean(b);
-			}else if(a.equals("minprob") || a.equals("percents")){
-				minprob=Float.parseFloat(b);
 			}else if(a.equals("k")){
 				k_=Integer.parseInt(b);
-			}else if(a.equals("fixpeaks") || a.equals("fixspikes") || a.equals("fs")){
-				fixSpikes=Tools.parseBoolean(b);
 			}else if(a.equals("bin") || a.equals("interval")){
-				interval=Tools.parseKMG(b);
+				interval=Integer.parseInt(b);
 			}else if(parser.in1==null && i==0 && !arg.contains("=") && (arg.toLowerCase().startsWith("stdin") || new File(arg).exists())){
 				parser.in1=arg;
 			}else{
@@ -114,8 +108,6 @@ public class CalcUniqueness {
 		
 		{//Process parser fields
 			Parser.processQuality();
-			minAverageQuality=parser.minAvgQuality;
-			minAverageQualityBases=parser.minAvgQualityBases;
 			
 			maxReads=parser.maxReads;	
 			samplerate=parser.samplerate;
@@ -208,16 +200,7 @@ public class CalcUniqueness {
 			mask=mask_;
 		}
 		
-		void incrementQuality(Read r){
-			qualCounts++;
-			double q=r.avgQualityByProbability(true, r.length());
-			quality+=q;
-			double p=r.probabilityErrorFree(true, r.length());
-			perfectProb+=p;
-		}
-		
 		void increment(final long kmer){
-			if(kmer<0){return;}
 			AbstractKmerTable table=keySets[(int)(kmer%WAYS)];
 			int count=table.getValue(kmer);
 			if(count<1){
@@ -235,31 +218,11 @@ public class CalcUniqueness {
 		}
 		
 		void reset(){
-			prevPercent=percent();
-			prevHits=hits;
-			prevMisses=misses;
-			
 			hits=misses=0;
-			quality=0;
-			perfectProb=0;
-			qualCounts=0;
-		}
-		
-		public double averageQuality() {
-			return qualCounts<1 ? 0 : quality/qualCounts;
-		}
-		
-		public double averagePerfectProb() {
-			return qualCounts<1 ? 0 : 100*perfectProb/qualCounts;
 		}
 		
 		double percent(){
-			final long sum=hits()+misses(), prevSum=prevHits+prevMisses;
-			if(sum==0){return 0;}
-			double percent=misses()*100.0/sum;
-			if(cumulative || !fixSpikes || prevSum==0){return percent;}
-			assert(!cumulative && fixSpikes);
-			return Tools.min(percent, prevPercent+0.2);
+			return misses()*100.0/(hits()+misses());
 		}
 		
 		String percentS(){
@@ -271,10 +234,6 @@ public class CalcUniqueness {
 		
 		final int mask;
 		
-		double perfectProb;
-		double quality;
-		long qualCounts;
-		
 		/** Per-interval hash hits */
 		long hits=0;
 		/** Per-interval hash misses */
@@ -285,9 +244,6 @@ public class CalcUniqueness {
 		/** Cumulative hash misses */
 		long cmisses=0;
 		
-		long prevHits=0;
-		long prevMisses=0;
-		double prevPercent=0;
 	}
 	
 	/*--------------------------------------------------------------*/
@@ -319,9 +275,6 @@ public class CalcUniqueness {
 				tsw.print("\tfirst_cnt\trand_cnt");
 				if(paired){tsw.print("\tr1_first_cnt\tr1_rand_cnt\tr2_first_cnt\tr2_rand_cnt\tpair_cnt");}
 			}
-			if(showQuality){
-				tsw.print("\tavg_quality\tperfect_prob");
-			}
 			tsw.print("\n");
 		}
 		
@@ -347,90 +300,81 @@ public class CalcUniqueness {
 			
 			/* Process 1 list of reads per loop iteration */
 			while(reads!=null && reads.size()>0){
+				
 				/* Process 1 read per loop iteration */
 				for(Read r1 : reads){
-					if(minAverageQuality<1 || r1.avgQualityFirstNBases(minAverageQualityBases)>=minAverageQuality){
-						final Read r2=r1.mate;
-						final byte[] bases1=(r1==null ? null : r1.bases);
-						final byte[] bases2=(r2==null ? null : r2.bases);
-						final byte[] quals1=(r1==null ? null : r1.quality);
-						final byte[] quals2=(r2==null ? null : r2.quality);
-						final int length1=(bases1==null ? 0 : bases1.length);
-						final int length2=(bases2==null ? 0 : bases2.length);
-
-						pairsProcessed++;
-
-						/* Process read 1 */
-						if(r1!=null){
-							
-							bothCounterFirst.incrementQuality(r1);
-
-							readsProcessed++;
-							basesProcessed+=length1;
-
-							if(length1>=k){
-								if(length1>=k+singleOffset){//Fixed kmer
-									final long kmer=toKmer(bases1, quals1, singleOffset, k);
-									r1CounterFirst.increment(kmer);
-									bothCounterFirst.increment(kmer);
-								}
-								{//Random kmer
-									final long kmer=toKmer(bases1, quals1, randy.nextInt(length1-k2), k);
-									r1CounterRand.increment(kmer);
-									bothCounterRand.increment(kmer);
-								}
+					final Read r2=r1.mate;
+					final byte[] bases1=(r1==null ? null : r1.bases);
+					final byte[] bases2=(r2==null ? null : r2.bases);
+					final int length1=(bases1==null ? 0 : bases1.length);
+					final int length2=(bases2==null ? 0 : bases2.length);
+					
+					pairsProcessed++;
+					
+					/* Process read 1 */
+					if(r1!=null){
+						
+						readsProcessed++;
+						basesProcessed+=length1;
+						
+						if(length1>=k){
+							{//First kmer
+								final long kmer=toKmer(bases1, 0, k);
+								r1CounterFirst.increment(kmer);
+								bothCounterFirst.increment(kmer);
+							}
+							{//Random kmer
+								final long kmer=toKmer(bases1, randy.nextInt(length1-k2), k);
+								r1CounterRand.increment(kmer);
+								bothCounterRand.increment(kmer);
 							}
 						}
-
-						/* Process read 2 */
-						if(r2!=null){
-							
-							bothCounterFirst.incrementQuality(r2);
-
-							readsProcessed++;
-							basesProcessed+=length2;
-
-							if(length2>=k){
-								if(length2>=k+singleOffset){//Fixed kmer
-									final long kmer=toKmer(bases2, quals2, singleOffset, k);
-									r2CounterFirst.increment(kmer);
-									bothCounterFirst.increment(kmer);
-								}
-								{//Random kmer
-									final long kmer=toKmer(bases2, quals2, randy.nextInt(length2-k2), k);
-									r2CounterRand.increment(kmer);
-									bothCounterRand.increment(kmer);
-								}
+					}
+					
+					/* Process read 2 */
+					if(r2!=null){
+						
+						readsProcessed++;
+						basesProcessed+=length2;
+						
+						if(length2>=k){
+							{//First kmer
+								final long kmer=toKmer(bases2, 0, k);
+								r2CounterFirst.increment(kmer);
+								bothCounterFirst.increment(kmer);
+							}
+							{//Random kmer
+								final long kmer=toKmer(bases2, randy.nextInt(length2-k2), k);
+								r2CounterRand.increment(kmer);
+								bothCounterRand.increment(kmer);
 							}
 						}
-
-						/* Process pair */
-						if(r1!=null && r2!=null){
-
-							if(length1>k+PAIR_OFFSET && length2>k+PAIR_OFFSET){
-								final long kmer1=toKmer(bases1, quals1, PAIR_OFFSET, k);
-								final long kmer2=toKmer(bases2, quals2, PAIR_OFFSET, k);
-								if(kmer1!=-1 && kmer2!=-1){
-									final long kmer=(~((-1L)>>2))|((kmer1<<(2*(31-k)))^(kmer2));
-									assert(kmer>=0) : k+", "+kmer1+", "+kmer2+", "+kmer;
-									{//Pair kmer
-										pairCounter.increment(kmer);
-									}
-								}
+					}
+					
+					/* Process pair */
+					if(r1!=null && r2!=null){
+						
+						if(length1>k+OFFSET && length2>k+OFFSET){
+							final long kmer1=toKmer(bases1, OFFSET, k);
+							final long kmer2=toKmer(bases2, OFFSET, k);
+							final long kmer=(~((-1L)>>2))|((kmer1<<(2*(31-k)))^(kmer2));
+							assert(kmer>=0) : k+", "+kmer1+", "+kmer2+", "+kmer;
+							{//Pair kmer
+								pairCounter.increment(kmer);
 							}
 						}
-
-						remaining--;
-						if(remaining<=0){
-
-							printCountsToBuffer(sb, pairsProcessed, paired);
-
-							tsw.print(sb.toString());
-
-							//Reset things
-							sb.setLength(0);
-							remaining=interval;
-						}
+					}
+					
+					remaining--;
+					if(remaining<=0){
+						
+						printCountsToBuffer(sb, pairsProcessed, paired);
+						
+						tsw.print(sb.toString());
+						
+						//Reset things
+						sb.setLength(0);
+						remaining=interval;
 					}
 				}
 				
@@ -533,11 +477,6 @@ public class CalcUniqueness {
 			}
 		}
 		
-		if(showQuality){
-			sb.append('\t').append(String.format("%.2f", bothCounterFirst.averageQuality()));
-			sb.append('\t').append(String.format("%.2f", bothCounterFirst.averagePerfectProb()));
-		}
-		
 		sb.append('\n');
 
 		bothCounterFirst.reset();
@@ -561,11 +500,7 @@ public class CalcUniqueness {
 	 * @param klen kmer length
 	 * @return kmer
 	 */
-	private final long toKmer(final byte[] bases, byte[] quals, final int start, final int klen){
-		if(minprob>0 && quals!=null){
-			float prob=toProb(quals, start, klen);
-			if(prob<minprob){return -1;}
-		}
+	private final long toKmer(final byte[] bases, final int start, final int klen){
 		final int stop=start+klen;
 		assert(stop<=bases.length);
 		long kmer=0;
@@ -576,26 +511,6 @@ public class CalcUniqueness {
 			kmer=((kmer<<2)|x);
 		}
 		return kmer;
-	}
-	
-	/**
-	 * Generate the probability a kmer is error-free, from specified start location
-	 * @param quals
-	 * @param start
-	 * @param klen kmer length
-	 * @return kmer
-	 */
-	private final float toProb(final byte[] quals, final int start, final int klen){
-		final int stop=start+klen;
-		assert(stop<=quals.length);
-		float prob=1f;
-		
-		for(int i=start; i<stop; i++){
-			final byte q=quals[i];
-			float pq=probCorrect[q];
-			prob*=pq;
-		}
-		return prob;
 	}
 	
 	/*--------------------------------------------------------------*/
@@ -656,20 +571,14 @@ public class CalcUniqueness {
 	private long sampleseed=-1;
 
 	private long interval=25000;
-	private float minprob=0;
-	private int minAverageQuality=0;
-	private int minAverageQualityBases=20;
-	private int singleOffset=0;
 	private boolean cumulative=false;
 	private boolean showPercents=true;
 	private boolean showCounts=false;
 	private boolean printLastBin=false;
-	private boolean showQuality=true;
-	private boolean fixSpikes=false;
 
 	private final int k, k2;
 	private static final int WAYS=31;
-	private static final int PAIR_OFFSET=10;
+	private static final int OFFSET=10;
 	
 	/** Initial size of data structures */
 	private int initialSize=512000;
@@ -697,13 +606,5 @@ public class CalcUniqueness {
 	private static final boolean useForest=false, useTable=false, useArray=true;
 	
 	private java.util.concurrent.ThreadLocalRandom randy;
-	
-	private static final float[] probCorrect=
-		{0.0000f, 0.2501f, 0.3690f, 0.4988f, 0.6019f, 0.6838f, 0.7488f, 0.8005f, 0.8415f, 0.8741f, 0.9000f, 0.9206f, 0.9369f, 0.9499f,
-		 0.9602f, 0.9684f, 0.9749f, 0.9800f, 0.9842f, 0.9874f, 0.9900f, 0.9921f, 0.9937f, 0.9950f, 0.9960f, 0.9968f, 0.9975f, 0.9980f,
-		 0.9984f, 0.9987f, 0.9990f, 0.9992f, 0.9994f, 0.9995f, 0.9996f, 0.9997f, 0.9997f, 0.9998f, 0.9998f, 0.9999f, 0.9999f, 0.9999f,
-		 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f, 0.9999f,
-		 0.9999f, 0.9999f, 0.9999f, 0.9999f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f};
-	
 	
 }

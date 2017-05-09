@@ -184,6 +184,3 @@ To generate histograms and statistics:
 bbmap.sh in=reads.fq bhist=bhist.txt qhist=qhist.txt aqhist=aqhist.txt lhist=lhist.txt ihist=ihist.txt ehist=ehist.txt qahist=qahist.txt indelhist=indelhist.txt mhist=mhist.txt gchist=gchist.txt idhist=idhist.txt scafstats=scafstats.txt 
 
 
-Known Incompatibilities:
-Some programs are incompatible with the current sam specification, particularly cigar strings containing "=" and "X" symbols.  Those programs require the flag "sam=1.3" to be used during mapping to force old-style cigar strings with the M symbol.  Also, some programs trim everything from sequence names after the first whitespace (so for example "Homo sapiens chr 1" would become "Homo").  In this case, the "trd" flag (trimreaddescriptions) is needed.
-Known programs with these issues are FeatureCounts and FreeBayes.  But if other programs have very weird behavior such as detecting 0 mapped reads or no coverage, those flags ("trd" and "sam=1.3") are worth trying.

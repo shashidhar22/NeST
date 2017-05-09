@@ -251,7 +251,7 @@ public final class HashArrayU1D extends HashArrayU {
 	}
 	
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		long sum=0;
 		assert(owners==null) : "Clear ownership before regeneration.";
 		final Kmer kmer=new Kmer(kbig);
@@ -262,7 +262,7 @@ public final class HashArrayU1D extends HashArrayU {
 				values[pos]=NOT_PRESENT;
 				arrays[0][pos]=NOT_PRESENT;
 				size--;
-				if(value>limit){
+				if(value>0){
 					set(key, value);
 				}else{
 					sum++;
@@ -274,7 +274,7 @@ public final class HashArrayU1D extends HashArrayU {
 		victims.clear();
 		for(KmerNodeU node : nodes){
 			int value=node.value();
-			if(value<=limit){
+			if(value<1){
 				sum++;
 			}else{
 				kmer.setFrom(node.pivot());

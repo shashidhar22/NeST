@@ -3,8 +3,8 @@ package stream;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import align2.ListNum;
 import align2.Shared;
-import structures.ListNum;
 
 /**
  * @author Brian Bushnell

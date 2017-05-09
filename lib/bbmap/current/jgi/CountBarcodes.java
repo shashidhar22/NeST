@@ -13,7 +13,7 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.AminoAcid;
 import dna.Parser;
 import dna.Timer;
@@ -25,6 +25,7 @@ import fileIO.FileFormat;
 import fileIO.TextStreamWriter;
 
 import align2.BandedAlignerConcrete;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;

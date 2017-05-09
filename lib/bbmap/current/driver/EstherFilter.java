@@ -7,11 +7,13 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import align2.ListNum;
+
 import stream.ConcurrentGenericReadInputStream;
 import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
 

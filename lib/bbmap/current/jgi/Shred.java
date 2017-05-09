@@ -3,7 +3,6 @@ package jgi;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Random;
 
 import stream.ConcurrentReadInputStream;
 import stream.FASTQ;
@@ -11,12 +10,14 @@ import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.KillSwitch;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -65,7 +66,7 @@ public class Shred {
 		ReadWrite.USE_PIGZ=ReadWrite.USE_UNPIGZ=true;
 		ReadWrite.MAX_ZIP_THREADS=Shared.threads();
 		
-		long seed=-1;
+		
 		Parser parser=new Parser();
 		boolean even=false;
 		for(int i=0; i<args.length; i++){
@@ -76,7 +77,9 @@ public class Shred {
 			if(b==null || b.equalsIgnoreCase("null")){b=null;}
 			while(a.startsWith("-")){a=a.substring(1);} //In case people use hyphens
 
-			if(a.equals("length") || a.equals("len") || a.equals("shredlen") || a.equals("shredlength")){
+			if(parser.parse(arg, a, b)){
+				//do nothing
+			}else if(a.equals("length") || a.equals("len") || a.equals("shredlen") || a.equals("shredlength")){
 				shredLength=(int)Tools.parseKMG(b);
 			}else if(a.equals("overlap")){
 				overlap=(int)Tools.parseKMG(b);
@@ -84,16 +87,8 @@ public class Shred {
 				verbose=Tools.parseBoolean(b);
 			}else if(a.equals("even") || a.equals("equal")){
 				even=Tools.parseBoolean(b);
-			}else if(a.equals("seed")){
-				seed=Long.parseLong(b);
-			}else if(a.equals("median")){
-				median=(int)Tools.parseKMG(b);
-			}else if(a.equals("variance")){
-				variance=(int)Tools.parseKMG(b);
 			}else if(a.equals("parse_flag_goes_here")){
 				//Set a variable here
-			}else if(parser.parse(arg, a, b)){
-				//do nothing
 			}else{
 				outstream.println("Unknown parameter "+args[i]);
 				assert(false) : "Unknown parameter "+args[i];
@@ -147,9 +142,6 @@ public class Shred {
 		ffout1=FileFormat.testOutput(out1, FileFormat.FASTQ, extout, true, overwrite, append, false);
 
 		ffin1=FileFormat.testInput(in1, FileFormat.FASTQ, extin, true, true);
-		
-		randy=(seed>=0 ? new Random(seed) : new Random());
-		if(median>0 && variance<0){variance=median;}
 	}
 	
 	public boolean parseArgument(String arg, String a, String b){
@@ -265,9 +257,7 @@ public class Shred {
 				readsProcessed++;
 				basesProcessed+=initialLength1;
 				
-				if(median>0){
-					processRandomly(r1, listOut);
-				}else if(evenLengths){
+				if(evenLengths){
 					processEvenly(r1, listOut);
 				}else{
 					processUnevenly(r1, listOut);
@@ -349,27 +339,6 @@ public class Shred {
 		}
 	}
 	
-	void processRandomly(final Read r1, final ArrayList<Read> list){
-		final byte[] bases=r1.bases;
-		final byte[] quals=r1.quality;
-		final String name=r1.id;
-		for(int i=0; i<bases.length;){
-			int rand=Tools.min(randy.nextInt(2*variance), randy.nextInt(3*variance), 2*variance);
-			final int limit=Tools.max(i+minLength, Tools.min(i+rand+median-variance, bases.length));
-			final int length=limit-i;
-			if(length<minLength || limit>bases.length){return;}
-			final byte[] bases2=Arrays.copyOfRange(bases, i, limit);
-			final byte[] quals2=(quals==null ? null : Arrays.copyOfRange(quals, i, limit));
-			Read shred=new Read(bases2, quals2, readsOut, name+"_"+i+"-"+(limit-1));
-			readsOut++;
-			basesOut+=shred.length();
-			list.add(shred);
-			if(limit==bases.length){return;}
-			assert(limit<bases.length);
-			i=limit;
-		}
-	}
-	
 	/** This is called if the program runs with no parameters */
 	private void printOptions(){
 		throw new RuntimeException("TODO");
@@ -394,9 +363,6 @@ public class Shred {
 	
 	private long maxReads=-1;
 	
-	private int median=-1;
-	private int variance=-1;
-	
 	private int shredLength=500;
 	private int minLength=1;
 	private int overlap=0;
@@ -404,8 +370,6 @@ public class Shred {
 	private final double incMult;
 	
 	private final boolean evenLengths;
-	
-	private final Random randy;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Final Fields         ----------------*/

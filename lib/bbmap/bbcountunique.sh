@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified August 1, 2016
+Last modified February 17, 2015
 
 Description:  Generates a kmer uniqueness histogram, binned by file position.
 There are 3 columns for single reads, 6 columns for paired:
@@ -30,13 +30,12 @@ Output parameters:
 out=<file>          File for output stats
 
 Processing parameters:
-k=25                Kmer length (range 1-31).
+k=20                Kmer length (range 1-31).
 interval=25000      Print one line to the histogram per this many reads.
 cumulative=f        Show cumulative numbers rather than per-interval numbers.
 percent=t           Show percentages of unique reads.
 count=f             Show raw counts of unique reads.
 printlastbin=f      (plb) Print a line for the final undersized bin.
-minprob=0           Ignore kmers with a probability of correctness below this (based on q-scores).
 
 
 Java Parameters:
@@ -88,7 +87,7 @@ bbcountunique() {
 		module load oracle-jdk/1.7_64bit
 		module load pigz
 	fi
-	local CMD="java $EA $z $z2 -cp $CP jgi.CalcUniqueness $@"
+	local CMD="java $EA $z -cp $CP jgi.CalcUniqueness $@"
 	echo $CMD >&2
 	eval $CMD
 }

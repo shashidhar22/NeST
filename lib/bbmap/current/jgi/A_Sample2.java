@@ -3,10 +3,12 @@ package jgi;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import align2.ListNum;
+
 import stream.ConcurrentReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 

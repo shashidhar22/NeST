@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified June 9, 2016
+Last modified May 19, 2015
 
 Description:  Masks sequences of low-complexity, or containing repeat kmers, or covered by mapped reads.
 By default this program will mask using entropy with a window=80 and entropy=0.75
@@ -13,7 +13,6 @@ Usage:   bbmask.sh in=<file> out=<file> sam=<file,file,...file>
 
 Input may be stdin or a fasta or fastq file, raw or gzipped.
 sam is optional, but may be a comma-delimited list of sam files to mask.
-Sam files may also be used as arguments without sam=, so you can use *.sam for example.
 If you pipe via stdin/stdout, please include the file type; e.g. for gzipped fasta input, set in=stdin.fa.gz
 
 
@@ -91,7 +90,7 @@ calcXmx () {
 	if [[ $set == 1 ]]; then
 		return
 	fi
-	freeRam 3200m 84
+	freeRam 3200m 42
 	z="-Xmx${RAM}m"
 	z2="-Xms${RAM}m"
 }
@@ -103,7 +102,7 @@ bbmask() {
 		module load oracle-jdk/1.7_64bit
 		module load pigz
 	fi
-	local CMD="java $EA $z $z2 -cp $CP jgi.BBMask $@"
+	local CMD="java $EA $z -cp $CP jgi.BBMask $@"
 	echo $CMD >&2
 	eval $CMD
 }

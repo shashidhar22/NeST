@@ -10,7 +10,7 @@ import stream.ConcurrentLegacyReadInputStream;
 import stream.RTextInputStream;
 import stream.Read;
 import stream.SiteScore;
-import structures.ListNum;
+
 import dna.Data;
 import dna.Timer;
 import fileIO.ReadWrite;

@@ -296,9 +296,12 @@ public final class AminoAcid {
 	
 	public static final byte colorToBase(byte base1, byte color){
 		if(!isFullyDefined(base1) || color<0 || color>3){
+//			System.err.println("colorToBase("+(char)base1+","+color+") = N");
 			return (byte)'N';
 		}
 		byte a=baseToNumber[base1];
+		
+//		System.err.println("colorToBase("+(char)base1+","+color+") = "+(char)numberToBase[COLORS[a][color]]);
 		
 		return numberToBase[COLORS[a][color]];
 	}

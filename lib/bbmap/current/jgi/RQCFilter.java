@@ -139,8 +139,6 @@ public class RQCFilter {
 				clipLinker=b;
 			}else if(a.equals("clrslinker")){
 				clrsLinker=b;
-			}else if(a.equals("bisulfite") || a.equals("bisulfate")){ //Allow for a common mispelling... ;)
-				bisulfite=Tools.parseBoolean(b);
 			}else if(a.equals("trimfragadapter") || a.equals("trimfragadapters")){
 				fragAdapterFlag=Tools.parseBoolean(b);
 			}else if(a.equals("trimrnaadapter") || a.equals("trimrnaadapters")){
@@ -155,16 +153,12 @@ public class RQCFilter {
 				mouseFlag=Tools.parseBoolean(b);
 			}else if(a.equals("catdoghuman")){
 				catDogHumanFlag=Tools.parseBoolean(b);
-			}else if(a.equals("catdoghumanmouse") || a.equals("mousecatdoghuman") || a.equals("catdogmousehuman")){
+			}else if(a.equals("catdoghumanmouse") || a.equals("mousecatdoghuman")){
 				mouseCatDogHumanFlag=Tools.parseBoolean(b);
-			}else if(a.equals("keephumanreads") || a.equals("keephuman")){
-				keepHumanReads=Tools.parseBoolean(b);
 			}else if(a.equals("aggressive") || a.equals("aggressivehuman")){
 				aggressiveMappingFlag=Tools.parseBoolean(b);
 			}else if(a.equals("removemicrobes") || a.equals("removecommonmicrobes") || a.equals("microbes")){
 				commonMicrobeFlag=Tools.parseBoolean(b);
-			}else if(a.equals("detectmicrobes") || a.equals("detectcommonmicrobes")){
-				detectMicrobeFlag=Tools.parseBoolean(b);
 			}else if(a.equals("removeribo") || a.equals("ribo")){
 				riboFlag=Tools.parseBoolean(b);
 			}else if(a.equals("riboout") || a.equals("outribo")){
@@ -184,13 +178,13 @@ public class RQCFilter {
 			}else if(a.equals("overallstats") || a.equals("stats")){
 				rqcStatsName=b;
 			}else if(a.equals("scafstats")){
-				scaffoldStatsName1=b;
+				scaffoldStatsName=b;
 			}else if(a.equals("scafstatskt") || a.equals("scafstatstrim")){
 				scaffoldStatsName_kt=b;
 			}else if(a.equals("refstats")){
 				refStatsName=b;
 			}else if(a.equals("kmerstats")){
-				kmerStatsName1=b;
+				kmerStatsName=b;
 			}else if(a.equals("log")){
 				logName=b;
 			}else if(a.equals("ihist")){
@@ -206,18 +200,14 @@ public class RQCFilter {
 			}else if(a.equals("rna")){
 				rnaArtifactFlag=Tools.parseBoolean(b);
 				dnaArtifactFlag=!rnaArtifactFlag; //This line requested by Bryce.
-			}else if(a.equals("phix") || a.equals("removephix")){
+			}else if(a.equals("phix")){
 				phixFlag=Tools.parseBoolean(b);
-			}else if(a.equals("lambda") || a.equals("removelambda")){
-				lambdaFlag=Tools.parseBoolean(b);
 			}else if(a.equals("pjet")){
 				pjetFlag=Tools.parseBoolean(b);
 			}else if(a.equals("jointseq")){
 				jointSeq=b;
 			}else if(a.equals("nextera") || a.equals("nexteralmp")){
 				doNextera_=Tools.parseBoolean(b);
-			}else if(a.equals("copyundefined") || a.equals("cu")){
-				copyUndefined=Tools.parseBoolean(b);
 			}else if(a.equals("ktrim")){
 				ktrim=b;
 			}else if(a.equals("mink")){
@@ -326,8 +316,6 @@ public class RQCFilter {
 				commonMicrobesRef=b;
 			}else if(a.equals("microbepath")){
 				commonMicrobesPath=b;
-			}else if(a.equals("microbebuild")){
-				commonMicrobesBuild=Integer.parseInt(b);
 			}else{
 				//Uncaptured arguments are passed to BBDuk
 				primaryArgList.add(arg);
@@ -336,12 +324,10 @@ public class RQCFilter {
 		
 		doNextera=doNextera_;
 		
-		if(commonMicrobeFlag && detectMicrobeFlag){detectMicrobeFlag=false;}
-		
 //		assert(false) : rnaArtifactFlag+"\n"+primaryArgList+"\n"+libType+"\n"+outDir;
 		
 		if(writeTempToTmpdir){
-			if(tmpDir==null){tmpDir=Shared.tmpdir();}
+			if(tmpDir==null){tmpDir=Shared.TMPDIR;}
 			if(tmpDir!=null){
 				tmpDir=tmpDir.replace('\\', '/');
 				if(tmpDir.length()>0 && !tmpDir.endsWith("/")){tmpDir+="/";}
@@ -367,8 +353,7 @@ public class RQCFilter {
 			if(peaksName!=null){peaksName=outDir+peaksName;}
 			if(riboOutFile!=null){riboOutFile=outDir+riboOutFile;}
 			if(humanOutFile!=null){humanOutFile=outDir+humanOutFile;}
-			if(synthOutFile1!=null){synthOutFile1=outDir+synthOutFile1;}
-			if(synthOutFile2!=null){synthOutFile2=outDir+synthOutFile2;}
+			if(synthOutFile!=null){synthOutFile=outDir+synthOutFile;}
 			if(microbeOutFile!=null){microbeOutFile=outDir+microbeOutFile;}
 			if(microbeStatsFile!=null){microbeStatsFile=outDir+microbeStatsFile;}
 			
@@ -380,19 +365,13 @@ public class RQCFilter {
 				rqcStatsName_kt=outDir+"ktrim_"+rqcStatsName;
 				rqcStatsName=outDir+rqcStatsName;
 			}
-			if(kmerStatsName1!=null){
-				kmerStatsName_kt=outDir+"ktrim_"+kmerStatsName1;
-				kmerStatsName1=outDir+kmerStatsName1;
+			if(kmerStatsName!=null){
+				kmerStatsName_kt=outDir+"ktrim_"+kmerStatsName;
+				kmerStatsName=outDir+kmerStatsName;
 			}
-			if(kmerStatsName2!=null){
-				kmerStatsName1=outDir+kmerStatsName2;
-			}
-			if(scaffoldStatsName1!=null){
-				scaffoldStatsName_kt=outDir+"ktrim_"+scaffoldStatsName1;
-				scaffoldStatsName1=outDir+scaffoldStatsName1;
-			}
-			if(scaffoldStatsName2!=null){
-				scaffoldStatsName2=outDir+scaffoldStatsName2;
+			if(scaffoldStatsName!=null){
+				scaffoldStatsName_kt=outDir+"ktrim_"+scaffoldStatsName;
+				scaffoldStatsName=outDir+scaffoldStatsName;
 			}
 			if(refStatsName!=null){
 				refStatsName=outDir+refStatsName;
@@ -462,8 +441,7 @@ public class RQCFilter {
 		tempSalt=KmerNormalize.getSalt(out1, 1);
 		trimPrefix="TEMP_TRIM_"+tempSalt+"_";
 		humanPrefix="TEMP_HUMAN_"+tempSalt+"_";
-		filterPrefix1="TEMP_FILTER1_"+tempSalt+"_";
-		filterPrefix2="TEMP_FILTER2_"+tempSalt+"_";
+		filterPrefix="TEMP_FILTER_"+tempSalt+"_";
 		taxaPrefix="TEMP_TAXA_"+tempSalt+"_";
 		microbePrefix="TEMP_MICROBE_"+tempSalt+"_";
 		riboPrefix="TEMP_RIBO_"+tempSalt+"_";
@@ -528,19 +506,15 @@ public class RQCFilter {
 				if(khistName!=null){sb.append("khist="+(khistName.startsWith(x) ? khistName.substring(xlen) : khistName)).append('\n');}
 				if(peaksName!=null){sb.append("peaks="+(peaksName.startsWith(x) ? peaksName.substring(xlen) : peaksName)).append('\n');}
 			}
-			if(scaffoldStatsName1!=null){sb.append("scafstats1="+(scaffoldStatsName1.startsWith(x) ? scaffoldStatsName1.substring(xlen) : scaffoldStatsName1)).append('\n');}
-			if(scaffoldStatsName2!=null){sb.append("scafstats2="+(scaffoldStatsName2.startsWith(x) ? scaffoldStatsName2.substring(xlen) : scaffoldStatsName2)).append('\n');}
+			if(scaffoldStatsName!=null){sb.append("scafstats="+(scaffoldStatsName.startsWith(x) ? scaffoldStatsName.substring(xlen) : scaffoldStatsName)).append('\n');}
 			if(refStatsName!=null){sb.append("refstats="+(refStatsName.startsWith(x) ? refStatsName.substring(xlen) : refStatsName)).append('\n');}
 			if(riboFlag && riboOutFile!=null){sb.append("ribo="+(riboOutFile.startsWith(x) ? riboOutFile.substring(xlen) : riboOutFile)).append('\n');}
 			if(commonMicrobeFlag && microbeOutFile!=null){
-				sb.append("chaffMicrobeReads="+(microbeOutFile.startsWith(x) ? microbeOutFile.substring(xlen) : microbeOutFile)).append('\n');
-				sb.append("microbeStats="+(microbeStatsFile.startsWith(x) ? microbeStatsFile.substring(xlen) : microbeStatsFile)).append('\n');
-			}else if(detectMicrobeFlag && microbeStatsFile!=null){
+				sb.append("microbeReads="+(microbeOutFile.startsWith(x) ? microbeOutFile.substring(xlen) : microbeOutFile)).append('\n');
 				sb.append("microbeStats="+(microbeStatsFile.startsWith(x) ? microbeStatsFile.substring(xlen) : microbeStatsFile)).append('\n');
 			}
-			if(doFilter && synthOutFile1!=null){sb.append("chaffSynthReads1="+(synthOutFile1.startsWith(x) ? synthOutFile1.substring(xlen) : synthOutFile1)).append('\n');}
-			if(doFilter && synthOutFile2!=null){sb.append("chaffSynthReads2="+(synthOutFile2.startsWith(x) ? synthOutFile2.substring(xlen) : synthOutFile2)).append('\n');}
-			if((humanFlag || catDogHumanFlag || mouseCatDogHumanFlag) && humanOutFile!=null){sb.append("chaffHumanReads="+(humanOutFile.startsWith(x) ? humanOutFile.substring(xlen) : humanOutFile)).append('\n');}
+			if(doFilter && synthOutFile!=null){sb.append("synthReads="+(synthOutFile.startsWith(x) ? synthOutFile.substring(xlen) : synthOutFile)).append('\n');}
+			if((humanFlag || catDogHumanFlag || mouseCatDogHumanFlag) && humanOutFile!=null){sb.append("humanReads="+(humanOutFile.startsWith(x) ? humanOutFile.substring(xlen) : humanOutFile)).append('\n');}
 			
 			if(sb.length()>0){
 				ReadWrite.writeString(sb, fileListName, false);
@@ -551,7 +525,7 @@ public class RQCFilter {
 			
 			//Calculate number of total stems, to determine when to write to the output directory versus localdisk.
 			int step=0;
-			final int numSteps=(doFilter ? 2 : 0)+(doTrim ? 1 : 0)+(doNextera ? 1 : 0)+(riboFlag ? 1 : 0)+(commonMicrobeFlag ? 1 : 0)+
+			final int numSteps=(doFilter ? 1 : 0)+(doTrim ? 1 : 0)+(doNextera ? 1 : 0)+(riboFlag ? 1 : 0)+(commonMicrobeFlag ? 1 : 0)+
 					((humanFlag || catDogHumanFlag || mouseCatDogHumanFlag) ? 1 : 0)+mappingRefs.size();
 			String inPrefix=null, outPrefix=null;
 			
@@ -590,7 +564,7 @@ public class RQCFilter {
 			if(doFilter){
 				step++;
 				inPrefix=outPrefix;
-				outPrefix=(step<numSteps ? filterPrefix1 : null);
+				outPrefix=(step<numSteps ? filterPrefix : null);
 //				System.err.println("Filter. step="+step+", in="+in1+", out="+out1+", inPrefix="+inPrefix+", outPrefix="+outPrefix);
 				
 				final String in1z, in2z, out1z, out2z;
@@ -605,38 +579,7 @@ public class RQCFilter {
 					out1z=stripDirs(out1); out2z=stripDirs(out2);
 				}
 				
-				filter1(in1z, in2z, out1z, out2z, synthOutFile1, inPrefix, outPrefix, step);
-				
-				if(in2!=null && out2==null){
-					FASTQ.FORCE_INTERLEAVED=true;
-					FASTQ.TEST_INTERLEAVED=false;
-				}
-				
-				if(step>1){
-					delete(inPrefix, out1z, out2z);
-				}
-			}
-			
-			//Short synthetic contaminant filtering
-			if(doFilter){
-				step++;
-				inPrefix=outPrefix;
-				outPrefix=(step<numSteps ? filterPrefix2 : null);
-//				System.err.println("Filter. step="+step+", in="+in1+", out="+out1+", inPrefix="+inPrefix+", outPrefix="+outPrefix);
-				
-				final String in1z, in2z, out1z, out2z;
-				if(step==1){
-					in1z=in1; in2z=in2;
-				}else{
-					in1z=stripDirs(out1); in2z=stripDirs(out2);
-				}
-				if(step>=numSteps){
-					out1z=out1; out2z=out2;
-				}else{
-					out1z=stripDirs(out1); out2z=stripDirs(out2);
-				}
-				
-				filter2(in1z, in2z, out1z, out2z, synthOutFile2, inPrefix, outPrefix, step);
+				filter(in1z, in2z, out1z, out2z, synthOutFile, inPrefix, outPrefix, step);
 				
 				if(in2!=null && out2==null){
 					FASTQ.FORCE_INTERLEAVED=true;
@@ -679,18 +622,6 @@ public class RQCFilter {
 				}
 			}
 			
-			if(detectMicrobeFlag){
-				inPrefix=outPrefix;
-				final String in1z, in2z;
-				if(step==1){
-					in1z=in1; in2z=in2;
-				}else{
-					in1z=stripDirs(out1); in2z=stripDirs(out2);
-				}
-				String ref=taxFilter(commonMicrobesRef);
-				detectCommonMicrobes(in1z, in2z, microbeStatsFile, inPrefix, ref, aggressiveMappingFlag);
-			}
-			
 			//Microbial contaminant removal
 			if(commonMicrobeFlag){
 				step++;
@@ -712,13 +643,7 @@ public class RQCFilter {
 
 				String ref=taxFilter(commonMicrobesRef);
 //				System.err.println("in1z="+in1z+"\nout1z="+out1z+"\ninPrefix="+inPrefix+"\noutPrefix="+outPrefix);
-				
-				{
-					int oldMapK=map_k;
-					map_k=13;
-					removeCommonMicrobes(in1z, in2z, out1z, out2z, microbeOutFile, microbeStatsFile, inPrefix, outPrefix, ref, step, aggressiveMappingFlag);
-					map_k=oldMapK;
-				}
+				removeCommonMicrobes(in1z, in2z, out1z, out2z, microbeOutFile, microbeStatsFile, inPrefix, outPrefix, ref, step, aggressiveMappingFlag);
 				
 				if(in2!=null && out2==null){
 					FASTQ.FORCE_INTERLEAVED=true;
@@ -867,7 +792,7 @@ public class RQCFilter {
 		
 		//Finish writing log file
 		if(logName!=null){
-			log("RQCFilter complete", true);
+			log("complete", true);
 			if(logName.endsWith(".tmp")){ //Remove .tmp extension
 				String old=logName;
 				logName=logName.substring(0, logName.length()-4);
@@ -912,7 +837,6 @@ public class RQCFilter {
 					if(tboFlag){argList.add("tbo");}
 					if(tpeFlag){argList.add("tpe");}
 				}
-				argList.add("rcomp=f");
 				argList.add("overwrite="+overwrite);
 				argList.add("k="+trim_k);
 				argList.add("hdist="+hdist_trim);
@@ -940,8 +864,6 @@ public class RQCFilter {
 			if(rqcStatsName!=null){argList.add("rqc=hashmap");}
 			if(kmerStatsName_kt!=null){argList.add("outduk="+kmerStatsName_kt);}
 			if(scaffoldStatsName_kt!=null){argList.add("stats="+scaffoldStatsName_kt);}
-			
-			if(copyUndefined){argList.add("cu");}
 			
 			argList.add("loglog"); //Cardinality
 		}
@@ -997,12 +919,10 @@ public class RQCFilter {
 			writeReproduceFile(reproduceName, "bbduk.sh", dukargs);
 		}
 		
-		{//Run BBDuk
+		{//run BBDuk
 			BBDukF duk=new BBDukF(dukargs);
 			try {
 				duk.process();
-				System.err.println(format("Adapter Sequence Removed:", duk.readsIn, duk.readsOut, duk.basesIn, duk.basesOut));
-				log("#Remaining:\t"+duk.readsOut+" reads\t"+duk.basesOut+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1017,7 +937,7 @@ public class RQCFilter {
 	
 	/**
 	 * Runs BBDuk to perform:
-	 * Quality filtering, quality trimming, n removal, short read removal, artifact removal (via kmer filtering), phiX removal, lambda removal.
+	 * Quality filtering, quality trimming, n removal, short read removal, artifact removal (via kmer filtering), phiX removal.
 	 * 
 	 * @param in1 Primary input reads file (required)
 	 * @param in2 Secondary input reads file
@@ -1026,7 +946,7 @@ public class RQCFilter {
 	 * @param inPrefix Append this prefix to input filenames
 	 * @param outPrefix Append this prefix to output filenames
 	 */
-	private void filter1(String in1, String in2, String out1, String out2, String outbad, String inPrefix, String outPrefix,
+	private void filter(String in1, String in2, String out1, String out2, String outbad, String inPrefix, String outPrefix,
 			int stepNum){
 		
 		log("filter start", true);
@@ -1072,13 +992,9 @@ public class RQCFilter {
 
 //			if(rqcStatsName!=null){al.add("rqc="+rqcStatsName);} //Old style for 2 log files
 			if(rqcStatsName!=null){argList.add("rqc=hashmap");}
-			if(kmerStatsName1!=null){argList.add("outduk="+kmerStatsName1);}
-			if(scaffoldStatsName1!=null){argList.add("stats="+scaffoldStatsName1);}
-			
-			if(copyUndefined){argList.add("cu");}
-			
-			if(bisulfite){argList.add("ftr2=1");}
-			
+			if(kmerStatsName!=null){argList.add("outduk="+kmerStatsName);}
+			if(scaffoldStatsName!=null){argList.add("stats="+scaffoldStatsName);}
+
 			argList.add("loglog"); //Cardinality
 		}
 		
@@ -1090,9 +1006,8 @@ public class RQCFilter {
 			if(rnaArtifactFlag){
 				bbdukFilterRefs.add(artifactFileRna);
 			}
-
+			
 			if(phixFlag){bbdukFilterRefs.add(phixRef);}
-			if(lambdaFlag){bbdukFilterRefs.add(lambdaRef);}
 			if(pjetFlag){bbdukFilterRefs.add(pjetRef);}
 
 			if(libType==FRAG){
@@ -1130,8 +1045,6 @@ public class RQCFilter {
 			BBDukF duk=new BBDukF(dukargs);
 			try {
 				duk.process();
-				System.err.println(format("Synthetic Contam Sequence Removed:", duk.readsIn, duk.readsOut, duk.basesIn, duk.basesOut));
-				log("#Remaining:\t"+duk.readsOut+" reads\t"+duk.basesOut+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1142,85 +1055,6 @@ public class RQCFilter {
 		//Optionally append files to file list here
 		
 		log("filter finish", true);
-	}
-	
-	/**
-	 * Runs BBDuk to perform:
-	 * Short contaminant removal.
-	 * 
-	 * @param in1 Primary input reads file (required)
-	 * @param in2 Secondary input reads file
-	 * @param out1 Primary output reads file (required)
-	 * @param out2 Secondary output reads file
-	 * @param inPrefix Append this prefix to input filenames
-	 * @param outPrefix Append this prefix to output filenames
-	 */
-	private void filter2(String in1, String in2, String out1, String out2, String outbad, String inPrefix, String outPrefix,
-			int stepNum){
-		
-		log("short filter start", true);
-		
-		ArrayList<String> argList=new ArrayList<String>();
-
-		final String inPre=(inPrefix==null ? "" : (tmpDir==null ? outDir : tmpDir)+inPrefix);
-		final String outPre=(outPrefix==null ? outDir : (tmpDir==null ? outDir : tmpDir)+outPrefix);
-		
-//		System.err.println("inPre="+inPre+", outPre="+outPre+", outDir="+outDir+", tmpDir="+tmpDir); //123
-		
-		{//Fill list with BBDuk arguments
-			argList.add("overwrite="+overwrite);
-			argList.add("k="+(doNextera ? 19 : 20));
-			argList.add("hdist="+hdist_filter);
-			if(qhdist_filter>0){argList.add("qhdist="+qhdist_filter);}
-			if(pigz!=null){argList.add("pigz="+pigz);}
-			if(unpigz!=null){argList.add("unpigz="+unpigz);}
-			if(zl!=null){argList.add("zl="+zl);}
-			
-			//Pass along uncaptured arguments
-			for(String s : primaryArgList){argList.add(s);}
-			
-			//Set read I/O files
-			if(in1!=null){argList.add("in1="+inPre+in1);}
-			if(in2!=null){argList.add("in2="+inPre+in2);}
-			if(out1!=null){argList.add("out1="+outPre+out1);}
-			if(out2!=null){argList.add("out2="+outPre+out2);}
-			if(outbad!=null){argList.add("outm="+outbad);}
-			
-//			if(rqcStatsName!=null){argList.add("rqc=hashmap");} //TODO
-			if(kmerStatsName2!=null){argList.add("outduk="+kmerStatsName2);}
-			if(scaffoldStatsName2!=null){argList.add("stats="+scaffoldStatsName2);}
-			
-			if(copyUndefined){argList.add("cu");}
-
-			argList.add("loglog"); //Cardinality
-		}
-		
-		{//Add BBDuk references
-			argList.add("ref="+(doNextera ? shortArtifactFile_noNextera : shortArtifactFile));
-		}
-		
-		String[] dukargs=argList.toArray(new String[0]);
-		
-		if(reproduceName!=null){
-			writeReproduceFile(reproduceName, "bbduk.sh", dukargs);
-		}
-		
-		{//Run BBDuk
-			BBDukF duk=new BBDukF(dukargs);
-			try {
-				duk.process();
-				System.err.println(format("Short Synthetic Contam Sequence Removed:", duk.readsIn, duk.readsOut, duk.basesIn, duk.basesOut));
-				log("#Remaining:\t"+duk.readsOut+" reads\t"+duk.basesOut+" bases", true, false);
-			} catch (Exception e) {
-				e.printStackTrace();
-				log("failed", true);
-				System.exit(1);
-			}
-		}
-		
-		//Optionally append files to file list here
-		
-		log("short filter finish", true);
 	}
 	
 	/**
@@ -1264,9 +1098,9 @@ public class RQCFilter {
 			if(outRibo!=null){argList.add("outm="+outRibo);}
 
 //			if(rqcStatsName!=null){al.add("rqc="+rqcStatsName);} //Old style for 2 log files
-//			if(rqcStatsName!=null){argList.add("rqc=hashmap");}
-//			if(kmerStatsName!=null){argList.add("outduk="+kmerStatsName);}
-//			if(scaffoldStatsName!=null){argList.add("stats="+scaffoldStatsName);}
+			if(rqcStatsName!=null){argList.add("rqc=hashmap");}
+			if(kmerStatsName!=null){argList.add("outduk="+kmerStatsName);}
+			if(scaffoldStatsName!=null){argList.add("stats="+scaffoldStatsName);}
 		}
 		
 		String[] dukargs=argList.toArray(new String[0]);
@@ -1279,8 +1113,6 @@ public class RQCFilter {
 			BBDukF duk=new BBDukF(dukargs);
 			try {
 				duk.process();
-				System.err.println(format("Ribosomal Sequence Removed:", duk.readsIn, duk.readsOut, duk.basesIn, duk.basesOut));
-				log("#Remaining:\t"+duk.readsOut+" reads\t"+duk.basesOut+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1291,17 +1123,6 @@ public class RQCFilter {
 		//Optionally append files to file list here
 		
 		log("filter ribo finish", true);
-	}
-	
-	private String toPercent(long numerator, long denominator){
-		if(denominator<1){return "0.00%";}
-		return String.format("%.2f%%",numerator*100.0/denominator);
-	}
-	
-	private String format(String prefix, long rin, long rout, long bin, long bout){
-		long rrmvd=rin-rout;
-		long brmvd=bin-bout;
-		return prefix+"\t"+rrmvd+" reads ("+toPercent(rrmvd, rin)+")\t"+brmvd+" bases ("+toPercent(brmvd, bin)+")";
 	}
 	
 	
@@ -1368,11 +1189,6 @@ public class RQCFilter {
 			SplitNexteraLMP split=new SplitNexteraLMP(splitargs);
 			try {
 				split.process();
-				StringBuilder sb=new StringBuilder();
-				sb.append("LMP:\t"+split.readsLmp()+" reads\t"+split.basesLmp()+" bases\n");
-				sb.append("Frag:\t"+split.readsFrag()+" reads\t"+split.basesFrag()+" bases\n");
-				sb.append("Unknown:\t"+split.readsUnk()+" reads\t"+split.basesUnk()+" bases\n");
-				sb.append("Single:\t"+split.readsSingle()+" reads\t"+split.basesSingle()+" bases\n");
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1424,7 +1240,7 @@ public class RQCFilter {
 			argList.add("usemodulo");
 			argList.add("printunmappedcount");
 			argList.add("ow="+overwrite);
-			argList.add("qtrim=rl");
+			argList.add("qtrim=r");
 			argList.add("trimq=10");
 			argList.add("untrim");
 			argList.add("kfilter=25");
@@ -1476,13 +1292,8 @@ public class RQCFilter {
 			//Set read I/O files
 			if(in1!=null){argList.add("in1="+inPre+in1);}
 			if(in2!=null){argList.add("in2="+inPre+in2);}
-			if(keepHumanReads){
-				if(out1!=null){argList.add("out1="+outPre+out1);}
-				if(out2!=null){argList.add("out2="+outPre+out2);}
-			}else{
-				if(out1!=null){argList.add("outu1="+outPre+out1);}
-				if(out2!=null){argList.add("outu2="+outPre+out2);}
-			}
+			if(out1!=null){argList.add("outu1="+outPre+out1);}
+			if(out2!=null){argList.add("outu2="+outPre+out2);}
 			
 		}
 		
@@ -1495,10 +1306,6 @@ public class RQCFilter {
 				}else{
 					BBMap.main(args);
 				}
-
-				System.err.println(format("Human Sequence Removed:", BBMap.lastReadsUsed, BBMap.lastBothUnmapped,
-						BBMap.lastBasesUsed, BBMap.lastBothUnmappedBases));
-				log("#Remaining:\t"+BBMap.lastBothUnmapped+" reads\t"+BBMap.lastBothUnmappedBases+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1564,96 +1371,6 @@ public class RQCFilter {
 		return fbt.basesOut>0 ? temp : null;
 	}
 	
-	private void detectCommonMicrobes(String in1, String in2, String scafstats, String inPrefix, final String ref, boolean aggressive){
-		
-		log("detectCommonMicrobes start", true);
-		
-		final String inPre=(inPrefix==null ? "" : (tmpDir==null ? outDir : tmpDir)+inPrefix);
-		
-		if(ref==null){
-			String skipped="Tax filter removed all ref sequences; skipping microbe detection.";
-			System.err.println(skipped);
-			log(skipped, true);
-			log("detectCommonMicrobes finish", true);
-			return;
-		}
-
-		ArrayList<String> argList=new ArrayList<String>();
-		{
-			argList.add("k="+map_k);
-			argList.add("idtag=t");
-			argList.add("printunmappedcount");
-			argList.add("ow="+overwrite);
-			argList.add("qtrim=rl");
-			argList.add("trimq=10");
-			argList.add("untrim");
-			argList.add("build="+commonMicrobesBuild);
-			argList.add("ef=0.001");
-			if(commonMicrobesPath!=null && commonMicrobesRef.equals(ref) && commonMicrobesRef.startsWith(commonMicrobesPath)){
-				RefToIndex.NODISK=false;
-				argList.add("path="+commonMicrobesPath);
-			}else{
-				RefToIndex.NODISK=true;
-				argList.add("ref="+ref);
-			}
-			if(pigz!=null){argList.add("pigz="+pigz);}
-			if(unpigz!=null){argList.add("unpigz="+unpigz);}
-			if(zl!=null){argList.add("zl="+zl);}
-			
-			if(aggressive){
-				argList.add("minid=.85");
-				argList.add("maxindel=8");
-				argList.add("minhits="+1);
-				argList.add("bw=26");
-				argList.add("bwr=0.22");
-				argList.add("build=2");
-				argList.add("tipsearch="+2);
-			}else{
-				argList.add("minid=.95");
-				argList.add("idfilter=.95");
-				argList.add("maxindel=3");
-				argList.add("minhits="+2);
-				argList.add("bw=12");
-				argList.add("bwr=0.16");
-				argList.add("fast="+true);
-				argList.add("maxsites2=10");
-				argList.add("tipsearch="+0);
-			}
-
-			//Set read I/O files
-			if(in1!=null){argList.add("in1="+inPre+in1);}
-			if(in2!=null){argList.add("in2="+inPre+in2);}
-//			if(outbad!=null){argList.add("outm="+outbad);}
-			if(scafstats!=null){argList.add("scafstats="+scafstats);}
-		}
-
-		String[] args=argList.toArray(new String[0]);
-
-		{//Run BBMap
-			try {
-				BBMap.main(args);
-			} catch (Exception e) {
-				e.printStackTrace();
-				log("failed", true);
-				System.exit(1);
-			}
-		}
-
-		//Clear the index
-		Data.unloadAll();
-
-		//Unset NODISK
-		RefToIndex.NODISK=false;
-
-		if(reproduceName!=null){
-			writeReproduceFile(reproduceName, "bbmap.sh", args);
-		}
-
-		if(ref!=null && !ref.equals(commonMicrobesRef)){delete(null, ref);}
-
-		log("detectCommonMicrobes finish", true);
-	}
-	
 	/**
 	 * Runs BBMap to perform:
 	 * Microbial contaminant removal.
@@ -1705,13 +1422,12 @@ public class RQCFilter {
 			argList.add("quickmatch");
 			argList.add("k="+map_k);
 			argList.add("idtag=t");
+			argList.add("usemodulo");
 			argList.add("printunmappedcount");
 			argList.add("ow="+overwrite);
 			argList.add("qtrim=rl");
 			argList.add("trimq=10");
 			argList.add("untrim");
-			argList.add("build="+commonMicrobesBuild);
-			argList.add("ef=0.001");
 			if(commonMicrobesPath!=null && commonMicrobesRef.equals(ref) && commonMicrobesRef.startsWith(commonMicrobesPath)){
 				RefToIndex.NODISK=false;
 				argList.add("path="+commonMicrobesPath);
@@ -1722,9 +1438,9 @@ public class RQCFilter {
 			if(pigz!=null){argList.add("pigz="+pigz);}
 			if(unpigz!=null){argList.add("unpigz="+unpigz);}
 			if(zl!=null){argList.add("zl="+zl);}
-			
+
 			if(aggressive){
-				argList.add("minid=.85");
+				argList.add("minratio=.75");
 				argList.add("maxindel=8");
 				argList.add("minhits="+1);
 				argList.add("bw=26");
@@ -1732,8 +1448,7 @@ public class RQCFilter {
 				argList.add("build=2");
 				argList.add("tipsearch="+2);
 			}else{
-				argList.add("minid=.95");
-				argList.add("idfilter=.95");
+				argList.add("minratio=.9");
 				argList.add("maxindel=3");
 				argList.add("minhits="+2);
 				argList.add("bw=12");
@@ -1758,9 +1473,6 @@ public class RQCFilter {
 		{//Run BBMap
 			try {
 				BBMap.main(args);
-				System.err.println(format("Microbial Sequence Removed:", BBMap.lastReadsUsed, BBMap.lastBothUnmapped,
-						BBMap.lastBasesUsed, BBMap.lastBothUnmappedBases));
-				log("#Remaining:\t"+BBMap.lastBothUnmapped+" reads\t"+BBMap.lastBothUnmappedBases+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1850,9 +1562,6 @@ public class RQCFilter {
 		{//Run BBMap
 			try {
 				BBMap.main(args);
-				System.err.println(format("Other Contam Sequence Removed:", BBMap.lastReadsUsed, BBMap.lastBothUnmapped,
-						BBMap.lastBasesUsed, BBMap.lastBothUnmappedBases));
-				log("#Remaining:\t"+BBMap.lastBothUnmapped+" reads\t"+BBMap.lastBothUnmappedBases+" bases", true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 				log("failed", true);
@@ -1904,15 +1613,11 @@ public class RQCFilter {
 			if(pigz!=null){argList.add("pigz="+pigz);}
 			if(unpigz!=null){argList.add("unpigz="+unpigz);}
 			if(zl!=null){argList.add("zl="+zl);}
-			if(fragAdapter!=null){argList.add("adapters="+fragAdapter);}
 			
 			if(extendFlag){
 				argList.add("ecct");
-//				argList.add("extend2=20");
-//				argList.add("iterations=10");
-				argList.add("extend2=100");
-				argList.add("rem");
-				argList.add("k=62");
+				argList.add("extend2=20");
+				argList.add("iterations=10");
 				argList.add("prefilter");
 				argList.add("prealloc");
 				System.gc();
@@ -2039,7 +1744,7 @@ public class RQCFilter {
 		System.gc();
 		long memory=Runtime.getRuntime().maxMemory();
 		double xmsRatio=Shared.xmsRatio();
-		long usableMemory=(long)Tools.max(((memory-96000000)*(xmsRatio>0.97 ? 0.82 : 0.72)), memory*0.45);
+		long usableMemory=(long)Tools.max(((memory-96000000)*(xmsRatio>0.97 ? 0.82 : 0.75)), memory*0.45);
 		long tableMemory=(long)(usableMemory*.95);
 		long estimatedKmerCapacity=(long)((tableMemory*1.0/bytesPerKmer)*(prealloc ? 0.9 : 0.6));
 		return estimatedKmerCapacity;
@@ -2048,17 +1753,16 @@ public class RQCFilter {
 	/*--------------------------------------------------------------*/
 	/*----------------        Helper Methods        ----------------*/
 	/*--------------------------------------------------------------*/
-
-	private void log(String message, boolean append){log(message, append, true);}
+	
 	
 	/**
 	 * Log a message in the log file
 	 * @param message Message to log
 	 * @param append True to append, false to overwrite
 	 */
-	private void log(String message, boolean append, boolean printTime){
+	private void log(String message, boolean append){
 		if(logName!=null){
-			ReadWrite.writeString(message+(printTime ? ", "+timeString() : "")+"\n", logName, append);
+			ReadWrite.writeString(message+", "+timeString()+"\n", logName, append);
 		}
 	}
 	
@@ -2246,8 +1950,6 @@ public class RQCFilter {
 	private boolean dnaArtifactFlag=true;
 	/** True if phix should be filtered out */
 	private boolean phixFlag=true;
-	/** True if Lambda should be filtered out by kmer-matching */
-	private boolean lambdaFlag=true;
 	/** True if pjet should be filtered out */
 	private boolean pjetFlag=true;
 	
@@ -2275,7 +1977,7 @@ public class RQCFilter {
 	/** Kmer-trimming mode */
 	private String ktrim="r";
 	/** Kmer length to use for filtering */
-	private int filter_k=31;
+	private int filter_k=27;
 	/** Kmer length to use for trimming */
 	private int trim_k=23;
 	/** Kmer length to use for normalization and error-correction */
@@ -2306,9 +2008,6 @@ public class RQCFilter {
 	private boolean fragAdapterFlag=false;
 	/** Trim Truseq-RNA adapters from right side of reads */
 	private boolean rnaAdapterFlag=false;
-	
-	/** Trim 1bp from right side after adapter-trimming/ */
-	private boolean bisulfite=false;
 
 	/** Performed quality-trimming on reads */
 	private boolean qtrimFlag=false;
@@ -2334,20 +2033,14 @@ public class RQCFilter {
 	private boolean riboFlag=false;
 	/** Remove reads from common microbial contaminants with BBMap */
 	private boolean commonMicrobeFlag=false;
-	/** Detect but do not remove reads from common microbial contaminants with BBMap */
-	private boolean detectMicrobeFlag=false;
 	/** Extend reads to merge longer inserts */
 	private boolean extendFlag=false;
 	/** Estimate kmer cardinality */
 	private boolean doCardinality=true;
-	/** Report, but do not remove, cat/dog/mouse/human sequence */
-	private boolean keepHumanReads=false;
 	
 	private boolean verbose=false;
 	private boolean overwrite=true;
 	private boolean compress=true;
-
-	private boolean copyUndefined=false;
 	
 	/** Write temp files to $TMPDIR (localdisk) */
 	private boolean writeTempToTmpdir=true;
@@ -2390,8 +2083,7 @@ public class RQCFilter {
 	
 	private final String trimPrefix;
 	private final String humanPrefix;
-	private final String filterPrefix1;
-	private final String filterPrefix2;
+	private final String filterPrefix;
 	private final String taxaPrefix;
 	private final String microbePrefix;
 	private final String riboPrefix;
@@ -2401,7 +2093,7 @@ public class RQCFilter {
 	private String outDir="";
 	
 	/** Directory in which to write all temp files */
-	private String tmpDir=Shared.tmpdir();
+	private String tmpDir=Shared.TMPDIR;
 	
 	/** Primary input reads file (required) */
 	private String in1=null;
@@ -2418,9 +2110,7 @@ public class RQCFilter {
 	
 	private String riboOutFile="ribo.fq.gz";
 	private String humanOutFile="human.fq.gz";
-//	private String synthOutFile="synth.fq.gz";
-	private String synthOutFile1="synth1.fq.gz";
-	private String synthOutFile2="synth2.fq.gz";
+	private String synthOutFile="synth.fq.gz";
 	private String microbeOutFile="microbes.fq.gz";
 	
 	/*--------------------------------------------------------------*/
@@ -2432,10 +2122,8 @@ public class RQCFilter {
 	private String fileListName="file-list.txt";
 	
 	private String rqcStatsName="filterStats.txt";
-	private String kmerStatsName1="kmerStats1.txt";
-	private String kmerStatsName2="kmerStats2.txt";
-	private String scaffoldStatsName1="scaffoldStats1.txt";
-	private String scaffoldStatsName2="scaffoldStats2.txt";
+	private String kmerStatsName="kmerStats.txt";
+	private String scaffoldStatsName="scaffoldStats.txt";
 	private String refStatsName="refStats.txt";
 	private String microbeStatsFile="commonMicrobes.txt";
 	private String nexteraStats="nexteraStats.txt";
@@ -2456,16 +2144,12 @@ public class RQCFilter {
 	/*----------------        Reference Files       ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	private String shortArtifactFile = "/global/projectb/sandbox/gaag/bbtools/data/short.fa";
-	private String shortArtifactFile_noNextera = "/global/projectb/sandbox/gaag/bbtools/data/short_noNextera.fa";
-	
 	private String mainArtifactFile_noNextera = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/Illumina.artifacts.2013.12.no_DNA_RNA_spikeins_no_Nextera_junction.fa.gz";
 	private String mainArtifactFile = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/Illumina.artifacts.2013.12.no_DNA_RNA_spikeins.fa";
 	private String artifactFileRna = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/RNA_spikeins.artifacts.2012.10.NoPolyA.fa";
 	private String artifactFileDna = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/DNA_spikeins.artifacts.2012.10.fa";
 	private String artifactFileDna_noNextera = "/global/dna/shared/rqc/ref_databases/qaqc/databases/illumina.artifacts/DNA_spikeins.artifacts_no_Nextera_junction.2012.10.fa.gz";
 	private String phixRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/phix174_ill.ref.fa";
-	private String lambdaRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/lambda.fa.gz";
 	private String lfpeLinker = "/global/dna/shared/rqc/ref_databases/qaqc/databases/lfpe.linker.fa";
 	private String clrsLinker = "/global/dna/shared/rqc/ref_databases/qaqc/databases/crelox.fa";
 	private String clipLinker = clipLinkerDefault; //A literal string; "CATG" is supposed to be the normal linker.
@@ -2473,7 +2157,7 @@ public class RQCFilter {
 	private String pjetRef = "/global/dna/shared/rqc/ref_databases/qaqc/databases/pJET1.2.fasta";
 	private String riboKmers = "/global/projectb/sandbox/gaag/bbtools/ribo/merged_ribokmers20.fa.gz";
 	private String allArtifactsLatest = "/global/projectb/sandbox/rqc/qcdb/illumina.artifacts/Illumina.artifacts.fa";
-	private String fragAdapter = "/global/projectb/sandbox/gaag/bbtools/data/adapters2.fa";
+	private String fragAdapter = "/global/projectb/sandbox/gaag/bbtools/data/adapters.fa";
 	private String rnaAdapter = "/global/projectb/sandbox/gaag/bbtools/data/truseq_rna.fa.gz";
 
 	private String humanPath = "/global/projectb/sandbox/gaag/bbtools/hg19/";
@@ -2486,8 +2170,7 @@ public class RQCFilter {
 	private String mouseCatDogHumanPath = "/global/projectb/sandbox/gaag/bbtools/mousecatdoghuman/";
 
 	private String commonMicrobesPath = "/global/projectb/sandbox/gaag/bbtools/commonMicrobes/";
-	private String commonMicrobesRef = "/global/projectb/sandbox/gaag/bbtools/commonMicrobes/fusedERPBBmasked.fa.gz";
-	private int commonMicrobesBuild = 1;
+	private String commonMicrobesRef = "/global/projectb/sandbox/gaag/bbtools/commonMicrobes/commonMicrobes.fa.gz";
 	private String taxTree=TaxTree.DefaultTreeFile;
 	private String giTable=TaxTree.DefaultTableFile;
 	

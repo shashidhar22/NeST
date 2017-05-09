@@ -7,7 +7,8 @@ import stream.ConcurrentReadInputStream;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
+import align2.ListNum;
 import align2.MultiStateAligner9PacBioAdapter;
 import align2.MultiStateAligner9PacBioAdapter2;
 import align2.ReadStats;

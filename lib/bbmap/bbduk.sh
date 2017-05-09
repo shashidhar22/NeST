@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified June 27, 2016
+Last modified May 2, 2016
 
 Description:  Compares reads to the kmers in a reference dataset, optionally 
 allowing an edit distance. Splits the reads into two outputs - those that 
@@ -223,9 +223,9 @@ entropyk=5          Calculate entropy using kmers of this length.
 minbasefrequency=0  Discard reads with a minimum base frequency below this.
 
 Cardinality estimation:
-cardinality=f       (loglog) Count unique kmers using the LogLog algorithm.
-loglogk=31          Use this kmer length for counting.
-loglogbuckets=1999  Use this many buckets for counting.
+cardinality=f           (loglog) Count unique kmers using the LogLog algorithm.
+loglogk=31              Use this kmer length for counting.
+loglogbuckets=1999      Use this many buckets for counting.
 
 Java Parameters:
 

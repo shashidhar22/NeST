@@ -267,12 +267,7 @@ public final class FileFormat {
 		else if(ext.equals("info") || ext.equals("attachment")){r[0]=ATTACHMENT;}
 		else if(ext.equals("scarf")){r[0]=SCARF;}
 		else if(ext.equals("phylip")){r[0]=PHYLIP;}
-		else if(ext.equals("header") || ext.equals("headers")){r[0]=HEADER;}
-		else if(ext.equals("int1d")){r[0]=INT1D;}
-		else if(ext.equals("long1d")){r[0]=LONG1D;}
-		else if(ext.equals("bitset")){r[0]=BITSET;}
-		else if(ext.equals("sketch")){r[0]=SKETCH;}
-		else if(ext.equals("oneline") || ext.equals("flat")){r[0]=ONELINE;}
+		else if(ext.equals("header")){r[0]=HEADER;}
 		
 		if(comp!=null){
 			r[1]=Gene.find3(comp, COMPRESSION_ARRAY);
@@ -364,11 +359,6 @@ public final class FileFormat {
 		return r[0]==FQ;
 	}
 	
-	public static boolean hasFastqOrFastqExtension(String fname){
-		int[] r=testFormat(fname, false, false);
-		return r[0]==FQ || r[0]==FA;
-	}
-	
 	public static boolean hasSamOrBamExtension(String fname){
 		int[] r=testFormat(fname, false, false);
 		return r[0]==SAM || r[0]==BAM;
@@ -435,19 +425,8 @@ public final class FileFormat {
 				if(b3=='+'){format=FQ;}
 				else if(b2<0 || b2=='@'){format=SAM;}
 				else{format=UNKNOWN;} //probably a truncated fastq file?
-			}else if(b1=='#'){
-				if(s1.startsWith("#SZ:") || s1.startsWith("#SIZE:")){
-					format=SKETCH;
-					int x1=s1.indexOf(':');
-					int x2=s1.indexOf('\t');
-					if(x2>x1){
-						try {
-							len=Integer.parseInt(s1.substring(x1+1, x2));
-						} catch (NumberFormatException e) {}
-					}
-				}else{format=TEXT;}
 			}
-//			else{format=BREAD;} //or possibly scarf
+			else{format=BREAD;} //or possibly scarf
 
 			if(format!=FQ){len=-1;}
 		}
@@ -476,11 +455,6 @@ public final class FileFormat {
 		if(ext==null){return false;}
 		return (ext.equals("fa") || ext.equals("fasta") || ext.equals("fas") || ext.equals("fna") || ext.equals("ffn") 
 			|| ext.equals("frn") || ext.equals("seq") || ext.equals("fsa") || ext.equals("faa"));
-	}
-	
-	public static boolean isAmino(String ext){
-		if(ext==null){return false;}
-		return ext.equals("faa"); //TODO: Investigate whether other extensions imply AA.
 	}
 	
 	public static boolean isStdio(String s){
@@ -547,11 +521,6 @@ public final class FileFormat {
 	public final boolean bam(){return format==BAM;}
 	public final boolean scarf(){return format==SCARF;}
 	public final boolean text(){return format==TEXT;}
-	public final boolean int1d(){return format==INT1D;}
-	public final boolean long1d(){return format==LONG1D;}
-	public final boolean bitset(){return format==BITSET;}
-	public final boolean sketch(){return format==SKETCH;}
-	public final boolean oneline(){return format==ONELINE;}
 
 	public final boolean unknownCompression(){return compression<=UNKNOWN;}
 	public final boolean raw(){return compression==RAW;}
@@ -637,17 +606,11 @@ public final class FileFormat {
 	public static final int TEXT=13, TXT=13;
 	public static final int PHYLIP=14;
 	public static final int HEADER=15;
-	public static final int INT1D=16;
-	public static final int LONG1D=17;
-	public static final int BITSET=18;
-	public static final int SKETCH=19;
-	public static final int ONELINE=20;
 	
 	private static final String[] FORMAT_ARRAY=new String[] {
 		"unknown", "fasta", "fastq", "bread", "sam", "csfasta",
 		"qual", "sequential", "random", "sites", "attachment",
-		"bam", "scarf", "text", "phylip", "header", "int1d",
-		"long1d", "bitset", "sketch", "oneline"
+		"bam", "scarf", "text", "phylip", "header"
 	};
 	
 	public static final String[] EXTENSION_LIST=new String[] {
@@ -655,9 +618,7 @@ public final class FileFormat {
 		"ffn", "frn", "seq", "fsa", "faa",
 		"bread", "sam", "csfasta", "qual", "bam",
 		"scarf", "phylip", "txt",
-		"gz", "gzip", "bz2", "zip", "xz", "dsrc", "header", "headers",
-		"int1d", "long1d", "bitset", "sketch", "oneline", "flat"
-		
+		"gz", "gzip", "bz2", "zip", "xz", "dsrc", "header"
 	};
 	
 	/* Compression */

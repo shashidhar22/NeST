@@ -160,7 +160,7 @@ public abstract class AbstractKmerTableU {
 	 * Rehashes the remainder.
 	 * @return Number removed.
 	 */
-	abstract long regenerate(final int limit);
+	abstract long regenerate();
 
 	final void lock(){getLock().lock();}
 	final void unlock(){getLock().unlock();}

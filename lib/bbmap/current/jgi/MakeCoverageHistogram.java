@@ -7,7 +7,7 @@ import stream.ConcurrentLegacyReadInputStream;
 import stream.RTextInputStream;
 import stream.Read;
 import stream.SiteScore;
-import structures.ListNum;
+
 import dna.AminoAcid;
 import dna.ChromosomeArray;
 import dna.CoverageArray;
@@ -17,6 +17,8 @@ import dna.Gene;
 import dna.Parser;
 import dna.Timer;
 import fileIO.ReadWrite;
+
+import align2.ListNum;
 import align2.Tools;
 
 /**

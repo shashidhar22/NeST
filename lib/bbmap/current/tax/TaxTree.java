@@ -1,22 +1,20 @@
 package tax;
 
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.regex.Pattern;
 
 import dna.Timer;
-import align2.Shared;
+
+import align2.IntList;
 import align2.Tools;
 
 import fileIO.ReadWrite;
 import fileIO.TextFile;
-import structures.IntList;
 
 /**
  * @author Brian Bushnell
@@ -99,34 +97,6 @@ public class TaxTree implements Serializable{
 		}
 		nodeCount=(int)Tools.sum(nodesPerLevel);
 		
-	}
-	
-	public static final TaxTree loadTaxTree(String taxTreeFile, PrintStream outstream, boolean hashNames){
-		if(taxTreeFile==null){return null;}
-		return loadTaxTree(taxTreeFile, null, null, outstream, hashNames);
-	}
-	
-	public static final TaxTree loadTaxTree(String taxTreeFile, String taxNameFile, String taxNodeFile, PrintStream outstream, boolean hashNames){
-		assert(taxTreeFile!=null || (taxNameFile!=null && taxNodeFile!=null)) : "Must specify both taxname and taxnode files.";
-		Timer t=new Timer();
-		if(outstream!=null){outstream.print("\nLoading tax tree; ");}
-		final TaxTree tree;
-		if(taxTreeFile!=null){
-			tree=ReadWrite.read(TaxTree.class, taxTreeFile, true);
-		}else{
-			tree=new TaxTree(taxNameFile, taxNodeFile);
-		}
-		t.stop();
-		if(hashNames){
-			outstream.println("Hashing names.");
-			tree.hashNames();
-		}
-		if(outstream!=null){
-			outstream.println("time: \t"+t);
-			Shared.printMemory();
-			outstream.println();
-		}
-		return tree;
 	}
 	
 	/*--------------------------------------------------------------*/
@@ -415,48 +385,18 @@ public class TaxTree implements Serializable{
 		return tn;
 	}
 	
-	public int commonAncestor(final int a, final int b){
-		TaxNode an=getNode(a), bn=getNode(b);
-		assert(an!=null) : "Invalid taxID: "+a;
-		assert(bn!=null) : "Invalid taxID: "+b;
-		TaxNode cn=commonAncestor(an, bn);
-		assert(cn!=null) : "No common ancestor: "+an+", "+bn;
-		if(cn==null){return -1;}
-		return cn.id;
-	}
-	
-	public TaxNode commonAncestor(TaxNode a, TaxNode b){
-		assert(a!=null && b!=null) : "Null parameters.";
-		if(a==null){return b;}
-		if(b==null){return a;}
-		if(a==null && b==null){return null;}
-		
-		while(a!=b){
-			if(a.level<b.level){
-				a=getNode(a.pid);
-			}else{
-				b=getNode(b.pid);
-			}
-		}
-		return a;
-	}
-	
 	public TaxNode getNode(String s){
 		{
 			int index=s.indexOf('|');
 			if(index<0){index=s.indexOf("_");}
-			int number=-1;
-			if(index==2 && s.length()>3 && s.startsWith("gi") && Character.isDigit(s.charAt(3))){
-//				System.err.println("Parsing gi number.");
-				number=GiToNcbi.parseGiToNcbi(s);
-//				if(number!=-1){System.err.println("number="+number);}
-			}else if(index==4 && s.length()>5 && s.startsWith("ncbi") && Character.isDigit(s.charAt(5))){
-//				System.err.println("Parsing ncbi number.");
-				number=GiToNcbi.getID(s);
+			if((index==2 && s.length()>3 && s.startsWith("gi") && Character.isDigit(s.charAt(4))) || 
+					(index==4 && s.length()>5 && s.startsWith("ncbi") && Character.isDigit(s.charAt(6)))){
+//				System.err.println("Looking for gi or ncbi number.");
+				int number=GiToNcbi.getID(s);
+				if(number>=0){return getNode(number);}
 			}
-			if(number>=0){return getNode(number);}
 		}
-		if(verbose){System.err.println("Can't process name "+s);}
+//		System.err.println("Can't process name "+s);
 		if(Character.isDigit(s.charAt(0)) && s.length()<=9){
 			try {
 				return getNode(Integer.parseInt(s));
@@ -473,17 +413,14 @@ public class TaxTree implements Serializable{
 		{
 			int index=Tools.indexOf(s, (byte)'|');
 			if(index<0){index=Tools.indexOf(s, (byte)'_');}
-			int number=-1;
-			if(index==2 && s.length>3 && Tools.startsWith(s, "gi") && Character.isDigit(s[3])){
-//				System.err.println("Parsing gi number.");
-				number=GiToNcbi.parseGiToNcbi(s);
-			}else if(index==4 && s.length>5 && Tools.startsWith(s, "ncbi") && Character.isDigit(s[5])){
-//				System.err.println("Parsing ncbi number.");
-				number=GiToNcbi.getID(s);
+			if((index==2 && s.length>3 && Tools.startsWith(s, "gi") && Character.isDigit(s[4])) || 
+					(index==4 && s.length>5 && Tools.startsWith(s, "ncbi") && Character.isDigit(s[6]))){
+//				System.err.println("Looking for gi or ncbi number.");
+				int number=GiToNcbi.getID(s);
+				if(number>=0){return getNode(number);}
 			}
-			if(number>=0){return getNode(number);}
 		}
-		if(verbose){System.err.println("Can't process name "+new String(s));}
+		
 		if(Character.isDigit(s[0]) && s.length<=9){
 			try {
 				return getNode(Tools.parseInt(s, 0, s.length));
@@ -493,68 +430,44 @@ public class TaxTree implements Serializable{
 		}
 		return null;
 	}
+	public TaxNode getNode(int id){return id<0 ? null : nodes[id];}
 	
-	public TaxNode getNode(int id){
-		assert(id<nodes.length) : id+", "+nodes.length;
-		return id<0 ? null : nodes[id];
-	}
-	
-	public TaxNode getNode(int id, int minLevel){
-		return getNode(id, minLevel, DOMAIN);
-	}
-	
-	public TaxNode getNode(int id, int minLevel, int maxLevel){
-		TaxNode tn=getNode(id);
-		while(tn!=null && tn.pid!=tn.id && tn.level<minLevel){
-			TaxNode temp=getNode(tn.pid);
-			if(temp==null || temp.level>maxLevel){break;}
-			tn=temp;
-		}
+	public TaxNode getNodeByName(String s){
+		TaxNode tn=getNodeByName(s, false);
+		if(tn==null){tn=getNodeByName(s, true);}
 		return tn;
 	}
-
-	public TaxNode getNodeByName(String s){
-		List<TaxNode> list=getNodesByName(s, false);
-		if(list==null){list=getNodesByName(s, true);}
-		if(list==null || list.size()<1){return null;}
-		if(list.size()==1){return list.get(0);}
-		assert(false) : "Found multiple nodes for '"+s+"':\n"+list+"\n";
-		return list.get(0);
-	}
-	public List<TaxNode> getNodesByName(String s){
-		List<TaxNode> list=getNodesByName(s, false);
-		if(list==null){list=getNodesByName(s, true);}
-		return list;
-	}
-	private List<TaxNode> getNodesByName(String s, boolean lowercase){
+	private TaxNode getNodeByName(String s, boolean lowercase){
 		if(s.indexOf('_')>=0){s=s.replace('_', ' ');}
 		if(lowercase){s=s.toLowerCase();}
 //		System.err.println("Searching for "+s);
 		final HashMap<String, ArrayList<TaxNode>> map=(lowercase ? nameMapLower : nameMap);
 		ArrayList<TaxNode> list=map.get(s);
-		if(list!=null){return list;}
+		if(list!=null){
+			if(list.size()==1){return list.get(0);}
+			assert(false) : "Found multiple nodes for '"+s+"':\n"+list+"\n";
+		}
 //		System.err.println("No matches for '"+s+"'");
 		
 //		assert(false) : nameMap.containsKey(s)+", "+nameMapLower.containsKey(s);
 		
-		if(s.indexOf('_')<0 && s.indexOf(' ')<0){return null;}
 		String[] split=delimiter2.split(lowercase ? s.toLowerCase() : s, 8);
 //		System.err.println("Array: "+Arrays.toString(split));
 		list=map.get(split[split.length-1]);
-		if(list==null){return list;}
 //		System.err.println(list==null ? "No matches for "+split[split.length-1] : "Found list( "+list.size()+")");
-		
-		int matchCount=0;
-		for(TaxNode tn : list){
-			if(tn.matchesName(split, split.length-1, this)){matchCount++;}
+		if(list==null || list.isEmpty()){
+			return null;
 		}
-		if(matchCount==list.size()){return list;}
-		if(matchCount<1){return null;}
-		ArrayList<TaxNode> hits=new ArrayList<TaxNode>(matchCount);
+		if(list.size()==1){return list.get(0);}
+
+		TaxNode matching=null;
 		for(TaxNode tn : list){
-			if(tn.matchesName(split, split.length-1, this)){hits.add(tn);}
+			if(tn.matchesName(split, split.length-1, this)){
+				assert(matching==null) : "Found two nodes for '"+s+"':\n"+matching+"\n"+tn;
+				matching=tn;
+			}
 		}
-		return hits;
+		return matching;
 	}
 	public ArrayList<TaxNode> getAncestors(int id){
 		TaxNode current=getNode(id);
@@ -727,22 +640,12 @@ public class TaxTree implements Serializable{
 
 	public static final int stringToLevel(String s){return levelMap.containsKey(s) ? levelMap.get(s) : altLevelMap.get(s);}
 	public static final String levelToString(int x){return taxaNames[x];}
-	public static final String levelToStringShort(int x){return taxaNamesShort[x];}
-
+	
 	private static final String[] taxaNames=new String[] {
 		"no rank", "subspecies", "species", "genus",
 		"family", "order", "class", "phylum",
 		"kingdom", "domain", "life"
 	};
-	
-	private static final String[] taxaNamesShort=new String[] {
-			"x", "b", "s", "g",
-			"f", "o", "c", "p",
-			"k", "d", "l"
-	};
-	
-	public static final int NO_RANK=0, SUBSPECIES=1, SPECIES=2, GENUS=3,
-			FAMILY=4, ORDER=5, CLASS=6, PHYLUM=7, KINGDOM=8, DOMAIN=9, LIFE=10;
 	
 	private static final HashMap<String, Integer> levelMap=makeLevelMap();
 	private static final HashMap<String, Integer> altLevelMap=makeAltLevelMap();
@@ -752,8 +655,7 @@ public class TaxTree implements Serializable{
 		
 	public static final String DefaultTableFile="/global/projectb/sandbox/gaag/bbtools/tax/gitable.int1d.gz";
 	public static final String DefaultTreeFile="/global/projectb/sandbox/gaag/bbtools/tax/tree.taxtree.gz";
-
+	
 	public static boolean verbose=false;
-	public static boolean SHOW_WARNINGS=false;
 	
 }

@@ -2,13 +2,13 @@ package jgi;
 
 import java.util.ArrayList;
 
+import align2.ListNum;
 import align2.Tools;
 import dna.Timer;
 import stream.ByteBuilder;
 import stream.ConcurrentReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
 
 /**
  * Fuses sequences together, with N-padding in between.

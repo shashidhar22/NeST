@@ -885,74 +885,20 @@ public class SamLine implements Serializable {
 		return len;
 	}
 	
-	public static int countMdSubs(String mdTag){
-		assert(mdTag!=null);
-
-		final int NORMAL=0, SUB=1, DEL=2;
-		int dels=0, subs=0, normals=0;
-		
-		if(mdTag!=null){
-			int current=0;
-			int mode=NORMAL;
-			int i=0;
-			if(mdTag.startsWith("MD:Z:")){i=5;}
-			for(final int max=mdTag.length(); i<max; i++){
-				char c=mdTag.charAt(i);
-				if(Character.isDigit(c)){
-					current=(current*10)+(c-'0');
-					mode=NORMAL;
-				}else{
-					if(current>0){
-						if(mode==NORMAL){normals+=current;}
-						else{assert(false) : mode+", "+current;}
-						current=0;	
-					}
-					if(c=='^'){mode=DEL;}
-					else if(mode==DEL){
-						dels++;
-					}else if(mode==NORMAL || mode==SUB){
-						mode=SUB;
-						subs++;
-					}
-				}
-			}
-		}
-		return subs;
-	}
-	
 	/** Length of clipped initial bases. */
 	public static int countLeadingClip(byte[] match){
-		if(match==null || match.length<1 || match[0]!='C'){return 0;}
+		if(match==null){return 0;}
 		int clips=0;
-		int current=0;
 		for(int mloc=0; mloc<match.length; mloc++){
 			byte b=match[mloc];
-			if(Character.isDigit(b)){
-				current=current*10+(b-'0');
-			}else{
-				if(current>0){
-					clips=clips+current-1;
-				}
-				current=0;
-				if(b!='C'){break;}
+			assert(!Character.isDigit(b));
+			if(b=='C'){
 				clips++;
+			}else{
+				break;
 			}
 		}
-		if(current>0){
-			clips=clips+current-1;
-		}
 		return clips;
-	}
-	
-	/** Length of match string portion describing clipped initial bases. */
-	public static int countLeadingClip2(byte[] match){
-		if(match==null || match.length<1 || match[0]!='C'){return 0;}
-		int mloc=0;
-		for(; mloc<match.length; mloc++){
-			byte b=match[mloc];
-			if(b!='C' && !Character.isDigit(b)){return mloc;}
-		}
-		return match.length;
 	}
 	
 	/** Length of clipped trailing bases. */
@@ -1081,199 +1027,37 @@ public class SamLine implements Serializable {
 	
 	/**
 	 * @param cigar
-	 * @return Match string of this cigar string when possible, otherwise null.
-	 * Takes into account MD tag and bases, but not reference (other than in MD tag).
-	 */
-	public final byte[] toShortMatch(boolean allowM) {
-		if(cigar==null || cigar.equals(stringstar)){return null;}
-		if(allowM){return cigarToShortMatch_old(cigar, allowM);}
-		
-//		System.err.println("\nInput: cigar="+cigar+", MD="+mdTag());//123
-		
-		final boolean processMD;
-		boolean foundXE=false;
-		boolean foundM=false;
-//		System.err.println("Block 1.");//123
-		{
-			int current=0, total=0;
-			for(int i=0; i<cigar.length(); i++){
-				char c=cigar.charAt(i);
-
-				if(Character.isDigit(c)){
-					current=(current*10)+(c-'0');
-				}else{
-
-					if(c=='H'){
-						current=0; //Information destroyed
-					}else if(c=='P'){
-						return null; //Undefined symbol
-					}
-					foundXE|=(c=='=' || c=='X');
-					foundM|=(c=='M');
-
-					total+=current;
-					current=0;
-				}
-			}
-			if(total<1){return null;}
-			processMD=(!allowM && !foundXE && foundM);
-
-//			System.err.println("allowM="+allowM);//123
-//			System.err.println("foundXE="+foundXE);//123
-//			System.err.println("foundM="+foundM);//123
-		}
-		final int baseNocalls=(seq==null ? -1 : Read.countNocalls(seq));
-		
-//		System.err.println("Block 2.");//123
-		final String mdTag;
-		final int mdSubs;
-		if(processMD){
-			final String md0=mdTag();
-			if(md0==null){return null;}
-			mdSubs=countMdSubs(md0);
-			mdTag=(mdSubs==0 ? null : md0);
-		}else{
-			mdTag=null;
-			mdSubs=-1;
-		}
-//		System.err.println("mdTag="+mdTag);//123
-//		System.err.println("mdSubs="+mdSubs);//123
-		
-		char mSymbol=((foundXE || !foundM) ? 'N' : mdSubs>=0 ? 'm' : 'N');
-		
-//		System.err.println("Block 3.");//123
-		final byte[] match0;
-		{
-			ByteBuilder sb=new ByteBuilder(cigar.length());
-			int current=0;
-			for(int cpos=0, max=cigar.length(); cpos<max; cpos++){
-				char c=cigar.charAt(cpos);
-				if(Character.isDigit(c)){
-					current=(current*10)+(c-'0');
-				}else{
-					if(c=='='){
-						sb.append('m');
-						if(current>1){sb.append(current);}
-					}else if(c=='X'){
-						sb.append('S');
-						if(current>1){sb.append(current);}
-					}else if(c=='D' || c=='N'){
-						sb.append('D');
-						if(current>1){sb.append(current);}
-					}else if(c=='I'){
-						sb.append('I');
-						if(current>1){sb.append(current);}
-					}else if(c=='S'){
-						sb.append('C');
-						if(current>1){sb.append(current);}
-					}else if(c=='M'){
-						//					sb.append('B');
-						sb.append(mSymbol);
-						if(current>1){sb.append(current);}
-					}
-					current=0;
-				}
-			}
-			match0=(sb.array.length==sb.length() ? sb.array : sb.toBytes());
-//			System.err.println("match="+new String(match0));//123
-		}
-		
-//		System.err.println("Block 4.");//123
-		if((!processMD || mdSubs<1) && (baseNocalls<1)){return match0;}
-		assert((mdTag!=null && processMD && mdSubs>0) || baseNocalls>0);
-		
-//		System.err.println("processMD="+processMD+", mdSubs="+mdSubs+", mdTag="+mdTag);//123
-		
-		final byte[] bases;
-		if(seq!=null && baseNocalls>0){
-			bases=(strand()==1) ? AminoAcid.reverseComplementBases(seq) : seq;
-		}else{bases=null;}
-
-//		System.err.println("Block 5.");//123
-		final byte[] longmatch=Read.toLongMatchString(match0);
-		
-		if(baseNocalls>0){
-			int bpos=0;
-			for(int mpos=0; mpos<longmatch.length; mpos++){
-				final byte m=longmatch[mpos];
-				if(m=='C'){
-					bpos++;
-				}else if(m=='m' || m=='s' || m=='S' || m=='N'){
-					if(!AminoAcid.isFullyDefined(bases[bpos])){longmatch[mpos]='N';}
-					bpos++;
-				}else if(m=='I' || m=='X' || m=='Y'){
-					bpos++;
-				}else if(m=='D'){
-					//do nothing
-				}else{
-					assert(false) : m;
-				}
-			}
-		}
-		
-		final byte[] match;
-//		System.err.println("Block 6");//123
-		if(mdTag!=null){
-//			System.err.println("match="+new String(longmatch));//123
-			final MDWalker walker=new MDWalker(mdTag);
-			
-			//Position in bases
-			int bpos=0;
-			//Position in bases, excluding clips and insertions
-			int bpos2=0;
-			//Position in match
-			int mpos=0;
-			//Position in match, excluding clips and insertions
-			int mpos2=0;
-			
-			while(walker.nextSub()){
-//				System.err.println("Called nextSub(): "+walker.matchPosition()+", "+walker.symbol());//123
-				final int subPos=walker.matchPosition();
-				final byte subBase=(byte)walker.symbol();
-				while(mpos2<subPos){
-					final byte m=longmatch[mpos];
-					mpos++;
-					if(m=='C'){ //Do nothing for clipped bases
-						bpos++;
-					}else if(m=='m' || m=='s' || m=='S' || m=='N'){
-						mpos2++;
-						bpos++;
-						bpos2++;
-					}else if(m=='I' || m=='X' || m=='Y'){
-						bpos++;
-					}else if(m=='D'){
-						mpos2++;
-					}else{
-						assert(false) : m;
-					}
-				}
-//				System.err.println(mpos+", "+mpos2+", "+bpos+", "+bpos2+", "+subPos);//123
-				assert(mpos2==subPos);
-				if(bases!=null && !AminoAcid.isFullyDefined(bases[bpos])){
-					longmatch[mpos]='N';
-				}else if(!AminoAcid.isFullyDefined(subBase)){
-					longmatch[mpos]='N';
-				}else{
-					assert(bases==null || bases[bpos]!=subBase);
-					longmatch[mpos]='S';
-				}
-//				System.err.println("match="+new String(longmatch));//123
-			}
-		}
-		match=Read.toShortMatchString(longmatch);
-
-//		System.err.println("Block 7.");//123
-//		System.err.println("Returning "+new String(match));//123
-		return match;
-	}
-	
-	/**
-	 * @param cigar
 	 * @return Match string of this cigar string when possible, otherwise null
 	 */
-	private static final byte[] cigarToShortMatch_old(String cigar, boolean allowM) {
+	public static final byte[] cigarToShortMatch(String cigar, boolean allowM) {
+		if(cigar==null || cigar.equals(stringstar)){return null;}
 		
+		int total=0;
 		int current=0;
+		
+//		int totalLen=0;
+//		int currentLen=0;
+		for(int i=0; i<cigar.length(); i++){
+			char c=cigar.charAt(i);
+			if(Character.isDigit(c)){
+				current=(current*10)+(c-'0');
+			}else{
+				
+				if(c=='M'){
+					if(!allowM){return null;} //Possible loss of information
+				}else if(c=='H'){
+					current=0; //Information destroyed
+				}else if(c=='P'){
+					return null; //Undefined symbol
+				}
+
+				total+=current;
+				current=0;
+			}
+		}
+		
+		if(total<1){return null;}
+		
 		ByteBuilder sb=new ByteBuilder(cigar.length());
 		
 		for(int i=0; i<cigar.length(); i++){
@@ -1357,6 +1141,7 @@ public class SamLine implements Serializable {
 			return null;
 		}
 	}
+	
 	
 	public static String makeMdTag(int chrom, int refstart, byte[] match, byte[] call, int scafloc, int scaflen){
 		if(match==null || chrom<0){return null;}
@@ -1873,10 +1658,9 @@ public class SamLine implements Serializable {
 				}
 			}
 		}
-//		assert(false) : CONVERT_CIGAR_TO_MATCH;
+		
 		if(r.match==null && cigar!=null && (CONVERT_CIGAR_TO_MATCH || cigar.indexOf('=')>=0)){
-//			r.match=cigarToShortMatch(cigar, true);
-			r.match=toShortMatch(false);
+			r.match=cigarToShortMatch(cigar, true);
 			
 			if(r.match!=null){
 				r.setShortMatch(true);
@@ -2285,7 +2069,7 @@ public class SamLine implements Serializable {
 	public boolean pairedOnSameChrom(){
 //		assert(false) : (rname==null ? "nullX" : new String(rname))+", "+
 //		(rnext==null ? "nullX" : new String(rnext))+", "+Tools.equals(rnext, byteequals)+", "+Arrays.equals(rname, rnext)+"\n"+this;
-		return Tools.equals(rnext, byteequals) || Arrays.equals(rname, rnext) || (/*pairnum()==1 &&*/ Tools.equals(rname, byteequals));
+		return Tools.equals(rnext, byteequals) || Arrays.equals(rname, rnext);
 	}
 	
 	/** Assumes a custom name including original location */
@@ -2333,14 +2117,6 @@ public class SamLine implements Serializable {
 	/*--------------------------------------------------------------*/
 	/*----------------           Fields             ----------------*/
 	/*--------------------------------------------------------------*/
-	
-	private String mdTag(){
-		if(optional==null){return null;}
-		for(String s : optional){
-			if(s.startsWith("MD:Z:")){return s;}
-		}
-		return null;
-	}
 	
 	public String qname;
 	public int flag;

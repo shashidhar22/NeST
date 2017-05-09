@@ -3,8 +3,6 @@ package tax;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import dna.Parser;
 import dna.Timer;
@@ -12,10 +10,7 @@ import fileIO.ReadWrite;
 import fileIO.FileFormat;
 import fileIO.TextFile;
 import fileIO.TextStreamWriter;
-import stream.ConcurrentReadInputStream;
-import stream.Read;
-import structures.ListNum;
-import structures.LongList;
+
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -97,32 +92,11 @@ public class PrintTaxonomy {
 				treeFile=b;
 				if("auto".equalsIgnoreCase(b)){treeFile=TaxTree.DefaultTreeFile;}
 			}else if(a.equals("level") || a.equals("taxlevel")){
-				if(b==null){taxLevel=-1;}
-				else if(Character.isDigit(b.charAt(0))){
+				if(Character.isDigit(b.charAt(0))){
 					taxLevel=Integer.parseInt(b);
 				}else{
 					taxLevel=TaxTree.stringToLevel(b.toLowerCase());
 				}
-			}else if(a.equals("minlevel")){
-				if(b==null){minLevel=-1;}
-				else if(Character.isDigit(b.charAt(0))){
-					minLevel=Integer.parseInt(b);
-				}else{
-					minLevel=TaxTree.stringToLevel(b.toLowerCase());
-				}
-			}else if(a.equals("maxlevel")){
-				if(b==null){maxLevel=-1;}
-				else if(Character.isDigit(b.charAt(0))){
-					maxLevel=Integer.parseInt(b);
-				}else{
-					maxLevel=TaxTree.stringToLevel(b.toLowerCase());
-				}
-			}else if(a.equals("printname")){
-				printName=Tools.parseBoolean(b);
-			}else if(a.equals("reverse")){
-				reverseOrder=Tools.parseBoolean(b);
-			}else if(a.equals("column")){
-				keyColumn=Integer.parseInt(b);
 			}else if(b!=null && (a.equals("name") || a.equals("names") || a.equals("id") || a.equals("ids"))){
 				for(String s : b.split(",")){
 					names.add(s);
@@ -137,7 +111,6 @@ public class PrintTaxonomy {
 			append=ReadStats.append=parser.append;
 
 			in1=parser.in1;
-			maxReads=parser.maxReads;
 		}
 		
 		//Ensure output files can be written
@@ -186,11 +159,7 @@ public class PrintTaxonomy {
 		}
 		
 		if(ffin1!=null){
-			if(ffin1.fasta() || ffin1.fastq() || ffin1.samOrBam() || ffin1.scarf()){
-				processReads(tsw);
-			}else{
-				processFile(new TextFile(ffin1), tsw);
-			}
+			processFile(new TextFile(ffin1), tsw);
 		}else{
 			processNames(tsw);
 		}
@@ -219,231 +188,57 @@ public class PrintTaxonomy {
 	/** Iterate through the names */
 	void processNames(final TextStreamWriter tsw){
 		for(String name : names){
-			if(taxLevel>-1){
-				printTaxLevel(name, tsw);
-			}else{
-				printTaxonomy(name, tsw);
-			}
+			printTaxonomy(name, tsw);
 		}
 	}
 	
 	/** Iterate through the names */
 	void processFile(final TextFile tf, final TextStreamWriter tsw){
 		for(String name=tf.nextLine(); name!=null; name=tf.nextLine()){
-			
-			if(keyColumn>=0){
-				String result=translateLine(name, keyColumn);
-				tsw.print(result);
-			}else if(taxLevel>-1){
-				printTaxLevel(name, tsw);
-			}else{
-				printTaxonomy(name, tsw);
-			}
+			printTaxLevel(name, tsw);
 		}
-	}
-	
-	/** Iterate through the names */
-	void processReads(final TextStreamWriter tsw){
-		final ConcurrentReadInputStream cris;
-		{
-			cris=ConcurrentReadInputStream.getReadInputStream(maxReads, true, ffin1, null);
-			if(verbose){System.err.println("Started cris");}
-			cris.start();
-		}
-		
-		ListNum<Read> ln=cris.nextList();
-		ArrayList<Read> reads=(ln!=null ? ln.list : null);
-		
-		while(reads!=null && reads.size()>0){
-
-			for(Read r1 : reads){
-				if(keyColumn>=0){
-					String result=translateLine(r1.id, keyColumn);
-					tsw.println(result);
-				}else if(taxLevel>-1){
-					printTaxLevel(r1.id, tsw);
-				}else{
-					printTaxonomy(r1.id, tsw);
-				}
-			}
-			cris.returnList(ln.id, ln.list.isEmpty());
-			ln=cris.nextList();
-			reads=(ln!=null ? ln.list : null);
-		}
-		cris.returnList(ln.id, ln.list.isEmpty());
-		ReadWrite.closeStreams(cris);
 	}
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Inner Methods        ----------------*/
 	/*--------------------------------------------------------------*/
 	
-	String translateLine(String line, int col){
-		StringBuilder sb=new StringBuilder();
-		String[] split=line.split("\t");
-		assert(split.length>col) : "Too few columns in line:\n"+line+"\n->\n"+Arrays.toString(split);
-		
-		if(col<split.length){
-			String name=split[col];
-			while(name.startsWith(">") || name.startsWith("@")){name=name.substring(1);}
-			
-			TaxNode tn=tree.getNode(name);
-			if(tn!=null){
-				String tl=makeTaxLine(tn, minLevel, maxLevel).toString();
-				split[col]=tl;
-			}else{
-				List<TaxNode> list=tree.getNodesByName(name);
-				if(list!=null){
-					String tab="";
-					for(TaxNode tn2 : list){
-						sb.append(tab);
-						sb.append(makeTaxLine(tn2, minLevel, maxLevel).toString());
-						tab="\t";
-					}
-				}else{
-					split[col]=split[col]+"_***NOT_FOUND***";
-				}
-			}
-		}
-		
-		for(int i=0; i<split.length; i++){
-			if(i>0){sb.append('\t');}
-			sb.append(split[i]);
-		}
-		sb.append('\n');
-		return sb.toString();
-	}
-	
 	void printTaxonomy(String name, final TextStreamWriter tsw){
-		while(name.startsWith(">") || name.startsWith("@")){name=name.substring(1);}
+		TaxNode tn=null;
+		tn=tree.getNode(name);
+		if(tn==null){tn=tree.getNodeByName(name);}
+		
 		tsw.print("\n");
-		if(printName){tsw.print(name+":\n");}
-		TaxNode tn=tree.getNode(name);
-		if(tn!=null){
-			printTaxonomy(tn, tsw);
+		if(tn==null){
+			tsw.println("Could not find node for '"+name+"'");
 			return;
-		}else{
-			List<TaxNode> list=tree.getNodesByName(name);
-			if(list!=null){
-				String nl="";
-				for(TaxNode tn2 : list){
-					tsw.print(nl);
-					printTaxonomy(tn2, tsw);
-					nl="\n";
-				}
-				return;
-			}
 		}
-		tsw.println("Could not find node" + (printName ? "." : " for '"+name+"'"));
-		return;
-	}
-	
-	void printTaxLevel(String name, final TextStreamWriter tsw){
-		while(name.startsWith(">") || name.startsWith("@")){name=name.substring(1);}
-		tsw.print("\n");
-		if(printName){tsw.print(name+":\n");}
-		TaxNode tn=tree.getNode(name);
-		if(tn!=null){
-			printTaxLevel(tn, tsw);
-			return;
-		}else{
-			List<TaxNode> list=tree.getNodesByName(name);
-			if(list!=null){
-				for(TaxNode tn2 : list){
-					printTaxLevel(tn2, tsw);
-				}
-				return;
-			}
-		}
-		tsw.println("Could not find node" + (printName ? "." : " for '"+name+"'"));
-		return;
-	}
-	
-//	void printTaxCounts(String name, final TextStreamWriter tsw){
-//		TaxNode tn=null;
-//		tn=tree.getNode(name);
-//		if(tn==null){tn=tree.getNodeByName(name);}
-//		if(tn==null){tn=unknown;}
-//		while(tn!=null && tn.id!=tn.pid && tn.level<taxLevel){tn=tree.getNode(tn.pid);}
-//		if(tsw!=null)tsw.println(tn.name);
-//		tn.incrementRaw(1);
-//	}
-	
-	void printTaxonomy(TaxNode tn, final TextStreamWriter tsw){
-		assert(tn!=null);
-//		tsw.print("\n");
 		do{
 			if(tn.level<=taxLevel){tn.incrementRaw(1);}
-			if(tn.level>=minLevel && tn.level<=maxLevel){
-				tsw.println(tn.levelString()+"\t"+tn.id+"\t"+tn.name);
-			}
+			tsw.println(tn.levelString()+"\t"+tn.id+"\t"+tn.name);
 			tn=tree.getNode(tn.pid);
 		}while(tn!=null && tn.id!=tn.pid);
 	}
 	
-	StringBuilder makeTaxLine(TaxNode tn, int minLevel, int maxLevel){
-		assert(tn!=null);
-		StringBuilder sb=new StringBuilder();
-		
-		if(reverseOrder){
-			ArrayList<TaxNode> list=new ArrayList<TaxNode>();
-			while(tn.level<=maxLevel){
-				if(tn.level>=minLevel){
-					list.add(tn);
-				}
-				if(tn.id==tn.pid){break;}
-				tn=tree.getNode(tn.pid);
-			}
-			
-			String semi="";
-			Collections.reverse(list);
-			for(TaxNode tn2 : list){
-				sb.append(semi);
-				sb.append(tn2.levelToStringShort());
-				sb.append("__");
-				sb.append(tn2.name);
-				semi=";";
-			}
-		}else{
-			String semi="";
-			while(tn.level<=maxLevel){
-				if(tn.level>=minLevel){
-					sb.append(semi);
-					sb.append(tn.levelToStringShort());
-					sb.append("__");
-					sb.append(tn.name);
-					semi=";";
-				}
-				if(tn.id==tn.pid){break;}
-				tn=tree.getNode(tn.pid);
-			}
-		}
-		
-		return sb;
-	}
-	
-	public static void printTaxonomy(TaxNode tn, final TextStreamWriter tsw, final TaxTree tree, final int maxLevel){
-		assert(tn!=null);
-//		tsw.print("\n");
-		do{
-			tsw.println(tn.levelString()+"\t"+tn.id+"\t"+tn.name);
-			tn=tree.getNode(tn.pid);
-		}while(tn!=null && tn.id!=tn.pid && tn.level<=maxLevel);
-	}
-	
-	void printTaxLevel(TaxNode tn, final TextStreamWriter tsw){
+	void printTaxLevel(String name, final TextStreamWriter tsw){
+		TaxNode tn=null;
+		tn=tree.getNode(name);
+		if(tn==null){tn=tree.getNodeByName(name);}
 		if(tn==null){tn=unknown;}
 		while(tn!=null && tn.id!=tn.pid && tn.level<taxLevel){tn=tree.getNode(tn.pid);}
 		if(tsw!=null)tsw.println(tn.name);
 		tn.incrementRaw(1);
 	}
 	
-//	void printTaxCounts(TaxNode tn, final TextStreamWriter tsw){
-//		if(tn==null){tn=unknown;}
-//		while(tn!=null && tn.id!=tn.pid && tn.level<taxLevel){tn=tree.getNode(tn.pid);}
-//		if(tsw!=null)tsw.println(tn.name);
-//		tn.incrementRaw(1);
-//	}
+	void printTaxCounts(String name, final TextStreamWriter tsw){
+		TaxNode tn=null;
+		tn=tree.getNode(name);
+		if(tn==null){tn=tree.getNodeByName(name);}
+		if(tn==null){tn=unknown;}
+		while(tn!=null && tn.id!=tn.pid && tn.level<taxLevel){tn=tree.getNode(tn.pid);}
+		if(tsw!=null)tsw.println(tn.name);
+		tn.incrementRaw(1);
+	}
 	
 	/** This is called if the program runs with no parameters */
 	private void printOptions(){
@@ -468,24 +263,9 @@ public class PrintTaxonomy {
 	private final TaxTree tree;
 	
 	/** Level to print */
-	private int taxLevel=-1;//TaxTree.stringToLevel("phylum");
-	
-	/** Min level to print */
-	private int minLevel=-1;
-	
-	/** Max level to print */
-	private int maxLevel=TaxTree.stringToLevel("life");
-	
-	/** Reverse order for tax lines */
-	private boolean reverseOrder=true;
+	private int taxLevel=TaxTree.stringToLevel("phylum");
 	
 	private ArrayList<String> names=new ArrayList<String>();
-	
-	private long maxReads=-1;
-	
-	boolean printName=true;
-	
-	int keyColumn=-1;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Final Fields         ----------------*/

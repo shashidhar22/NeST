@@ -14,10 +14,10 @@ import kmer.KmerTableSet;
 import stream.ByteBuilder;
 import stream.ConcurrentReadInputStream;
 import stream.Read;
-import structures.IntList;
-import structures.ListNum;
-import structures.LongList;
 import ukmer.Kmer;
+import align2.IntList;
+import align2.ListNum;
+import align2.LongList;
 import align2.Shared;
 import align2.Tools;
 import dna.AminoAcid;
@@ -69,7 +69,7 @@ public class Tadpole1 extends Tadpole {
 		{
 			int mult=12;
 			if(useOwnership){mult+=4;}
-			if(processingMode==correctMode || processingMode==discardMode){}
+			if(processingMode==correctMode){}
 			else if(processingMode==contigMode || processingMode==extendMode){mult+=1;}
 			bytesPerKmer=mult;
 		}
@@ -1046,424 +1046,77 @@ public class Tadpole1 extends Tadpole {
 	
 	
 	/*--------------------------------------------------------------*/
-	/*----------------        Junk Detection        ----------------*/
-	/*--------------------------------------------------------------*/
-	
-	@Override
-	public boolean isJunk(Read r){
-		boolean junk=isJunk(r, localRightCounts.get());
-		return junk;
-	}
-	
-	@Override
-	public boolean isJunk(Read r, final int[] counts, Kmer kmer){
-		return isJunk(r, counts);
-	}
-	
-	public boolean isJunk(Read r, final int[] counts){
-		final int blen=r.length();
-		if(blen<k){return true;}
-		final byte[] bases=r.bases;
-		
-		final int shift=2*k;
-		final int shift2=shift-2;
-		final long mask=~((-1L)<<shift);
-		long kmer=0;
-		long rkmer=0;
-		int len=0;
-
-		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts, to get the leftmost kmer */
-		{
-			for(int i=0; i<k; i++){
-				final byte b=bases[i];
-				final long x=AminoAcid.baseToNumber[b];
-				final long x2=AminoAcid.baseToComplementNumber[b];
-				kmer=((kmer<<2)|x)&mask;
-				rkmer=(rkmer>>>2)|(x2<<shift2);
-				if(x<0){
-					len=0;
-					kmer=rkmer=0;
-				}else{len++;}
-				if(verbose){outstream.println("Scanning i="+i+", len="+len+", kmer="+kmer+", rkmer="+rkmer+"\t"+new String(bases, Tools.max(0, i-k2), Tools.min(i+1, k)));}
-			}
-		}
-		
-		if(len>=k){
-			int maxPos=fillLeftCounts(kmer, rkmer, counts, mask, shift2);
-			if(counts[maxPos]>0){
-				//System.err.println("Not junk, left counts[maxPos]="+counts[maxPos]+"; right="+fillRightCounts(kmer, rkmer, counts, mask, shift2));
-				return false;
-			}
-		}
-		
-		final boolean paired=(r.mateLength()>=k);
-		int maxDepth=0;
-		{
-			for(int i=k; i<blen; i++){
-				final byte b=bases[i];
-				final long x=AminoAcid.baseToNumber[b];
-				final long x2=AminoAcid.baseToComplementNumber[b];
-				kmer=((kmer<<2)|x)&mask;
-				rkmer=(rkmer>>>2)|(x2<<shift2);
-				if(x<0){
-					len=0;
-					kmer=rkmer=0;
-				}else{
-					len++;
-					if(len>=k){
-						int depth=getCount(kmer, rkmer);
-						if(depth>maxDepth){
-							maxDepth=depth;
-							if(maxDepth>1 && (!paired || maxDepth>2)){
-								//System.err.println("Not junk, maxDepth="+maxDepth);
-								return false;
-							}
-						}
-					}
-				}
-				if(verbose){outstream.println("Scanning i="+i+", len="+len+", kmer="+kmer+", rkmer="+rkmer+"\t"+new String(bases, Tools.max(0, i-k2), Tools.min(i+1, k)));}
-			}
-		}
-		
-		if(len>=k && !paired){
-			int maxPos=fillRightCounts(kmer, rkmer, counts, mask, shift2);
-			if(counts[maxPos]>0){
-				//System.err.println("Not junk, right counts[maxPos]="+counts[maxPos]);
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	@Override
-	public boolean hasKmersAtOrBelow(Read r, int tooLow, final float fraction, Kmer kmer){
-		return hasKmersAtOrBelow(r, tooLow, fraction);
-	}
-	
-	@Override
-	public boolean hasKmersAtOrBelow(Read r, final int tooLow, final float fraction){
-		final int blen=r.length();
-		if(blen<k){return true;}
-		final byte[] bases=r.bases;
-		
-//		System.err.println("\n"+new String(r.bases)+":");
-		
-		final int shift=2*k;
-		final int shift2=shift-2;
-		final long mask=~((-1L)<<shift);
-		long kmer=0;
-		long rkmer=0;
-		int len=0;
-		
-		final int limit=Tools.max(1, Math.round((bases.length-kbig+1)*fraction));
-		int valid=0, invalid=0;
-
-		/* Loop through the bases, maintaining a forward and reverse kmer via bitshifts, to get the leftmost kmer */
-		{
-			for(int i=0; i<blen; i++){
-				final byte b=bases[i];
-				final long x=AminoAcid.baseToNumber[b];
-				final long x2=AminoAcid.baseToComplementNumber[b];
-				kmer=((kmer<<2)|x)&mask;
-				rkmer=(rkmer>>>2)|(x2<<shift2);
-				if(x<0){
-					len=0;
-					kmer=rkmer=0;
-				}else{
-					len++;
-					if(len>=k){
-						int depth=getCount(kmer, rkmer);
-//						System.err.println("depth="+depth+", kmer="+toText(kmer));
-						if(depth>tooLow){valid++;}
-						else{
-							invalid++;
-							if(invalid>=limit){return true;}
-						}
-					}
-				}
-				if(verbose){outstream.println("Scanning i="+i+", len="+len+", kmer="+kmer+", rkmer="+rkmer+"\t"+new String(bases, Tools.max(0, i-k2), Tools.min(i+1, k)));}
-			}
-		}
-		
-		//Compensate for nocalls changing the expected kmer count
-		final int limit2=Tools.max(1, Math.round((valid+invalid)*fraction));
-		return valid<1 || invalid>=limit2;
-	}
-	
-	
-	/*--------------------------------------------------------------*/
 	/*----------------       Error Correction       ----------------*/
 	/*--------------------------------------------------------------*/
 	
 	@Override
 	public int errorCorrect(Read r){
 		initializeThreadLocals();
-		int corrected=errorCorrect(r, localLeftCounts.get(), localRightCounts.get(), localLongList.get(), 
-				localIntList.get(), localIntList2.get(), localByteBuilder.get(), localByteBuilder2.get(), localTracker.get(), localBitSet.get());
+		int corrected=errorCorrect(r, localLeftCounts.get(), localRightCounts.get(), localLongList.get(), localIntList.get(), localByteBuilder.get(), null, localBitSet.get());
 		return corrected;
 	}
 	
 	@Override
-	public int errorCorrect(Read r, final int[] leftCounts, final int[] rightCounts, LongList kmers, IntList counts, IntList counts2, 
-			final ByteBuilder bb, final ByteBuilder bb2, final ErrorTracker tracker, final BitSet bs, Kmer kmer, Kmer kmer2){
-		return errorCorrect(r, leftCounts, rightCounts, kmers, counts, counts2, bb, bb2, tracker, bs);
+	public int errorCorrect(Read r, final int[] leftCounts, final int[] rightCounts, LongList kmers, IntList counts, 
+			final ByteBuilder bb, final int[] detectedArray, final BitSet bs, Kmer kmer){
+		return errorCorrect(r, leftCounts, rightCounts, kmers, counts, bb, detectedArray, bs);
 	}
 	
-	boolean hasErrorsFast(LongList kmers){
-		if(kmers.size<1){return false;}
-		int prev=-1;
-		
-		final int incr=Tools.mid(1, k/2, 9), mcc=minCountCorrect();
-		for(int i=0; i<kmers.size; i+=incr){
-			long kmer=kmers.get(i);
-			if(kmer<0){
-				return true;
-			}
-			long rkmer=rcomp(kmer);
-			int count=getCount(kmer, rkmer);
-			final int min=Tools.min(count, prev), max=Tools.max(count, prev);
-			if(count<mcc || (i>0 && (isError(max+1, min-1)))){return true;}
-			prev=count;
-		}
-		
-		long kmer=kmers.get(kmers.size()-1);
-		if(kmer<0){return true;}
-		long rkmer=rcomp(kmer);
-		int count=getCount(kmer, rkmer);
-		final int min=Tools.min(count, prev), max=Tools.max(count, prev);
-		return count<mcc || isError(max+1, min-1);
-	}
-	
-	public int errorCorrect(Read r, final int[] leftCounts, final int[] rightCounts, LongList kmers, IntList counts, IntList counts2, 
-			final ByteBuilder bb, final ByteBuilder bb2, final ErrorTracker tracker, final BitSet bs){
-		
+	public int errorCorrect(Read r, final int[] leftCounts, final int[] rightCounts, LongList kmers, IntList counts, 
+			final ByteBuilder bb, final int[] detectedArray, final BitSet bs){
 		final byte[] bases=r.bases;
 		final byte[] quals=r.quality;
-		tracker.clear();
+		if(detectedArray!=null){
+			detectedArray[0]=0;
+			detectedArray[1]=0;
+			detectedArray[2]=0;
+			detectedArray[3]=0;
+		}
 		int valid=tables.fillKmers(bases, kmers);
 		if(valid<2){return 0;}
-		if(!r.containsUndefined() && !hasErrorsFast(kmers)){return 0;}
-		
 		tables.fillCounts(kmers, counts);
-		final int possibleErrors=tracker.suspected=countErrors(counts, quals);
-		if(possibleErrors<0){return 0;}
-		final float expectedErrors=r.expectedErrors(true, r.length());
-		
-		final byte[] bases0, quals0;
-		final IntList counts0;
-		if(ECC_ROLLBACK){
-			bases0=bases.clone();
-			quals0=(quals==null ? null : quals.clone());
-			counts0=counts.copy();
-		}else{
-			bases0=quals0=null;
-			counts0=null;
-		}
-		
-		assert(counts.size>0);
-		
 		int correctedPincer=0;
 		int correctedTail=0;
-		int correctedBrute=0;
-		int correctedReassemble=0;
 		
 		if(ECC_PINCER){
-			correctedPincer+=errorCorrectPincer(bases, quals, leftCounts, rightCounts, kmers, counts, bb, tracker, errorExtensionPincer);
+			correctedPincer+=errorCorrectPincer(bases, quals, leftCounts, rightCounts, kmers, counts, bb, detectedArray, errorExtensionPincer);
 		}
 		
 		if(ECC_TAIL || ECC_ALL){
 			int start=(ECC_ALL ? 0 : counts.size-k-1);
-//			if(ECC_PINCER && tracker!=null && tracker.detected>correctedPincer){start=start-k;}
-			correctedTail+=errorCorrectTail(bases, quals, leftCounts, rightCounts, kmers, counts, bb, tracker, start, errorExtensionTail);
+//			if(ECC_PINCER && detectedArray!=null && detectedArray[0]>correctedPincer){start=start-k;}
+			correctedTail+=errorCorrectTail(bases, quals, leftCounts, rightCounts, kmers, counts, bb, detectedArray, start, errorExtensionTail);
 			r.reverseComplement();
 			valid=tables.fillKmers(bases, kmers);
 			counts.reverse();
-			correctedTail+=errorCorrectTail(bases, quals, leftCounts, rightCounts, kmers, counts, bb, tracker, start, errorExtensionTail);
+			correctedTail+=errorCorrectTail(bases, quals, leftCounts, rightCounts, kmers, counts, bb, detectedArray, start, errorExtensionTail);
 			r.reverseComplement();
 			counts.reverse();
 		}
 		
-		if(ECC_REASSEMBLE){
-			if(verbose){System.err.println("Correcting "+possibleErrors+" errors.  Counts:\n"+counts);}
-			if((correctedPincer<1 && correctedTail<1) || countErrors(counts, quals)>0){
-				correctedReassemble=reassemble(bases, quals, rightCounts, counts, counts2, tracker, errorExtensionReassemble, bb, bb2, null, null, bs);
-			}
-//			assert(tracker.detectedReassemble>0) : counts;
-			if(verbose){System.err.println("Corrected  "+correctedReassemble+" errors.  Counts:\n"+counts);}
+		if(MARK_BAD_BASES>0){
+			int marked=markBadBases(bases, quals, counts, bs, MARK_BAD_BASES, MARK_DELTA_ONLY);
+			detectedArray[3]=marked;
 		}
-		assert(counts.size>0);
-		
-		//123 For testing.
-		if(false && tracker.detected()>tracker.corrected()){
-			correctedBrute+=errorCorrectBruteForce(bases, quals, leftCounts, rightCounts, kmers, counts, bb, tracker, errorExtensionPincer);
-		}
-		
-		assert(correctedPincer+correctedTail+correctedReassemble+correctedBrute==tracker.corrected())
-			: correctedPincer+", "+correctedTail+", "+correctedReassemble+", "+correctedBrute+", "+tracker;
-
-		if(ECC_ROLLBACK && (tracker.corrected()>0 || tracker.rollback)){
-			
-			if(!tracker.rollback && quals!=null && tracker.corrected()>3){
-				float mult=Tools.max(1, 0.5f*(0.5f+0.01f*r.length()));//1 for a 150bp read.
-				if(countErrors(counts, quals)>0 && tracker.corrected()>mult+expectedErrors){tracker.rollback=true;}
-				else if(tracker.corrected()>2.5f*mult+expectedErrors){tracker.rollback=true;}
-			}
-			
-//			boolean printed=false;
-			for(int i=0; !tracker.rollback && i<counts.size; i++){
-				int a=Tools.max(0, counts0.get(i));
-				int b=Tools.max(0, counts.get(i));
-//				assert(b+1>=a) : "Z: RID="+r.numericID+"; "+a+"->"+b+"\n"+counts0+"\n"+counts;
-				if(b<a-1 && !isSimilar(a, b)){
-//					assert(false) : "Y: RID="+r.numericID+"; "+a+"->"+b+"\n"+counts0+"\n"+counts;
-					if(verbose){System.err.println("Y: RID="+r.numericID+"; "+a+"->"+b+"\n"+counts0+"\n"+counts);}
-					tracker.rollback=true;
-				}
-//				else if(b<a-1 && !printed){
-//					assert(false);
-//					if(verbose){System.err.println("X: RID="+r.numericID+"; "+a+"->"+b+"\n"+counts0+"\n"+counts);}
-//					printed=true;
-//				}
-			}
-			
-			if(tracker.rollback){
-				System.arraycopy(bases0, 0, r.bases, 0, bases0.length);
-				if(quals0!=null){System.arraycopy(quals0, 0, r.quality, 0, quals0.length);}
-				System.arraycopy(counts0.array, 0, counts.array, 0, counts0.size);
-				tracker.clearCorrected();
-				return 0;
-			}
-		}
-		
-		if(MARK_BAD_BASES>0 && (!MARK_ERROR_READS_ONLY || countErrors(counts, quals)>0 || 
-				r.expectedErrors(false, r.length())>3)){
-			int marked=markBadBases(bases, quals, counts, bs, MARK_BAD_BASES, MARK_DELTA_ONLY, MARK_QUALITY);
-			tracker.marked=marked;
-		}
-		
-		return tracker.corrected();
-	}
-	
-	private int findBestMutant(final byte[] bases, final int a, final LongList kmers, final long[] bestMutant){
-		Arrays.fill(bestMutant, -1);
-		final long kmer0=kmers.get(a);
-		if(kmer0<0){return -1;}
-		long mask=3;
-		int max=0, second=0;
-		for(int i=0; i<k; i++){
-			for(long num=0; num<4; num++){
-				final long kmer=(kmer0&~mask)|(num<<(2*i));
-				if(kmer!=kmer0){
-					final long rkmer=AminoAcid.reverseComplementBinaryFast(kmer, k);
-					int count=getCount(kmer, rkmer);
-					if(count>max){
-						second=max;
-						max=count;
-						bestMutant[0]=kmer;
-						bestMutant[1]=rkmer;
-						bestMutant[2]=i;
-					}else if(count>second){
-						second=count;
-					}
-				}
-			}
-			mask<<=2;
-		}
-		bestMutant[3]=max;
-		bestMutant[4]=second;
-		return max>second ? max : -1;
-	}
-	
-	private boolean fixBestMutant(final byte[] bases, final int a, final LongList kmers, final IntList counts, final int pos, final long kmer){
-		int shift=2*pos;
-		long mask=(3L)<<shift;
-		byte num=(byte)((kmer>>shift)&mask);
-		byte base=AminoAcid.numberToBase[num];
-		byte old=bases[a+pos];
-		bases[a+pos]=base;
-		
-//		long[] copy=counts.toArray();
-		
-//		tables.regenerateKmers(bases, kmers, counts, a);
-		tables.fillKmers(bases, kmers);
-		tables.fillCounts(kmers, counts);
-		
-//		for(int i=0; i<copy.length; i++){
-//			if(counts.get(i)<copy[i]){
-//				bases[a+pos]=old;
-//				tables.fillKmers(bases, kmers);
-//				tables.fillCounts(kmers, counts);
-//				return false;
-//			}
+		assert(detectedArray==null || (correctedPincer==detectedArray[1] && correctedTail==detectedArray[2])) : correctedPincer+", "+correctedTail+", "+Arrays.toString(detectedArray);
+//		if(ECC_PINCER && correctedTail>0){
+//			valid=fillKmers(bases, kmers);
+//			counts.reverse();
+//			correctedPincer+=errorCorrectPincer(bases, quals, leftCounts, rightCounts, kmers, counts, bb, detectedArray, errorExtensionPincer);
 //		}
 		
-		return true;
-	}
-	
-	public int errorCorrectBruteForce(final byte[] bases, final byte[] quals, final int[] leftBuffer, final int[] rightBuffer, 
-			final LongList kmers, final IntList counts, final ByteBuilder bb, final ErrorTracker tracker, final int errorExtension){
-		
-		int detected=0;
-		int corrected=0;
-		
-		final long[] bestMutant=new long[5];
-		final int[] countCopy=counts.toArray();
-		final byte[] basesCopy=bases.clone();
-		
-		final int maxCount=Tools.max(counts.array, 0, counts.size-1);
-		if(maxCount<minCountCorrect()){
-			return 0;
-		}
-		int thresh=Tools.max(3, maxCount/4);
-		
-		for(int a=0, d=k+1; a<counts.size; a++, d++){
-			final int aCount=counts.get(a);
-			if(aCount<thresh){
-				detected++;
-				boolean fixed=false;
-				int mCount=findBestMutant(bases, a, kmers, bestMutant);
-				if(mCount>thresh && mCount>=minCountCorrect() && (isSimilar(mCount, maxCount) || (mCount<maxCount && mCount>(1+aCount)*3))){
-					long kmer=bestMutant[0];
-					long rkmer=bestMutant[1];
-					int pos=(int)bestMutant[2];
-					assert(mCount==bestMutant[3]);
-					int secondBestCount=(int)bestMutant[4];
-					if(mCount>(1+secondBestCount*3) && pos>=errorExtension && pos<=(k-errorExtension)){
-						fixBestMutant(bases, a, kmers, counts, pos, kmer);
-						fixed=true;
-						corrected++;
-					}
-				}
-			}
-		}
-
-		for(int i=0; i<countCopy.length; i++){
-			if(counts.get(i)<countCopy[i]){
-				for(int j=0; j<bases.length; j++){bases[j]=basesCopy[j];}
-				counts.clear();
-				for(int count : countCopy){counts.add(count);}
-				tables.fillKmers(bases, kmers);
-				corrected=0;
-			}
-		}
-		
-		{
-			tracker.detectedBrute+=detected;
-			tracker.correctedBrute+=corrected;
-		}
-		
-		return corrected;
+		return correctedPincer+correctedTail;
 	}
 
 	public int errorCorrectPincer(final byte[] bases, final byte[] quals, final int[] leftBuffer, final int[] rightBuffer, 
-			final LongList kmers, final IntList counts, final ByteBuilder bb, final ErrorTracker tracker, final int errorExtension){
+			final LongList kmers, final IntList counts, final ByteBuilder bb, final int[] detectedArray, final int errorExtension){
 		
 		int detected=0;
 		int corrected=0;
 		
 		//a is the index of the left kmer
-		//b is a+1 (right-extension of left kmer)
-		//c is d-1 (left-extension of right kmer)
+		//b is a+1
+		//c is d-1
 		//d is the index of the right kmer
 		//the base between the kmers is at a+k
 		for(int a=0, d=k+1; d<counts.size; a++, d++){
@@ -1471,8 +1124,7 @@ public class Tadpole1 extends Tadpole {
 			final int bCount=counts.get(a+1);
 			final int cCount=counts.get(d-1);
 			final int dCount=counts.get(d);
-			final byte qb=(quals==null ? 20 : quals[a+kbig]);
-			if(isError(aCount, bCount, qb) && isError(dCount, cCount, qb) && isSimilar(aCount, dCount)){
+			if(isError(aCount, bCount) && isError(dCount, cCount) && isSimilar(aCount, dCount)){
 				if(verbose){
 					System.err.println("Found error: "+aCount+", "+bCount+", "+cCount+", "+dCount);
 				}
@@ -1486,7 +1138,7 @@ public class Tadpole1 extends Tadpole {
 			}else{
 				if(verbose){
 					System.err.println("Not an error: "+aCount+", "+bCount+", "+cCount+", "+dCount+
-							";  "+isError(aCount, bCount, qb)+", "+isError(dCount, cCount, qb)+", "+isSimilar(aCount, dCount));
+							";  "+isError(aCount, bCount)+", "+isError(dCount, cCount)+", "+isSimilar(aCount, dCount));
 				}
 			}
 		}
@@ -1495,32 +1147,31 @@ public class Tadpole1 extends Tadpole {
 //			assert(!verbose);
 //			verbose=true;
 //			System.err.println("\n"+counts);
-//			errorCorrectPincer(bases, quals, leftBuffer, rightBuffer, kmers, counts, bb, tracker);
+//			errorCorrectPincer(bases, quals, leftBuffer, rightBuffer, kmers, counts, bb, detectedArray);
 //			assert(false);
 //		}
 		
-		{
-			tracker.detectedPincer+=detected;
-			tracker.correctedPincer+=corrected;
+		if(detectedArray!=null){
+			detectedArray[0]+=detected;
+			detectedArray[1]+=corrected;
 		}
 		
 		return corrected;
 	}
 
 	public int errorCorrectTail(final byte[] bases, final byte[] quals, final int[] leftBuffer, final int[] rightBuffer, 
-			final LongList kmers, final IntList counts, final ByteBuilder bb, final ErrorTracker tracker, final int startPos, final int errorExtension){
-		if(bases.length<k+2+errorExtension+deadZone){return 0;}
+			final LongList kmers, final IntList counts, final ByteBuilder bb, final int[] detectedArray, final int startPos, final int errorExtension){
+		if(bases.length<k+2*(1+errorExtension)){return 0;}
 		int detected=0;
 		int corrected=0;
 		
 		//a is the index of the left kmer
 		//b is a+1
 		//the base between the kmers is at a+k
-		for(int a=Tools.max(startPos, errorExtension), lim=counts.size-deadZone-1; a<lim; a++){//errorExtension-1
+		for(int a=Tools.max(startPos, errorExtension), lim=counts.size-Tools.min(errorExtension, (errorExtension+3)/2); a<lim; a++){//errorExtension-1
 			final int aCount=counts.get(a);
 			final int bCount=counts.get(a+1);
-			final byte qb=(quals==null ? 20 : quals[a+kbig]);
-			if(isError(aCount, bCount, qb) && isSimilar(aCount, a-errorExtension, a-1, counts) && isError(aCount, a+2, a+k, counts)){
+			if(isError(aCount, bCount) && isSimilar(aCount, a-errorExtension, a-1, counts) && isError(aCount, a+2, a+k, counts)){
 				if(verbose){
 					System.err.println("Found error: "+aCount+", "+bCount);
 				}
@@ -1534,7 +1185,7 @@ public class Tadpole1 extends Tadpole {
 			}else{
 				if(verbose){
 					System.err.println("Not an error: "+aCount+", "+bCount+
-							";  "+isError(aCount, bCount, qb)+", "+isSimilar(aCount, a-errorExtension, a-1, counts)+", "+isError(aCount, a+2, a+k, counts));
+							";  "+isError(aCount, bCount)+", "+isSimilar(aCount, a-errorExtension, a-1, counts)+", "+isError(aCount, a+2, a+k, counts));
 				}
 			}
 		}
@@ -1543,129 +1194,13 @@ public class Tadpole1 extends Tadpole {
 //			assert(!verbose);
 //			verbose=true;
 //			System.err.println("\n"+counts);
-//			errorCorrectPincer(bases, quals, leftBuffer, rightBuffer, kmers, counts, bb, tracker);
+//			errorCorrectPincer(bases, quals, leftBuffer, rightBuffer, kmers, counts, bb, detectedArray);
 //			assert(false);
 //		}
 		
-		{
-			tracker.detectedTail+=detected;
-			tracker.correctedTail+=corrected;
-		}
-		
-		return corrected;
-	}
-	
-//	public int reassemble_inner(final ByteBuilder bases, final byte[] quals, final int[] rightCounts, final IntList counts, 
-//			final int errorExtension, final Kmer kmer, final Kmer kmer2){
-//		throw new RuntimeException("TODO");
-//	}
-	
-	@Override
-	public int reassemble_inner(final ByteBuilder bb, final byte[] quals, final int[] rightCounts, final IntList counts, 
-			final int errorExtension, final Kmer kmer, final Kmer regenKmer){
-		return reassemble_inner(bb, quals, rightCounts, counts, errorExtension);
-	}
-	
-	public int reassemble_inner(final ByteBuilder bb, final byte[] quals, final int[] rightCounts, final IntList counts, 
-			final int errorExtension){
-		final int length=bb.length();
-		if(length<k+1+deadZone){return 0;}
-		final byte[] bases=bb.array;
-		
-		final int shift=2*k;
-		final int shift2=shift-2;
-		final long mask=~((-1L)<<shift);
-		long kmer=0, rkmer=0;
-
-		int detected=0;
-		int corrected=0;
-		int len=0;
-		
-		//a is the index of the first base of the left kmer
-		//b=a+1 is the index of the next base
-		//ca=a-k is the index of the next base
-		//cb=a-k is the index of the next base
-		//the base between the kmers is at a+k
-		for(int a=0, lim=length-deadZone-1; a<lim; a++){
-			
-			//Generate the new kmer
-			final byte aBase=bases[a];
-			final long x=AminoAcid.baseToNumber[aBase];
-			final long x2=AminoAcid.baseToComplementNumber[aBase];
-			
-			if(x<0){
-				len=0;
-			}else{
-
-
-				//Now consider the next kmer
-				kmer=((kmer<<2)|(long)x)&mask;
-				rkmer=(rkmer>>>2)|(x2<<shift2);
-				len++;
-
-				if(verbose){
-					System.err.println("len: "+len+" vs "+k+"; a="+a);
-				}
-
-				if(len>=k){
-
-					final int b=a+1;
-					final int ca=a-k+1;
-					final int cb=ca+1;
-
-					final int aCount=counts.get(ca);
-					final int bCount=counts.get(cb);
-					final byte qb=(quals==null ? 20 : quals[b]);
-
-					if(verbose){
-						System.err.println("ca="+ca+", cb="+cb+"; aCount="+aCount+", bCount="+bCount);
-						System.err.println(isError(aCount, bCount, qb)+", "+isSimilar(aCount, ca-errorExtension, ca-1, counts)+
-								", "+isError(aCount, ca+2, ca+k, counts));
-					}
-
-//					if(isError(aCount, bCount) && isSimilar(aCount, ca-errorExtension, ca-1, counts) && isError(aCount, ca+2, ca+k, counts)){
-					if(isSubstitution(ca, errorExtension, qb, counts)){
-						if(verbose){
-							System.err.println("***Found error: "+aCount+", "+bCount);
-						}
-						//Assume a 1bp substitution; attempt to correct.
-
-						int rightMaxPos=fillRightCounts(kmer, rkmer, rightCounts, mask, shift2);
-						int rightMax=rightCounts[rightMaxPos];
-						int rightSecondPos=Tools.secondHighestPosition(rightCounts);
-						int rightSecond=rightCounts[rightSecondPos];
-
-						byte base=bases[b];
-						byte num=AminoAcid.baseToNumber[base];
-
-						if(rightMax>=minCountExtend){
-							detected++;
-							if(num==rightMax){
-								detected--;
-								//							bases2[b]=base;
-							}else if((isError(rightMax, rightSecond, qb) || !isJunction(rightMax, rightSecond)) && isSimilar(aCount, rightMax)){
-								bases[b]=AminoAcid.numberToBase[rightMaxPos];
-								corrected++;
-								tables.regenerateCounts(bases, counts, ca);
-								if(verbose){System.err.println("Corrected error: "+num+"->"+rightMaxPos+". New counts:\n"+counts);}
-							}
-
-							//						else if(rightSecond>=minCountExtend && isJunction(rightMax, rightSecond) && isSimilar(aCount, rightSecond) 
-							//								&& !isSimilar(aCount, rightMax)){//This branch may not be very safe.
-							//							bases2[b]=AminoAcid.numberToBase[rightSecondPos];
-							//							corrected++;
-							//							if(verbose){System.err.println("Corrected error.");}
-							//						}
-						}
-
-					}else{
-						if(verbose){
-							System.err.println("Not an error: "+aCount+", "+bCount+
-									";  "+isError(aCount, bCount, qb)+", "+isSimilar(aCount, a-errorExtension, a-1, counts)+", "+isError(aCount, a+2, a+k, counts));
-						}
-					}
-				}
-			}
+		if(detectedArray!=null){
+			detectedArray[0]+=detected;
+			detectedArray[2]+=corrected;
 		}
 		
 		return corrected;

@@ -3,8 +3,8 @@ package kmer;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import align2.IntList2;
 import align2.Tools;
-import structures.IntList2;
 
 /**
  * Stores kmers in a long[] and counts in an int[], with a victim cache.
@@ -340,7 +340,7 @@ public final class HashArrayHybrid extends HashArray {
 	
 	@Deprecated
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		throw new RuntimeException("Not supported.");
 	}
 	

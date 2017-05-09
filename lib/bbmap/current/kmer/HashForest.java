@@ -366,7 +366,7 @@ public final class HashForest extends AbstractKmerTable implements Iterable<Kmer
 	}
 	
 	@Override
-	long regenerate(final int limit) {
+	long regenerate() {
 		throw new RuntimeException("Not implemented.");
 	}
 	

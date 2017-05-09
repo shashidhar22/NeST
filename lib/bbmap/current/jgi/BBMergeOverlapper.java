@@ -65,7 +65,7 @@ public final class BBMergeOverlapper {
 			int minOverlap0, final int minOverlap, final int minInsert0, int margin, final int maxMismatches0, final int maxMismatches, final int minq) {
 		if(rvector==null){rvector=new int[5];}
 		final int x;
-		if(false && Shared.USE_JNI){//TODO: Disabled!
+		if(/*false && */Shared.USE_JNI){
 			x=mateByOverlapJNI(a.bases, b.bases, a.quality, b.quality, aprob, bprob, rvector, minOverlap0, minOverlap, minInsert0, margin, maxMismatches0, maxMismatches, minq);
 		}else{
 			x=mateByOverlapJava_unrolled(a, b, aprob, bprob, rvector, minOverlap0, minOverlap, minInsert0, margin, maxMismatches0, maxMismatches, minq);
@@ -74,8 +74,8 @@ public final class BBMergeOverlapper {
 	}
 	
 	protected static final int mateByOverlapRatio(Read a, Read b, float[] aprob, float[] bprob, int[] rvector, 
-			int minOverlap0, int minOverlap, int minInsert0, int minInsert, final float maxRatio, final float minSecondRatio, 
-			final float margin, final float offset, final float gIncr, final float bIncr, boolean useQuality) {
+			int minOverlap0, int minOverlap, int minInsert0, int minInsert, final float maxRatio, final float margin, final float offset, 
+			final float gIncr, final float bIncr, boolean useQuality) {
 		if(rvector==null){rvector=new int[5];}
 //		final boolean swapped;
 //		if(a.length()>b.length()){
@@ -96,10 +96,9 @@ public final class BBMergeOverlapper {
 			}
 		}else{
 			if(useQuality && a.quality!=null && b.quality!=null){
-				x=mateByOverlapRatioJava_WithQualities(a, b, aprob, bprob, rvector, minOverlap0, minOverlap, minInsert0, minInsert, 
-						maxRatio, minSecondRatio, margin, offset);
+				x=mateByOverlapRatioJava_WithQualities(a, b, aprob, bprob, rvector, minOverlap0, minOverlap, minInsert0, minInsert, maxRatio, margin, offset);
 			}else{
-				x=mateByOverlapRatioJava(a, b, rvector, minOverlap0, minOverlap, minInsert0, minInsert, maxRatio, minSecondRatio, margin, offset, gIncr, bIncr);
+				x=mateByOverlapRatioJava(a, b, rvector, minOverlap0, minOverlap, minInsert0, minInsert, maxRatio, margin, offset, gIncr, bIncr);
 			}
 		}
 //		if(swapped){
@@ -111,8 +110,7 @@ public final class BBMergeOverlapper {
 	}
 	
 	protected static final int mateByOverlapRatioJava_WithQualities(Read a, Read b, float[] aprob, float[] bprob, int[] rvector,
-			int minOverlap0, int minOverlap, int minInsert0, int minInsert, float maxRatio, final float minSecondRatio, 
-			final float margin, final float offset) {
+			int minOverlap0, int minOverlap, int minInsert0, int minInsert, float maxRatio, final float margin, final float offset) {
 		assert(rvector!=null);
 		assert(margin>=1);
 		minOverlap=Tools.max(4, minOverlap0, minOverlap);
@@ -131,7 +129,7 @@ public final class BBMergeOverlapper {
 		
 		{
 			float x=findBestRatio_WithQualities(a, b, aprob, bprob, minOverlap0, minOverlap, minInsert, maxRatio, offset);
-			if(!TAG_CUSTOM && x>maxRatio){
+			if(x>maxRatio){
 				rvector[2]=minLength;
 				rvector[4]=0;
 				return -1;
@@ -139,23 +137,13 @@ public final class BBMergeOverlapper {
 			maxRatio=Tools.min(maxRatio, x);
 		}
 
-//		final float altBadlimit=Tools.max(maxRatio, 0.07f)*2f*alen+2;
+		final float altBadlimit=Tools.max(maxRatio, 0.07f)*2f*alen+1;
 		final float margin2=(margin+offset)/minLength;
-
+		
 		int bestInsert=-1;
-		int bestOverlap=-1;
-		int bestBadInt=-1;
 		float bestBad=minLength;
 		float bestRatio=1;
 		boolean ambig=false;
-		
-		float secondBestBad=0;
-		float secondBestRatio=1;
-		int secondBestInsert=0;
-		int secondBestOverlap=0;
-		int secondBestBadInt=-1;
-		
-		final float extraMult=(TAG_CUSTOM ? 80 : 1.2f);
 		
 		final int largestInsertToTest=(alen+blen-minOverlap0);
 		final int smallestInsertToTest=minInsert0;
@@ -163,16 +151,12 @@ public final class BBMergeOverlapper {
 			if(verbose){System.err.println("\nTesting read "+a.numericID+", overlap "+insert+", insert "+(alen+blen-insert));}
 
 			float good=0, bad=0;
-			int badInt=0;
 			
 			final int istart=(insert<=blen ? 0 : insert-blen);
 			final int jstart=(insert>=blen ? 0 : blen-insert);
 			
 			final int overlapLength=Tools.min(alen-istart, blen-jstart, insert);
-//			final float badlimit=extraMult*Tools.max(minSecondRatio, Tools.min(altBadlimit, (Tools.min(bestRatio, maxRatio)))*margin*overlapLength)+1f;
-//			final float badlimit=extraMult*Tools.max(minSecondRatio, Tools.min(bestRatio, maxRatio)*margin*overlapLength)+1f;
-			final float badlimit=extraMult*(Tools.min(bestRatio, maxRatio)*margin*overlapLength)+1f;
-//			final float badlimit=extraMult*Tools.max(minSecondRatio, Tools.min(bestRatio, maxRatio))*margin*overlapLength+1f;
+			final float badlimit=Tools.min(altBadlimit, Tools.min(bestRatio, maxRatio)*margin*overlapLength);
 
 			final int imax=istart+overlapLength;
 			for(int i=istart, j=jstart; i<imax && bad<=badlimit; i++, j++){
@@ -184,10 +168,7 @@ public final class BBMergeOverlapper {
 				final float x=aprob[i]*bprob[j];
 
 				if(ca==cb){good+=x;}
-				else{
-					bad+=x;
-					badInt++;
-				}
+				else{bad+=x;}
 			}
 			
 //			if(verbose || true){
@@ -211,216 +192,17 @@ public final class BBMergeOverlapper {
 
 					ambig=(ratio*margin>=bestRatio || good<minOverlap);
 					if(ratio<bestRatio){
-						secondBestInsert=bestInsert;
-						secondBestOverlap=bestOverlap;
-						secondBestBad=bestBad;
-						secondBestRatio=bestRatio;
-						secondBestBadInt=bestBadInt;
-						
 						bestInsert=insert;
-						bestOverlap=overlapLength;
 						bestBad=bad;
 						bestRatio=ratio;
-						bestBadInt=badInt;
 					}
-					else if(ratio<secondBestRatio){
-						secondBestInsert=insert;
-						secondBestOverlap=overlapLength;
-						secondBestBad=bad;
-						secondBestRatio=ratio;
-						secondBestBadInt=badInt;
-					}
-					
-					if(!TAG_CUSTOM && ((ambig && bestRatio<margin2) || secondBestRatio<minSecondRatio)){
+					if(ambig && bestRatio<margin2){
 						rvector[2]=(int)bestBad;
 						rvector[4]=1;
 						return -1;
 					}
 				}
 			}
-		}
-		
-		if(secondBestRatio<minSecondRatio){ambig=true;}
-		
-		if(TAG_CUSTOM){
-			if(secondBestRatio<minSecondRatio){ambig=true;}
-			StringBuilder sb=new StringBuilder(a.id);
-			
-			sb.append("_bi=").append(bestInsert);
-			sb.append("_bo=").append(bestOverlap);
-			sb.append("_bb=").append(String.format("%.4f", bestBad));
-			sb.append("_br=").append(String.format("%.4f", bestRatio));
-			sb.append("_bbi=").append(bestBadInt);
-
-			sb.append("_sbi=").append(secondBestInsert);
-			sb.append("_sbo=").append(secondBestOverlap);
-			sb.append("_sbb=").append(String.format("%.4f", secondBestBad));
-			sb.append("_sbr=").append(String.format("%.4f", secondBestRatio));
-			sb.append("_sbbi=").append(secondBestBadInt);
-			
-			a.id=sb.toString();
-			
-			rvector[2]=(int)bestBad;
-			rvector[4]=(ambig ? 1 : 0);
-			
-			return (bestInsert<0 ? -1 : bestInsert);
-		}
-		
-		if(!ambig && bestRatio>maxRatio){bestInsert=-1;}
-		
-		rvector[2]=(int)bestBad;
-		rvector[4]=(ambig ? 1 : 0);
-
-//		System.err.println("***C : "+bestOverlap+", "+ambig+", "+bestBad+", "+(bestOverlap<0 ? -1 : alen+blen-bestOverlap)+", "+
-//				(bestOverlap<0 ? -1 : (bestOverlap<alen && alen>=blen) ? bestOverlap+alen-blen : bestOverlap)+", "+alen+", "+blen);
-		
-		return (bestInsert<0 ? -1 : bestInsert);
-	}
-	
-	protected static final int mateByOverlapRatioJava(Read a, Read b, int[] rvector,
-			int minOverlap0, int minOverlap, int minInsert0, int minInsert, float maxRatio, final float minSecondRatio,
-			final float margin, final float offset, final float gIncr, final float bIncr) {
-		assert(rvector!=null);
-		assert(margin>=1);
-		minOverlap=Tools.max(4, minOverlap0, minOverlap);
-		minOverlap0=Tools.mid(4, minOverlap0, minOverlap);
-		if(rvector==null){rvector=new int[5];}
-		
-		final byte[] abases=a.bases, bbases=b.bases;
-		final int alen=abases.length, blen=bbases.length;
-		final int minLength=Tools.min(alen, blen);
-		
-		{
-			float x=findBestRatio(a, b, minOverlap0, minOverlap, minInsert, maxRatio, offset, gIncr, bIncr);
-			if(x>maxRatio){
-				rvector[2]=minLength;
-				rvector[4]=0;
-				return -1;
-			}
-			maxRatio=Tools.min(maxRatio, x);
-		}
-
-//		final float altBadlimit=Tools.max(maxRatio, 0.07f)*2f*alen+1;
-		final float margin2=(margin+offset)/minLength;
-		final byte N='N';
-		
-		int bestInsert=-1;
-		int bestOverlap=-1;
-		int bestBadInt=-1;
-		float bestBad=minLength;
-		float bestRatio=1;
-		boolean ambig=false;
-		
-		float secondBestBad=0;
-		float secondBestRatio=1;
-		int secondBestInsert=0;
-		int secondBestOverlap=0;
-		int secondBestBadInt=-1;
-		
-		final float extraMult=(TAG_CUSTOM ? 80 : 1.2f);
-		
-		final int largestInsertToTest=(alen+blen-minOverlap0);
-		final int smallestInsertToTest=minInsert0;
-		for(int insert=largestInsertToTest; insert>=smallestInsertToTest; insert--){
-			if(verbose){System.err.println("\nTesting read "+a.numericID+", overlap "+insert+", insert "+(alen+blen-insert));}
-			
-			final int istart=(insert<=blen ? 0 : insert-blen);
-			final int jstart=(insert>=blen ? 0 : blen-insert);
-			final int overlapLength=Tools.min(alen-istart, blen-jstart, insert);
-			
-//			final float badlimit=Tools.min(altBadlimit, Tools.min(bestRatio, maxRatio)*margin*overlapLength);
-			final float badlimit=extraMult*(Tools.min(bestRatio, maxRatio)*margin*overlapLength)+1f;
-			float good=0, bad=0;
-			int badInt=0;
-
-			final int imax=istart+overlapLength;
-			for(int i=istart, j=jstart; i<imax && bad<=badlimit; i++, j++){
-				assert(i>=0 && i<alen && j>=0 && j<blen) : "\njstart="+jstart+", j="+j+
-				", istart="+istart+", i="+i+" \n"+"insert="+insert+", overlap="+overlapLength+", a.length="+a.length()+
-				", b.length="+b.length()+", bad="+bad+", badlimit="+badlimit+", good="+good;
-				final byte ca=abases[i], cb=bbases[j];
-				
-				if(ca==cb){
-					if(ca!=N){good+=gIncr;}
-				}else{
-					bad+=bIncr;
-					badInt++;
-				}
-			}
-			
-//			if(verbose || true){
-//				System.err.println("istart="+istart+", jstart="+jstart+", overlapLength="+overlapLength+", overlap="+overlap+", bestOverlap="+bestOverlap);
-//				System.err.println("overlap="+overlap+", bad="+bad+", good="+good);
-//				System.err.println("bestGood="+bestGood+", bestBad="+bestBad);
-//				System.err.println();
-//			}
-
-			if(bad<=badlimit){
-				if(bad==0 && good>minOverlap0 && good<minOverlap){
-					rvector[2]=(int)bestBad;
-					rvector[4]=1;
-					return -1;
-				}
-
-				float ratio=(bad+offset)/overlapLength;
-//				System.err.println("*** ratio="+ratio+", bestRatio="+bestRatio);
-
-				
-				if(ratio<bestRatio*margin){
-
-					ambig=(ratio*margin>=bestRatio || good<minOverlap);
-					if(ratio<bestRatio){
-						secondBestInsert=bestInsert;
-						secondBestOverlap=bestOverlap;
-						secondBestBad=bestBad;
-						secondBestRatio=bestRatio;
-						secondBestBadInt=bestBadInt;
-						
-						bestInsert=insert;
-						bestOverlap=overlapLength;
-						bestBad=bad;
-						bestRatio=ratio;
-						bestBadInt=badInt;
-					}
-					else if(ratio<secondBestRatio){
-						secondBestInsert=insert;
-						secondBestOverlap=overlapLength;
-						secondBestBad=bad;
-						secondBestRatio=ratio;
-						secondBestBadInt=badInt;
-					}
-					
-					if(!TAG_CUSTOM && ((ambig && bestRatio<margin2) || secondBestRatio<minSecondRatio)){
-						rvector[2]=(int)bestBad;
-						rvector[4]=1;
-						return -1;
-					}
-				}
-			}
-		}
-		
-		if(TAG_CUSTOM){
-			if(secondBestRatio<minSecondRatio){ambig=true;}
-			StringBuilder sb=new StringBuilder(a.id);
-
-			sb.append("_bi=").append(bestInsert);
-			sb.append("_bo=").append(bestOverlap);
-			sb.append("_bb=").append(String.format("%.4f", bestBad));
-			sb.append("_br=").append(String.format("%.4f", bestRatio));
-			sb.append("_bbi=").append(bestBadInt);
-
-			sb.append("_sbi=").append(secondBestInsert);
-			sb.append("_sbo=").append(secondBestOverlap);
-			sb.append("_sbb=").append(String.format("%.4f", secondBestBad));
-			sb.append("_sbr=").append(String.format("%.4f", secondBestRatio));
-			sb.append("_sbbi=").append(secondBestBadInt);
-			
-			a.id=sb.toString();
-			
-			rvector[2]=(int)bestBad;
-			rvector[4]=(ambig ? 1 : 0);
-			
-			return (bestInsert<0 ? -1 : bestInsert);
 		}
 		
 		if(!ambig && bestRatio>maxRatio){bestInsert=-1;}
@@ -485,6 +267,106 @@ public final class BBMergeOverlapper {
 		}
 		
 		return bestRatio;
+	}
+	
+	protected static final int mateByOverlapRatioJava(Read a, Read b, int[] rvector,
+			int minOverlap0, int minOverlap, int minInsert0, int minInsert, float maxRatio, final float margin, final float offset, final float gIncr, final float bIncr) {
+		assert(rvector!=null);
+		assert(margin>=1);
+		minOverlap=Tools.max(4, minOverlap0, minOverlap);
+		minOverlap0=Tools.mid(4, minOverlap0, minOverlap);
+		if(rvector==null){rvector=new int[5];}
+		
+		final byte[] abases=a.bases, bbases=b.bases;
+		final int alen=abases.length, blen=bbases.length;
+		final int minLength=Tools.min(alen, blen);
+		
+		{
+			float x=findBestRatio(a, b, minOverlap0, minOverlap, minInsert, maxRatio, offset, gIncr, bIncr);
+			if(x>maxRatio){
+				rvector[2]=minLength;
+				rvector[4]=0;
+				return -1;
+			}
+			maxRatio=Tools.min(maxRatio, x);
+		}
+
+		final float altBadlimit=Tools.max(maxRatio, 0.07f)*2f*alen+1;
+		final float margin2=(margin+offset)/minLength;
+		final byte N='N';
+		
+		int bestInsert=-1;
+		float bestBad=minLength;
+		float bestRatio=1;
+		boolean ambig=false;
+		
+		final int largestInsertToTest=(alen+blen-minOverlap0);
+		final int smallestInsertToTest=minInsert0;
+		for(int insert=largestInsertToTest; insert>=smallestInsertToTest; insert--){
+			if(verbose){System.err.println("\nTesting read "+a.numericID+", overlap "+insert+", insert "+(alen+blen-insert));}
+			
+			final int istart=(insert<=blen ? 0 : insert-blen);
+			final int jstart=(insert>=blen ? 0 : blen-insert);
+			final int overlapLength=Tools.min(alen-istart, blen-jstart, insert);
+			
+			final float badlimit=Tools.min(altBadlimit, Tools.min(bestRatio, maxRatio)*margin*overlapLength);
+			float good=0, bad=0;
+
+			final int imax=istart+overlapLength;
+			for(int i=istart, j=jstart; i<imax && bad<=badlimit; i++, j++){
+				assert(i>=0 && i<alen && j>=0 && j<blen) : "\njstart="+jstart+", j="+j+
+				", istart="+istart+", i="+i+" \n"+"insert="+insert+", overlap="+overlapLength+", a.length="+a.length()+
+				", b.length="+b.length()+", bad="+bad+", badlimit="+badlimit+", good="+good;
+				final byte ca=abases[i], cb=bbases[j];
+				
+				if(ca==cb){
+					if(ca!=N){good+=gIncr;}
+				}else{bad+=bIncr;}
+			}
+			
+//			if(verbose || true){
+//				System.err.println("istart="+istart+", jstart="+jstart+", overlapLength="+overlapLength+", overlap="+overlap+", bestOverlap="+bestOverlap);
+//				System.err.println("overlap="+overlap+", bad="+bad+", good="+good);
+//				System.err.println("bestGood="+bestGood+", bestBad="+bestBad);
+//				System.err.println();
+//			}
+
+			if(bad<=badlimit){
+				if(bad==0 && good>minOverlap0 && good<minOverlap){
+					rvector[2]=(int)bestBad;
+					rvector[4]=1;
+					return -1;
+				}
+
+				float ratio=(bad+offset)/overlapLength;
+//				System.err.println("*** ratio="+ratio+", bestRatio="+bestRatio);
+
+				if(ratio<bestRatio*margin){
+
+					ambig=(ratio*margin>=bestRatio || good<minOverlap);
+					if(ratio<bestRatio){
+						bestInsert=insert;
+						bestBad=bad;
+						bestRatio=ratio;
+					}
+					if(ambig && bestRatio<margin2){
+						rvector[2]=(int)bestBad;
+						rvector[4]=1;
+						return -1;
+					}
+				}
+			}
+		}
+		
+		if(!ambig && bestRatio>maxRatio){bestInsert=-1;}
+		
+		rvector[2]=(int)bestBad;
+		rvector[4]=(ambig ? 1 : 0);
+
+//		System.err.println("***C : "+bestOverlap+", "+ambig+", "+bestBad+", "+(bestOverlap<0 ? -1 : alen+blen-bestOverlap)+", "+
+//				(bestOverlap<0 ? -1 : (bestOverlap<alen && alen>=blen) ? bestOverlap+alen-blen : bestOverlap)+", "+alen+", "+blen);
+		
+		return (bestInsert<0 ? -1 : bestInsert);
 	}
 	
 	protected static final float findBestRatio(Read a, Read b, 
@@ -938,8 +820,6 @@ public final class BBMergeOverlapper {
 	private static final int BAD_MULT=6;
 	private static final int GOOD_MULT_1=8;
 	private static final int GOOD_MULT_2=400;
-	
-	private static final boolean TAG_CUSTOM=BBMerge.TAG_CUSTOM;
 	
 	protected static final boolean verbose=false;
 	

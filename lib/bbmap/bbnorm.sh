@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified July 6, 2016
+Last modified December 14, 2015
 
 Description:  Normalizes read depth based on kmer counts.
 Can also error-correct, bin reads by kmer depth, and generate a kmer depth histogram.

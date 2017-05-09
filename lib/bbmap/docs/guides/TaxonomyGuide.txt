@@ -1,6 +1,6 @@
 Taxonomy Guide
 Written by Brian Bushnell
-Last updated June 27, 2016
+Last updated December 16, 2015
 
 
 BBTools contains a taxonomy package designed for processing NCBI taxonomy information, which is in the form of taxonomy files, and sequence name annotations in sequence files from NCBI's ftp site.  The related tools allow you to filter or bin annotated sequences by taxonomy, or use Seal to classify read abundance at a specific taxonomic level.
@@ -15,9 +15,6 @@ First, the taxonomy files must be downloaded from NCBI.  The are currently avail
 ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdmp.zip
 and
 ftp://ftp.ncbi.nih.gov/pub/taxonomy/gi_taxid_nucl.dmp.gz
-and
-ftp://ftp.ncbi.nih.gov/pub/taxonomy/gi_taxid_prot.dmp.gz
-
 In Linux, it is most convenient to fetch them like this:
 wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdmp.zip
 Before further use, these must be processed by gitable.sh and taxtree.sh.  taxdmp.zip needs to be unzipped first.  For more details see the Usage Examples section.
@@ -37,7 +34,7 @@ The only requirement for reference sequence data is that it is named in a recogn
 gi|123|other stuff
 This is the current naming convention used by all NCBI data.
 2) It starts with an NCBI taxonomic identifier, in this format:
-ncbi|123|other stuff
+ncbi|123"other stuff
 3) It is a proper Genus_species pair, with whitespace replaced by underscores, like this:
 Homo_sapiens
 Note that 3 is not recommended because there could be a name collision, but in general, it should be fine.  It is not strictly necessary to replace whitespace with underscores, but that is often convenient.  For taxa above the species level, just a single taxonomic name is fine, such as "Gammaproteobacteria".  Sequence names are case-insensitive.
@@ -65,10 +62,7 @@ names.dmp and nodes.dmp come from unzipping taxdmp.zip (see "Acquiring taxonomy 
 Creating a GiTable file:
 gitable.sh gi_taxid_nucl.dmp.gz gitable.int1d.gz
 
-or, if you want protein and nucleotide GI numbers:
-gitable.sh gi_taxid_nucl.dmp.gz,gi_taxid_prot.dmp.gz gitable.int1d.gz
-
-gi_taxid_nucl.dmp.gz and gi_taxid_prot.dmp.gz come from NCBI (see "Acquiring taxonomy data").  The GiTable is needed by tools processing taxonomy, but only if reference sequences are named with gi numbers (e.g. gi|123|stuff).  Note that this command's flags are order-sensitive.
+gi_taxid_nucl.dmp.gz comes from NCBI (see "Acquiring taxonomy data").  The GiTable is needed by tools processing taxonomy, but only if reference sequences are named with gi numbers (e.g. gi|123|stuff).  Note that this command's flags are order-sensitive.
 
 
 Renaming gi numbers to NCBI Tax ID numbers:

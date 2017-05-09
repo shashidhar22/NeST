@@ -19,7 +19,8 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Tools;
 import dna.AminoAcid;

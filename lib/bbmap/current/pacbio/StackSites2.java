@@ -11,7 +11,8 @@ import stream.RTextInputStream;
 import stream.Read;
 import stream.SiteScore;
 import stream.SiteScoreR;
-import structures.ListNum;
+
+
 import dna.AminoAcid;
 import dna.ChromosomeArray;
 import dna.CoverageArray;
@@ -23,6 +24,8 @@ import dna.Timer;
 import fileIO.ReadWrite;
 import fileIO.TextFile;
 import fileIO.TextStreamWriter;
+
+import align2.ListNum;
 import align2.MultiStateAligner9PacBio;
 import align2.Tools;
 

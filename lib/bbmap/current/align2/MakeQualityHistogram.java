@@ -6,7 +6,7 @@ import stream.ConcurrentLegacyReadInputStream;
 import stream.RTextInputStream;
 import stream.Read;
 import stream.SiteScore;
-import structures.ListNum;
+
 import fileIO.ReadWrite;
 
 public class MakeQualityHistogram {

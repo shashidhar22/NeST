@@ -55,7 +55,6 @@ public class Kmer implements Cloneable {
 	}
 	
 	private static int getMult0(int kbig){
-//		if(true){return 2;}//TODO: 123 //Enable to allow multi-word arrays for k<32 
 		final int word=31;
 		
 		final int mult1=(kbig+word-1)/word;
@@ -112,16 +111,7 @@ public class Kmer implements Cloneable {
 			array1[i]=0;
 			array2[i]=0;
 		}
-		lastIncarnation=-1;
-		incarnation=0;
-		//incarnation++;
-	}
-	
-	public void clearFast() {
-		len=0;
-		lastIncarnation=-1;
-		incarnation=0;
-		//incarnation++;
+		incarnation++;
 	}
 	
 	public boolean verify(boolean update){
@@ -349,8 +339,7 @@ public class Kmer implements Cloneable {
 	private final int shift2;
 	private final long mask;
 	
-	public int len=0; //TODO: Make private; use getter.
-	public final int len(){return len;}
+	public int len=0;
 	
 	private static final long mask63=Long.MAX_VALUE;
 	private final static boolean TESTMODE=false; //123

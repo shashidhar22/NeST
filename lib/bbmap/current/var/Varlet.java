@@ -335,12 +335,15 @@ public class Varlet extends var.Variation {
 
 	public long readID;
 	
-	/** Length of read when used for calling vars; ie, after being trimmed. */
+	/** Length of read when used for calling vars; ie, after being trimmed, and after colorspace conversion. */
 	public int readLen;
 	
 	public int numReads;
 	public int numSemiUniqueReads=1;
 	public int numUniqueReads=1;
+//	public int coverageAtLoc=0;
+
+//	public byte numStrands=1;
 	
 	/** Varlets from read 1 mapped to plus strand */
 	public int numPlusReads1=0;

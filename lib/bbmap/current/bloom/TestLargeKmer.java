@@ -7,7 +7,8 @@ import java.util.Arrays;
 import stream.ConcurrentGenericReadInputStream;
 import stream.FastqReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
+import align2.ListNum;
 import dna.AminoAcid;
 import dna.Timer;
 import fileIO.ReadWrite;

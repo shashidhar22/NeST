@@ -3,13 +3,13 @@ package stream;
 import java.io.File;
 import java.util.ArrayList;
 
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
 import fileIO.TextFile;
-import structures.ListNum;
 
 /** 
  * This class allows multiple files as input.

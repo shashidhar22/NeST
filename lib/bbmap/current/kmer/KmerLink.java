@@ -273,7 +273,7 @@ public class KmerLink extends AbstractKmerTable {
 	
 	@Deprecated
 	@Override
-	public long regenerate(final int limit){
+	public long regenerate(){
 		throw new RuntimeException("TODO - remove zero-value links.");
 	}
 	

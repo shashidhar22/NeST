@@ -47,7 +47,7 @@ public class ReadStreamByteWriter extends ReadStreamWriter {
 	/*--------------------------------------------------------------*/
 	
 	private void writeHeader() throws IOException {
-		if(!OUTPUT_SAM && !OUTPUT_FASTQ && !OUTPUT_FASTA && !OUTPUT_ATTACHMENT && !OUTPUT_HEADER && !OUTPUT_ONELINE){
+		if(!OUTPUT_SAM && !OUTPUT_FASTQ && !OUTPUT_FASTA && !OUTPUT_ATTACHMENT && !OUTPUT_HEADER){
 			if(OUTPUT_INTERLEAVED){
 //				assert(false) : OUTPUT_SAM+", "+OUTPUT_FASTQ+", "+OUTPUT_FASTA+", "+OUTPUT_ATTACHMENT+", "+OUTPUT_INTERLEAVED+", "+SITES_ONLY;
 				myOutstream.write("#INTERLEAVED\n".getBytes());
@@ -90,8 +90,6 @@ public class ReadStreamByteWriter extends ReadStreamWriter {
 					writeFastq(job, bb, os);
 				}else if(OUTPUT_FASTA){
 					writeFasta(job, bb, os);
-				}else if(OUTPUT_ONELINE){
-					writeOneline(job, bb, os);
 				}else if(OUTPUT_ATTACHMENT){
 					writeAttachment(job, bb, os);
 				}else if(OUTPUT_HEADER){
@@ -379,56 +377,6 @@ public class ReadStreamByteWriter extends ReadStreamWriter {
 					assert(ignorePairAssertions || (r2!=null && r2.mate==r1 && r2!=r1)) : "\n"+r1.toText(false)+"\n\n"+(r2==null ? "null" : r2.toText(false)+"\n");
 					if(r2!=null){
 						r2.toFasta(FASTA_WRAP, bb).append('\n');
-						readsWritten++;
-						basesWritten+=(r2.bases!=null ? r2.length() : 0);
-						validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);
-						validBasesWritten+=(r2.valid() && r2.mapped() && r2.bases!=null ? r2.length() : 0);
-					}
-				}
-				if(bb.length>=32768){
-					os.write(bb.array, 0, bb.length);
-					bb.setLength(0);
-				}
-			}
-		}
-	}
-
-	/**
-	 * @param job
-	 * @param bb
-	 * @param os
-	 * @throws IOException 
-	 */
-	private void writeOneline(Job job, ByteBuilder bb, OutputStream os) throws IOException {
-		if(read1){
-			for(final Read r : job.list){
-				if(r!=null){
-					bb.append(r.id).append('\t').append(r.bases).append('\n');
-					readsWritten++;
-					basesWritten+=(r.bases!=null ? r.length() : 0);
-					validReadsWritten+=(r.valid() && r.mapped() ? 1 : 0);
-					validBasesWritten+=(r.valid() && r.mapped() && r.bases!=null ? r.length() : 0);
-					Read r2=r.mate;
-					if(OUTPUT_INTERLEAVED && r2!=null){
-						bb.append(r2.id).append('\t').append(r2.bases).append('\n');
-						readsWritten++;
-						basesWritten+=(r2.bases!=null ? r2.length() : 0);
-						validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);
-						validBasesWritten+=(r2.valid() && r2.mapped() && r2.bases!=null ? r2.length() : 0);
-					}
-				}
-				if(bb.length>=32768){
-					os.write(bb.array, 0, bb.length);
-					bb.setLength(0);
-				}
-			}
-		}else{
-			for(final Read r1 : job.list){
-				if(r1!=null){
-					final Read r2=r1.mate;
-					assert(ignorePairAssertions || (r2!=null && r2.mate==r1 && r2!=r1)) : "\n"+r1.toText(false)+"\n\n"+(r2==null ? "null" : r2.toText(false)+"\n");
-					if(r2!=null){
-						bb.append(r2.id).append('\t').append(r2.bases).append('\n');
 						readsWritten++;
 						basesWritten+=(r2.bases!=null ? r2.length() : 0);
 						validReadsWritten+=(r2.valid() && r2.mapped() ? 1 : 0);

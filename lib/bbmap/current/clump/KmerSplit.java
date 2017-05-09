@@ -12,13 +12,14 @@ import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.ConcurrentReadOutputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
 import fileIO.ReadWrite;
-import jgi.BBMerge;
 import fileIO.FileFormat;
+
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -40,14 +41,11 @@ public class KmerSplit {
 	 */
 	public static void main(String[] args){
 		final boolean pigz=ReadWrite.USE_PIGZ, unpigz=ReadWrite.USE_UNPIGZ;
-		final int zl=ReadWrite.ZIPLEVEL;
 		Timer t=new Timer();
 		KmerSplit ks=new KmerSplit(args);
-		ReadWrite.ZIPLEVEL=Tools.min(ReadWrite.ZIPLEVEL, maxZipLevel);
 		ks.process(t);
 		ReadWrite.USE_PIGZ=pigz;
 		ReadWrite.USE_UNPIGZ=unpigz;
-		ReadWrite.ZIPLEVEL=zl;
 	}
 	
 	/**
@@ -96,23 +94,16 @@ public class KmerSplit {
 				minCount=Integer.parseInt(b);
 			}else if(a.equals("groups") || a.equals("g") || a.equals("sets")){
 				groups=Integer.parseInt(b);
+			}else if(a.equals("divisor") || a.equals("div") || a.equals("mindivisor")){
+				minDivisor=Tools.parseKMG(b);
 			}else if(a.equals("rename") || a.equals("addname")){
-				//Do nothing
-//				addName=Tools.parseBoolean(b);
-			}else if(a.equals("shortname") || a.equals("shortnames")){
-				shortName=Tools.parseBoolean(b);
+				addName=Tools.parseBoolean(b);
 			}else if(a.equals("rcomp") || a.equals("reversecomplement")){
 				//ignore rcomp=Tools.parseBoolean(b);
-			}else if(a.equals("condense") || a.equals("consensus") || a.equals("concensus")){//Note the last one is intentionally misspelled
+			}else if(a.equals("condense")){
 				//ignore condense=Tools.parseBoolean(b);
 			}else if(a.equals("prefilter")){
 				KmerReduce.prefilter=Tools.parseBoolean(b);
-			}else if(a.equals("ecco")){
-				ecco=Tools.parseBoolean(b);
-			}else if(a.equals("seed")){
-				KmerComparator.setSeed(Long.parseLong(b));
-			}else if(a.equals("hashes")){
-				KmerComparator.setHashes(Integer.parseInt(b));
 			}else{
 				outstream.println("Unknown parameter "+args[i]);
 				assert(false) : "Unknown parameter "+args[i];
@@ -264,9 +255,8 @@ public class KmerSplit {
 	/** Collect and sort the reads */
 	void processInner(final ConcurrentReadInputStream cris, final ConcurrentReadOutputStream[] ros){
 		if(verbose){outstream.println("Making comparator.");}
-		KmerComparator kc=new KmerComparator(k);
-		kc.addName=false;
-		kc.shortName=shortName;
+		KmerComparator kc=new KmerComparator(k, minDivisor);
+		kc.addName=addName;
 		kc.rcompReads=false;
 		
 		if(verbose){outstream.println("Splitting reads.");}
@@ -339,22 +329,17 @@ public class KmerSplit {
 			}
 			
 			while(reads!=null && reads.size()>0){
-				if(ecco){
-					for(Read r : reads){
-						if(r.mate!=null){BBMerge.findOverlapStrict(r, r.mate, true);}
-					}
-				}
 				kc.hash(reads, table, minCount);
 				for(Read r : reads){
 					readsProcessedT++;
 					basesProcessedT+=r.length();
 					long kmer=((long[])r.obj)[0];
-					long code=KmerComparator.hash(kmer);
-					int code2=(int)(code%groups);
-					array[code2].add(r);
-					if(array[code2].size()>=buffer){
-						ros[code2].add(array[code2], 0);
-						array[code2]=new ArrayList<Read>(buffer);
+					long mod=kmer%kc.divisor;
+					int mod2=(int)(mod%groups);
+					array[mod2].add(r);
+					if(array[mod2].size()>=buffer){
+						ros[mod2].add(array[mod2], 0);
+						array[mod2]=new ArrayList<Read>(buffer);
 					}
 				}
 				cris.returnList(ln.id, ln.list.isEmpty());
@@ -386,6 +371,7 @@ public class KmerSplit {
 	/*--------------------------------------------------------------*/
 	
 	private int k=31;
+	private long minDivisor=80000000;
 	private int groups=16;
 	private int minCount=0;
 	
@@ -410,11 +396,7 @@ public class KmerSplit {
 	protected long basesProcessed=0;
 	
 	private long maxReads=-1;
-//	private boolean addName=false;
-	private boolean shortName=false;
-	private boolean ecco=false;
-	
-	static int maxZipLevel=4;
+	private boolean addName=false;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Final Fields         ----------------*/

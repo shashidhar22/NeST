@@ -35,9 +35,8 @@ public class MergeCoverageOTU {
 		int count=0;
 		ArrayList<String> headers=new ArrayList<String>();
 		for(String s=tf.nextLine(); s!=null; s=tf.nextLine()){
-			if(count==0){
-				assert(s.startsWith("#")) : "Expected a header line starting with #";
-				CovStatsLine.initializeHeader(s);
+			if(count==0 || s.startsWith("#")){
+				headers.add(s);
 			}else{
 				int space=s.indexOf(' ');
 				String otu=s.substring(space+1, s.indexOf('\t'));

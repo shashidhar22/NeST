@@ -13,7 +13,7 @@ import stream.ConcurrentReadOutputStream;
 import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+import align2.ListNum;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -24,7 +24,6 @@ import dna.Timer;
 import fileIO.ByteFile;
 import fileIO.FileFormat;
 import fileIO.ReadWrite;
-import jgi.BBMerge;
 
 /**
  * Reduces reads to their feature kmer.
@@ -151,8 +150,8 @@ public class KmerReduce {
 				assert(k>0 && k<32);
 			}else if(a.equals("comparisons") || a.equals("c")){
 				//do nothing
-			}else if(a.equals("ecco")){
-				ecco=Tools.parseBoolean(b);
+			}else if(a.equals("divisor") || a.equals("div") || a.equals("mindivisor")){
+				minDivisor=Tools.parseKMG(b);
 			}else if(a.equals("rename") || a.equals("addname")){
 				//do nothing
 			}else if(a.equals("rcomp") || a.equals("reversecomplement")){
@@ -161,10 +160,6 @@ public class KmerReduce {
 				//do nothing
 			}else if(a.equals("groups") || a.equals("g") || a.equals("sets")){
 				//do nothing
-			}else if(a.equals("seed")){
-				KmerComparator.setSeed(Long.parseLong(b));
-			}else if(a.equals("hashes")){
-				KmerComparator.setHashes(Integer.parseInt(b));
 			}else{
 				outstream.println("Unknown parameter "+args[i]);
 				assert(false) : "Unknown parameter "+args[i];
@@ -283,7 +278,7 @@ public class KmerReduce {
 	/** Manage threads */
 	public void processInner(final ConcurrentReadInputStream cris, final ConcurrentReadOutputStream ros){
 		if(verbose){outstream.println("Making comparator.");}
-		KmerComparator kc=new KmerComparator(k);
+		KmerComparator kc=new KmerComparator(k, minDivisor);
 		kc.addName=false;
 		kc.rcompReads=false;
 		
@@ -333,9 +328,6 @@ public class KmerReduce {
 			while(reads!=null && reads.size()>0){
 				ArrayList<Read> out=new ArrayList<Read>(reads.size());
 				for(Read r : reads){
-					if(ecco && r.mate!=null){
-						if(r.mate!=null){BBMerge.findOverlapStrict(r, r.mate, true);}
-					}
 					final long kmer=kc.hash(r, null, 0);
 					readsProcessedT++;
 					basesProcessedT+=r.length();
@@ -391,6 +383,7 @@ public class KmerReduce {
 	/*--------------------------------------------------------------*/
 	
 	private int k=31;
+	private long minDivisor=80000000;
 	static boolean prefilter=true;
 	
 	/*--------------------------------------------------------------*/
@@ -411,7 +404,6 @@ public class KmerReduce {
 	protected long basesProcessed=0;
 	
 	private long maxReads=-1;
-	private boolean ecco=false;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------         Final Fields         ----------------*/

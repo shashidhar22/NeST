@@ -11,7 +11,7 @@ import stream.ConcurrentReadInputStream;
 import stream.FASTQ;
 import stream.FastaReadInputStream;
 import stream.Read;
-import structures.ListNum;
+
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
@@ -20,6 +20,8 @@ import fileIO.ByteFile2;
 import fileIO.ReadWrite;
 import fileIO.FileFormat;
 import fileIO.TextStreamWriter;
+
+import align2.ListNum;
 import align2.Shared;
 import align2.Tools;
 
@@ -295,7 +297,7 @@ public class MakeChimeras {
 		}
 		
 		Read r=new Read(bases, -1, -1, -1, id, quals, numericID, 0);
-		if(Tools.nextBoolean(randy)){r.reverseComplement();}
+		if(randy.nextBoolean()){r.reverseComplement();}
 		return r;
 	}
 
@@ -308,8 +310,8 @@ public class MakeChimeras {
 		int len=randy.nextInt(a.length())+1;
 		
 		final int start;
-		if(Tools.nextBoolean(randy)){
-			if(Tools.nextBoolean(randy)){
+		if(randy.nextBoolean()){
+			if(randy.nextBoolean()){
 				start=0;
 			}else{
 				start=a.length()-len;
@@ -323,7 +325,7 @@ public class MakeChimeras {
 		byte[] quals=a.quality==null ? null : Arrays.copyOfRange(a.quality, start, start+len);
 		
 		Read r=new Read(bases, -1, -1, -1, a.id, quals, a.numericID, 0);
-		if(Tools.nextBoolean(randy)){r.reverseComplement();}
+		if(randy.nextBoolean()){r.reverseComplement();}
 		return r;
 	}
 
@@ -337,8 +339,8 @@ public class MakeChimeras {
 		if(len<1){return null;}
 		
 		final int start;
-		if(Tools.nextBoolean(randy)){
-			if(Tools.nextBoolean(randy)){
+		if(randy.nextBoolean()){
+			if(randy.nextBoolean()){
 				start=0;
 			}else{
 				start=a.length()-len;
@@ -352,7 +354,7 @@ public class MakeChimeras {
 		byte[] quals=a.quality==null ? null : Arrays.copyOfRange(a.quality, start, start+len);
 		
 		Read r=new Read(bases, -1, -1, -1, a.id, quals, a.numericID, 0);
-		if(Tools.nextBoolean(randy)){r.reverseComplement();}
+		if(randy.nextBoolean()){r.reverseComplement();}
 		return r;
 	}
 	

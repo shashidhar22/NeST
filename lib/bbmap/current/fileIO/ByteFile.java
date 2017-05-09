@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import align2.Shared;
-import dna.Data;
 
 
 public abstract class ByteFile {
@@ -86,7 +85,7 @@ public abstract class ByteFile {
 	
 	public final FileFormat ff;
 
-	public static boolean FORCE_MODE_BF1=!(Data.GENEPOOL || Data.WINDOWS);
+	public static boolean FORCE_MODE_BF1=false;
 	public static boolean FORCE_MODE_BF2=false;
 	
 	protected final static byte slashr='\r', slashn='\n', carrot='>', plus='+', at='@';//, tab='\t';

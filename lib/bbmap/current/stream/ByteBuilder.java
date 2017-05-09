@@ -305,11 +305,6 @@ public final class ByteBuilder implements Serializable {
 		return array[i];
 	}
 	
-	public void set(int i, byte b){
-		assert(i<length);
-		array[i]=b;
-	}
-	
 	public char charAt(int i){
 		assert(i<length);
 		return (char)array[i];
@@ -370,10 +365,6 @@ public final class ByteBuilder implements Serializable {
 //				throw new RuntimeException(e);
 //			}
 		}
-	}
-	
-	public void reverseInPlace() {
-		Tools.reverseInPlace(array, 0, length);
 	}
 	
 	public void reverseComplementInPlace() {

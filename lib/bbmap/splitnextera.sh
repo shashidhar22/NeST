@@ -14,14 +14,8 @@ Usage:  splitnextera.sh in=<file> out=<file> outf=<file> outu=<file> outs=<file>
 For pairs in two files, use in1, in2, out1, out2, etc.
 
 *** Note ***
-For maximal speed, before running splitnextera, the linkers can be replaced with a constant first.
-
-In other words, you can either do this (which is slightly faster):
+For maximal speed, before running splitnextera, the linkers should be replaced with a constant, like this:
 bbduk.sh in=reads.fq out=replaced.fq ktmask=J k=19 hdist=1 mink=11 hdist2=0 literal=CTGTCTCTTATACACATCTAGATGTGTATAAGAGACAG
-splitnextera.sh in=replaced.fq out=longmate.fq outf=frag.fq outu=unknown.fq outs=singleton.fq
-
-Or this:
-splitnextera.sh in=reads.fq out=longmate.fq outf=frag.fq outu=unknown.fq outs=singleton.fq mask=t
 
 
 I/O parameters:
@@ -38,7 +32,7 @@ qin=auto                ASCII offset for input quality.  May be 33 (Sanger), 64 
 qout=auto               ASCII offset for output quality.  May be 33 (Sanger), 64 (Illumina), or auto (same as input).
 
 Processing Parameters:
-mask=f                  Set to true if you did not already convert junctions to some symbol, and it will be done automatically.
+mask=f                  Set to true if you did not already convert junctions to some symbol, and it will be done automatically, but the program will run slower.
 junction=J              Look for this symbol to designate the junction bases.
 innerlmp=f              Generate long mate pairs from the inner pair also, when the junction is found in both reads.
 rename=t                Rename read 2 of output when using single-ended input.

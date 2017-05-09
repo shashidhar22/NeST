@@ -4,7 +4,7 @@
 usage(){
 echo "
 Written by Brian Bushnell
-Last modified June 27, 2016
+Last modified May 2, 2016
 
 BBDuk2 is like BBDuk but can kfilter, kmask, and ktrim in a single pass.
 It does not replace BBDuk, and is only provided to allow maximally efficient

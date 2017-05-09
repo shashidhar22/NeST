@@ -5,6 +5,11 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import kmer.AbstractKmerTableSet;
+import kmer.DumpThread;
+import kmer.KmerTableSet;
+import stream.FastaReadInputStream;
+import ukmer.KmerTableSetU;
 import align2.ReadStats;
 import align2.Shared;
 import align2.Tools;
@@ -13,15 +18,7 @@ import assemble.Tadpole;
 import dna.Parser;
 import dna.Timer;
 import fileIO.ByteFile;
-import fileIO.FileFormat;
 import fileIO.ReadWrite;
-import kmer.AbstractKmerTableSet;
-import kmer.DumpThread;
-import kmer.KmerTableSet;
-import sketch.Sketch;
-import sketch.SketchTool;
-import stream.FastaReadInputStream;
-import ukmer.KmerTableSetU;
 
 /**
  * @author Brian Bushnell
@@ -49,7 +46,7 @@ public class KmerCountExact {
 		//Create a new CountKmersExact instance
 		KmerCountExact cke=new KmerCountExact(args);
 		t2.stop();
-//		outstream.println("Initialization Time:      \t"+t2);
+		outstream.println("Initialization Time:      \t"+t2);
 		
 		///And run it
 		cke.process(t);
@@ -101,9 +98,7 @@ public class KmerCountExact {
 		ReadWrite.ZIPLEVEL=2;
 		ReadWrite.USE_UNPIGZ=true;
 		
-		if(!ByteFile.FORCE_MODE_BF1 && !ByteFile.FORCE_MODE_BF2 && Shared.threads()>2){
-			ByteFile.FORCE_MODE_BF2=true;
-		}
+		ByteFile.FORCE_MODE_BF2=Shared.threads()>2;
 		
 		/* Initialize local variables with defaults */
 		Parser parser=new Parser();
@@ -178,21 +173,7 @@ public class KmerCountExact {
 				histHeader=Tools.parseBoolean(b);
 			}else if(a.equals("nzo") || a.equals("nonzeroonly")){
 				histZeros=!Tools.parseBoolean(b);
-			}
-			
-			else if(a.equals("sketch")){
-				sketchPath=b;
-			}else if(a.equals("sketchlen") || a.equals("sketchlength")){
-				sketchLength=(int)Tools.parseKMG(b);
-			}else if(a.equals("sketchfasta")){
-				sketchFasta=Tools.parseBoolean(b);
-			}else if(a.equals("sketchname")){
-				sketchName=b;
-			}else if(a.equals("sketchid")){
-				sketchID=Integer.parseInt(b);
-			}
-			
-			else if(a.equals("minheight")){
+			}else if(a.equals("minheight")){
 				minHeight=Long.parseLong(b);
 			}else if(a.equals("minvolume")){
 				minVolume=Long.parseLong(b);
@@ -230,9 +211,8 @@ public class KmerCountExact {
 		/* Adjust I/O settings and filenames */
 		
 		assert(FastaReadInputStream.settingsOK());
-
+		
 		if(outKmers!=null && !Tools.canWrite(outKmers, overwrite)){throw new RuntimeException("Output file "+outKmers+" already exists, and overwrite="+overwrite);}
-		if(sketchPath!=null && !Tools.canWrite(sketchPath, overwrite)){throw new RuntimeException("Output file "+sketchPath+" already exists, and overwrite="+overwrite);}
 		
 		assert(THREADS>0);
 		
@@ -245,14 +225,12 @@ public class KmerCountExact {
 //		final int tableType=(useForest ? AbstractKmerTable.FOREST1D : useTable ? AbstractKmerTable.TABLE : useArray ? AbstractKmerTable.ARRAY1D : 0);
 		k=Tadpole.preparseK(args);
 		
-		if(k<=31){//TODO: 123 add "false" to the clause to force KmerTableSetU usage.
+		if(k<=31){
 			tables=new KmerTableSet(args, 12);
 		}else{
 			tables=new KmerTableSetU(args, 12);
 		}
 		if(tables.prefilter){tables.minProbMain=false;}
-		
-		ffSketch=FileFormat.testOutput(sketchPath, FileFormat.TXT, null, true, overwrite, append, false);
 	}
 
 	
@@ -264,15 +242,44 @@ public class KmerCountExact {
 	public void process(Timer t){
 		
 		/* Check for output file collisions */
-		Tools.testOutputFiles(overwrite, append, false, outKmers, outHist, outPeaks, sketchPath);
+		Tools.testOutputFiles(overwrite, append, false, outKmers, outHist, outPeaks);
 		
 		/* Count kmers */
 		process2();
 		
-		makeKhistAndPeaks();
-		
-		if(ffSketch!=null){
-			makeSketch();
+		if(THREADS>1 && (outHist!=null || outPeaks!=null) && outKmers!=null){
+			Timer tout=new Timer();
+			tout.start();
+			Thread a=new DumpKmersThread();
+			Thread b=new MakeKhistThread();
+			a.start();
+			b.start();
+			while(a.getState()!=Thread.State.TERMINATED){
+				try {
+					a.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			while(b.getState()!=Thread.State.TERMINATED){
+				try {
+					b.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			tout.stop();
+			outstream.println("Write Time:                 \t"+tout);
+		}else{
+			if(outHist!=null || outPeaks!=null){
+				makeKhist(outHist, outPeaks, histColumns, histMax, histHeader, histZeros, true, smooth);
+			}
+			if(outKmers!=null){
+//				tables.dumpKmersAsText(outKmers, minToDump, true);
+				tables.dumpKmersAsBytes_MT(outKmers, minToDump, true);
+			}
 		}
 		
 		/* Stop timer and calculate speed statistics */
@@ -294,13 +301,6 @@ public class KmerCountExact {
 		
 		/* Fill tables with kmers */
 		tables.process(t);
-		
-		if(DISPLAY_PROGRESS){
-			outstream.println("After loading:");
-			Shared.printMemory();
-			outstream.println();
-		}
-		
 		errorState|=tables.errorState;
 		
 		t.stop();
@@ -362,54 +362,6 @@ public class KmerCountExact {
 		}
 	}
 	
-	private void makeSketch(){
-		Timer ts=new Timer();
-		outstream.println("Generating sketch.");
-		SketchTool sketcher=new SketchTool(sketchLength, k, minToDump);
-		Sketch sketch=sketcher.toSketch((KmerTableSet)tables, true);
-		sketch.setName0(ReadWrite.stripToCore(ffSketch.name()));
-		sketcher.write(sketch, ffSketch);
-		ts.stop();
-		outstream.println("Sketch Time:                \t"+ts);
-	}
-	
-	private void makeKhistAndPeaks(){
-		if(THREADS>1 && (outHist!=null || outPeaks!=null) && outKmers!=null){
-			Timer tout=new Timer();
-			tout.start();
-			Thread a=new DumpKmersThread();
-			Thread b=new MakeKhistThread();
-			a.start();
-			b.start();
-			while(a.getState()!=Thread.State.TERMINATED){
-				try {
-					a.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			while(b.getState()!=Thread.State.TERMINATED){
-				try {
-					b.join();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			tout.stop();
-			outstream.println("Write Time:                 \t"+tout);
-		}else{
-			if(outHist!=null || outPeaks!=null){
-				makeKhist(outHist, outPeaks, histColumns, histMax, histHeader, histZeros, true, smooth);
-			}
-			if(outKmers!=null){
-				//			tables.dumpKmersAsText(outKmers, minToDump, true);
-				tables.dumpKmersAsBytes_MT(outKmers, minToDump, true);
-			}
-		}
-	}
-	
 	/*--------------------------------------------------------------*/
 	/*----------------        Helper Classes        ----------------*/
 	/*--------------------------------------------------------------*/
@@ -436,8 +388,6 @@ public class KmerCountExact {
 	/*--------------------------------------------------------------*/
 	/*----------------            Fields            ----------------*/
 	/*--------------------------------------------------------------*/
-	
-	private long prime1, prime2;
 	
 	/** Hold kmers. */
 	private final AbstractKmerTableSet tables;
@@ -477,13 +427,6 @@ public class KmerCountExact {
 	private int maxPeakCount=12;
 	
 	private int ploidy=-1;
-	
-	private String sketchPath=null;
-	private int sketchLength=10000;
-	private boolean sketchFasta=false;
-	private String sketchName;
-	private int sketchID;
-	private final FileFormat ffSketch;
 	
 	/*--------------------------------------------------------------*/
 	/*----------------       Final Primitives       ----------------*/

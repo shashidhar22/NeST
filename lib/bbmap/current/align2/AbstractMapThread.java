@@ -12,7 +12,7 @@ import stream.ConcurrentReadOutputStream;
 import stream.Read;
 import stream.SamLine;
 import stream.SiteScore;
-import structures.ListNum;
+
 import dna.AminoAcid;
 import dna.ChromosomeArray;
 import dna.Data;
@@ -64,7 +64,6 @@ public abstract class AbstractMapThread extends Thread {
 		maxChrom=maxChrom_;
 		KFILTER=KFILTER_;
 		IDFILTER=IDFILTER_;
-		RenameByInsert=AbstractMapper.RenameByInsert;
 		
 		KILL_BAD_PAIRS=KILL_BAD_PAIRS_;
 		SAVE_AMBIGUOUS_XY=SAVE_AMBIGUOUS_XY_;
@@ -350,9 +349,9 @@ public abstract class AbstractMapThread extends Thread {
 //					System.err.println(INSFILTER>=0 && ins>INSFILTER);
 					bad=bad||(DELFILTER>=0 && delcount>DELFILTER);
 //					System.err.println(DELFILTER>=0 && del>DELFILTER);
-					bad=bad||(INSLENFILTER>=0 && Read.hasLongInsertion(ss.match, INSLENFILTER));
+					bad=bad||(INSLENFILTER>=0 && hasLongInsertion(ss.match, INSLENFILTER));
 //					System.err.println(INSLENFILTER>=0 && hasLongInsertion(ss.match, INSLENFILTER));
-					bad=bad||(DELLENFILTER>=0 && Read.hasLongDeletion(ss.match, DELLENFILTER));
+					bad=bad||(DELLENFILTER>=0 && hasLongDeletion(ss.match, DELLENFILTER));
 //					System.err.println(DELLENFILTER>=0 && hasLongDeletion(ss.match, DELLENFILTER));
 					bad=bad||(INDELFILTER>=0 && inscount+delcount>INDELFILTER);
 //					System.err.println(EDITFILTER>=0 && sub+ins+del>DELFILTER);
@@ -537,17 +536,6 @@ public abstract class AbstractMapThread extends Thread {
 				}
 			}
 			
-			if(RenameByInsert){
-				boolean ignoreStrand=(!REQUIRE_CORRECT_STRANDS_PAIRS || SAME_STRAND_PAIRS);
-				for(Read r : readlist){
-					if(r.mapped() && r.mateMapped() && r.paired()){
-						int insert=Read.insertSizeMapped(r, r.mate, ignoreStrand);
-						String s="insert="+insert;
-						r.id=s+" 1:"+r.numericID;
-						r.mate.id=s+" 2:"+r.numericID;
-					}
-				}
-			}
 			
 			if(MAKE_COVERAGE){
 				synchronized(pileup){//TODO: Potential bottleneck
@@ -662,7 +650,7 @@ public abstract class AbstractMapThread extends Thread {
 		
 		float keyDen2=((maxDesiredKeys*KEYLEN)/(float)basesP.length);
 		keyDen2=Tools.max(minKeyDensity, keyDen2);
-		keyDen2=Tools.min(keyDensity, keyDen2, KEYLEN);
+		keyDen2=Tools.min(keyDensity, keyDen2);
 		
 		float keyDen3;
 		if(basesP.length<=50){
@@ -672,8 +660,8 @@ public abstract class AbstractMapThread extends Thread {
 		}else{
 			keyDen3=maxKeyDensity-0.003333333333f*(basesP.length-50); //0.003333... = 0.5/150
 		}
+		
 		keyDen3=Tools.max(keyDensity, keyDen3);
-		keyDen3=Tools.min(KEYLEN, keyDen3);
 		
 		if(GENERATE_KEY_SCORES_FROM_QUALITY || r.quality==null){
 			QualityTools.makeKeyProbs(r.quality, r.bases, KEYLEN, keyProbs, USE_MODULO);
@@ -1338,7 +1326,6 @@ public abstract class AbstractMapThread extends Thread {
 //					Shared.anomaly=true;
 //					System.err.println("Ignoring anomalous duplicate site: "+"\n"+r.toText(false)+(r.mate==null ? "" : "\n"+r.mate.toText(false))+"\n");
 					System.err.println("Ignoring anomalous duplicate site for rid="+r.numericID);
-					Shared.anomaly=true;
 //					new Exception().printStackTrace(System.err);
 				}
 				r.sites.remove(i);
@@ -2299,7 +2286,7 @@ public abstract class AbstractMapThread extends Thread {
 //			boolean findTipDeletionsRight, boolean findTipDeletionsLeft);
 	
 	
-	/** Assumes bases are already on the correct strand */
+	/** Assumes bases/colors are already on the correct strand */
 	public final SiteScore quickRescue(final byte[] bases, final int chrom, final byte strand, final int loc, final int searchDist,
 			final boolean searchRight, final int idealStart, final int maxAllowedMismatches, int POINTS_MATCH, int POINTS_MATCH2){
 		if(bases==null || bases.length<10){return null;}
@@ -2404,7 +2391,7 @@ public abstract class AbstractMapThread extends Thread {
 	}
 	
 	
-	/** Assumes bases are already on the correct strand */
+	/** Assumes bases/colors are already on the correct strand */
 	protected final int[] quickerRescue(final byte[] bases, final int chrom, int loc, final int searchDist){
 		ChromosomeArray cha=Data.getChromosome(chrom);
 		byte[] ref=cha.array;
@@ -2783,6 +2770,40 @@ public abstract class AbstractMapThread extends Thread {
 		return false;
 	}
 	
+	protected static final boolean hasLongInsertion(byte[] match, int maxlen){
+		if(match==null || match.length<maxlen){return false;}
+		byte prev='0';
+		int len=0;
+		for(byte b : match){
+			if(b=='I' || b=='X' || b=='Y'){
+				if(b==prev){len++;}
+				else{len=1;}
+				if(len>maxlen){return true;}
+			}else{
+				len=0;
+			}
+			prev=b;
+		}
+		return false;
+	}
+	
+	protected static final boolean hasLongDeletion(byte[] match, int maxlen){
+		if(match==null || match.length<maxlen){return false;}
+		byte prev='0';
+		int len=0;
+		for(byte b : match){
+			if(b=='D'){
+				if(b==prev){len++;}
+				else{len=1;}
+				if(len>maxlen){return true;}
+			}else{
+				len=0;
+			}
+			prev=b;
+		}
+		return false;
+	}
+	
 	/** TODO */
 	final void processReadSplit(Read r, byte[] basesM, int minlen, int maxlen){
 		assert(minlen>=KEYLEN && maxlen>=minlen) : KEYLEN+", "+maxlen+", "+minlen;
@@ -2830,6 +2851,7 @@ public abstract class AbstractMapThread extends Thread {
 	
 	public final String MSA_TYPE;
 	final MSA msa;
+//	final TranslateColorspaceRead tcr;
 	public final ReadStats readstats;
 	public final CoveragePileup pileup;
 	public final int POINTS_MATCH, POINTS_MATCH2;
@@ -2918,8 +2940,6 @@ public abstract class AbstractMapThread extends Thread {
 	/** Do advanced filtering on number of specific types of edits */
 	protected final boolean PROCESS_EDIT_FILTER;
 	
-	/** Rename reads to indicate their mapped insert size */
-	protected final boolean RenameByInsert;
 	
 	/** When reads are not in valid pairing orientation, eliminate (mark unmapped) the lower-scoring read. */
 	protected final boolean KILL_BAD_PAIRS;

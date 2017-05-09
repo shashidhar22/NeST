@@ -139,9 +139,9 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     print(config)
     print(len([key for key in config if config[key].paired]))
     for samples in config:
-        sample_name = samples.sample
-        rone_path = samples.files[0]
-        rtwo_path = samples.files[1]
+        sample_name = config[samples].sample
+        rone_path = config[samples].files[0]
+        rtwo_path = config[samples].files[1]
         out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sample_name)
         if not os.path.exists(out_path):
             os.mkdir(out_path)
@@ -169,8 +169,8 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         #      rone_path, rtwo_path, ref_path, adp_path, bed_path,
         #      out_path, aligner, kes_path, kan_path, pic_path, sample_name)
 
-    summary = Summary(ref_path, bed_path, voi_path, out_path)
-    summary.getVarOfInt(out_path)
+    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    summary.getVarOfInt(out_dir)
 
 
 if __name__ == '__main__':
@@ -229,11 +229,13 @@ if __name__ == '__main__':
                         help='Path to variant of interest')
 
 
-
+    
     args = parser.parse_args()
     if args.aligner_path == None:
         args.aligner_path = aligner_def[args.aligner]
-
+ 
+    if not os.path.exists(args.out_path):
+        os.mkdir(args.out_path)
 
     if args.inp_path == None and args.rone_path != None:
         if args.sam_name == None:

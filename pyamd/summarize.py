@@ -83,9 +83,11 @@ class Summary:
         return(avg_codon_coverage)
 
     def getVarOfInt(self, vcf_path):
-        sample_dirs = glob.glob('{0}/*'.format(out_path))
+        sample_dirs = glob.glob('{0}/*'.format(self.out_path))
+        print(sample_dirs)
         codons_of_int = self.createTable()
         for samples in sample_dirs:
+            print(samples)
             sample_folder = os.path.basename(samples)
             sample_bam = '{0}/output_sorted_RG.bam'.format(samples)
             if not os.path.isdir(samples):

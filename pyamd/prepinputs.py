@@ -4,7 +4,7 @@ import re
 import glob
 import logging
 from collections import namedtuple
-from assemble.readers import Fastq
+from pyamd.readers import Fastq
 
 logger = logging.getLogger('Assembler')
 
@@ -84,8 +84,8 @@ class Prepper:
     def __init__(self, input_path):
         self.input_path = os.path.abspath(input_path)
 
-    def prepInputs(path):
-        files = glob.glob('{0}/*.fastq*'.format(self.input_path))
+    def prepInputs(self):
+        files = glob.glob('{0}/*.fastq*'.format(self.input_path)) + glob.glob('{0}/*/*.fastq*'.format(self.input_path))
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')

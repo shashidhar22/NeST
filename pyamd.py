@@ -135,6 +135,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         os.mkdir(os.path.abspath(out_dir))
     sample_handle = open(sample_list)
     prep = Prepper(inp_path)
+    print(prep)
     config = prep.prepInputs()
     print(len([key for key in config if config[key].paired]))
     for lines in sample_handle:

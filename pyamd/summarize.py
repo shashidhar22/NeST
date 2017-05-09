@@ -98,17 +98,17 @@ class Summary:
             sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): var.INFO['DP'] for var in sample_vcf}
             for val in codons_of_int.iterrows():
                 if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
-                    depth = math.log2(sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
-                                                                           val[1]['Ref'],val[1]['Alt'])]+1)
+                    depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
+                                                                           val[1]['Ref'],val[1]['Alt'])]+1
                     sample_result.append(depth)
                 else:
-                    depth = -1 * math.log2(self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
+                    depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
                                                            val[1]['CodonPos'])+1)
                     sample_result.append(depth)
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
 
-        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).mean()
+        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).sum()
         sns.set()
         sns.set_context("notebook")
         plt.figure(figsize=(24,30))

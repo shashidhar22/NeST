@@ -73,7 +73,7 @@ class Metrics:
         for lines in fastq_reader.read():
             total_length += len(lines.seq)
             total_reads += 1
-            if total_reads >= 100000:
+            if total_reads >= 100:
                 break
 
         avg_length = total_length/float(total_reads)
@@ -85,20 +85,21 @@ class Prepper:
         self.input_path = os.path.abspath(input_path)
 
     def getFastqPaths(self):
-        files = list()
-        for subdir, dir, files in os.walk(self.input_path):
-            for file in files:
-                if '.fastq' in file or '.fastq.gz' in file:
-                    filepath = subdir + os.sep + file
-                    files.append(filepath)
-        return(files)
+        filenames = list()
+        for subdir, dirname, files in os.walk(self.input_path):
+            for filename in files:
+                if '.fastq' in filename or '.fastq.gz' in filename:
+                    filepath = subdir + os.sep + filename
+                    print(filepath)     
+                    filenames.append(filepath)
+        return(filenames)
 
     def prepInputs(self):
         files = self.getFastqPaths()
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
-            Sample = namedtuple('Sample', ['sample', 'library', 'files', 'prep', 'paired'])
+            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired'])
             rec = next(reader.read())
             identifier = Identifier(rec)
             metric = Metrics(fastq)
@@ -109,8 +110,8 @@ class Prepper:
             isPac = identifier.isPacbio()
             seqType = ''
             libType = ''
-            sample_regex = re.compile('r1|r2|l001|l002|l003|l004|R1|R2|L001|L002|L003|L004')
-            sample = sample_regex.split(fastq)[0]
+            sample_regex = re.compile('_r1|_r2|r1|r2|_l001|_l002|l001|l002|l003|l004|_R1|_R2|R1|R2|_L001|_L002|L001|L002|L003|L004')
+            sample = sample_regex.split(os.path.basename(fastq))[0]
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
                 lib = re.findall(paired_regex, rec.header)[0]
@@ -151,9 +152,9 @@ class Prepper:
 
             try:
                 paired = True
-                experiment[sample] = Sample(lib, seqType, [experiment[lib].files[0], fastq], libType, paired)
+                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0], fastq], libType, paired)
             except KeyError:
-                experiment[sample] = Sample(lib, seqType, [fastq], libType, paired)
+                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
 
         logger.info("The following libraries were detected in the given folder : {0}".format(self.input_path))
         for files in experiment:

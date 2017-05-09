@@ -139,7 +139,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     print(config)
     print(len([key for key in config if config[key].paired]))
     for lines in sample_handle:
-
+        print(lines)
         sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
         sample_name = 'Sample_{0}'.format(lines.strip())
         sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))

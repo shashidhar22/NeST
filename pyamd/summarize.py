@@ -107,13 +107,15 @@ class Summary:
                     sample_result.append(depth)
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
+
+        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).mean()
         sns.set()
         sns.set_context("notebook")
         plt.figure(figsize=(24,30))
-        heatmap = sns.heatmap(codons_of_int.iloc[:,9:],linewidths=.5, square=False)
+        heatmap = sns.heatmap(codons_of_int, linewidths=.5, square=False)
         fig = heatmap.get_figure()
         fig.savefig('{0}/heatmap.png'.format(self.out_path))
-        
+
 
 
 if __name__ == '__main__':
@@ -123,4 +125,3 @@ if __name__ == '__main__':
     out_path = sys.argv[4]
     summarizer = Summary(fasta_path, bed_path, voi_path, out_path)
     summarizer.getVarOfInt(out_path)
-    

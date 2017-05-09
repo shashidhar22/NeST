@@ -86,6 +86,7 @@ class Summary:
         sample_dirs = glob.glob('{0}/*'.format(self.out_path))
         print(sample_dirs)
         codons_of_int = self.createTable()
+        codon_annot = pd.DataFrame()
         for samples in sample_dirs:
             print(samples)
             sample_folder = os.path.basename(samples)
@@ -95,20 +96,27 @@ class Summary:
             sample_vcf = vcf.Reader(filename='{0}/{1}_variants_merged_annotated.vcf'.format(samples, sample_folder))
             sample_name = sample_vcf.samples[0]
             sample_result = []
+            sample_annot = []
             sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): var.INFO['DP'] for var in sample_vcf}
             for val in codons_of_int.iterrows():
                 if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
                     depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
                                                                            val[1]['Ref'],val[1]['Alt'])]+1
                     sample_result.append(depth)
+                    sample_annot.append('{0}->{1}'.format(val[1]['Ref'], val[1]['Alt']))
                 else:
                     depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
                                                            val[1]['CodonPos'])+1)
                     sample_result.append(depth)
+                    sample_annot.append('WT')
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
+            annot_series = pd.Series(sample_annot, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
+            codon_annot[sample_name] = sample_series
 
         codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).sum()
+        print(codons_of_int.shape)
+        print(codon_annot.shape)
         sns.set()
         sns.set_context("notebook")
         plt.figure(figsize=(24,30))

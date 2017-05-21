@@ -129,15 +129,25 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     return
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-              sample_list, inp_path, ref_path, adp_path, bed_path,
+              inp_path, ref_path, adp_path, bed_path,
               out_dir, aligner, kes_path, kan_path, pic_path, voi_path):
+    #Setup loggers
+    logger = logging.getLogger('MaRS Batch')
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s : %(name)s : %(levelname)s : %(message)s')
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+    #Create output directories
+    
     if not os.path.exists(os.path.abspath(out_dir)):
         os.mkdir(os.path.abspath(out_dir))
-    sample_handle = open(sample_list)
+    logger.info('Output will be stored in {0}'.format(os.path.abspath(out_dir)))        
+    
+    #Prepare input configuration
     prep = Prepper(inp_path)
     config = prep.prepInputs()
-    print(config)
-    print(len([key for key in config if config[key].paired]))
     for samples in config:
         sample_name = config[samples].sample
         rone_path = config[samples].files[0]
@@ -148,27 +158,6 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
              out_path, aligner, kes_path, kan_path, pic_path, sample_name)
-
-    # for lines in sample_handle:
-    #
-    #     sample_path = '{0}/Sample_{1}'.format(os.path.abspath(inp_path), lines.strip())
-    #     sample_name = 'Sample_{0}'.format(lines.strip())
-    #     sample_files = glob.glob('{0}/*.fastq.gz'.format(sample_path))
-    #     rone_path = ''
-    #     rtwo_path = ''
-    #     for files in sample_files:
-    #         if 'R1' in files:
-    #             rone_path = files
-    #         else:
-    #             rtwo_path = files
-    #     out_path = '{0}/Sample_{1}'.format(os.path.abspath(out_dir), lines.strip())
-    #     print(out_path)
-    #     if not os.path.exists(out_path):
-    #         os.mkdir(out_path)
-        # main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-        #      rone_path, rtwo_path, ref_path, adp_path, bed_path,
-        #      out_path, aligner, kes_path, kan_path, pic_path, sample_name)
-
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     summary.getVarOfInt(out_dir)
 
@@ -189,8 +178,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='kookaburra')
     parser.add_argument('-i', '--inp_path', type=str,
                         help='Path to input directory (Specify only for batch mode)')
-    parser.add_argument('-s', '--sample_list', type=str,
-                        help='File containing list of samples (Specify only for batch mode')
     parser.add_argument('-1', '--fwd', dest='rone_path', type=str,
                         help='Path to forward reads fastq', )
     parser.add_argument('-2', '--rev', dest='rtwo_path', type=str,
@@ -247,5 +234,5 @@ if __name__ == '__main__':
             args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, sam_name)
     elif args.inp_path != None and args.rone_path == None:
         marsBatch(args.bbduk_path, args.aligner_path, args.smt_path, args.bft_path, args.gatk_path,
-            args.sample_list, args.inp_path, args.ref_path, args.adp_path, args.bed_path,
+            args.inp_path, args.ref_path, args.adp_path, args.bed_path,
             args.out_path, args.aligner, args.kes_path, args.kan_path, args.pic_path, args.voi_path)

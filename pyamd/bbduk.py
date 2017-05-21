@@ -5,14 +5,14 @@ import logging
 import argparse
 import subprocess
 
-
+#logger = logging.getLogger('MaRS Batch')
 class QualCheck:
     
     def __init__(self, bbduk_path, adp_path, out_path):
         self.bbduk_path = bbduk_path
         self.adp_path = adp_path
         self.out_path = '{0}/CleanedFastq'.format(out_path)
-
+#        self.logger = logging.getLogger('MaRS Batch')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 
@@ -26,6 +26,7 @@ class QualCheck:
         ortwo_path = '{0}/{1}_cleaned.fq'.format(self.out_path, brtwo)
         stats_path = '{0}/{1}_stats.txt'.format(self.out_path, brone)
         #Set up the command
+        logger.info('Running BBDUK on {0}, {1}'.format(rone_path, rtwo_path))
         bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=0', 'ktrim=l',
                 'mink=4', 'ref={0}'.format(self.adp_path), 'qtrim=rl',
                 'trimq=30', 'minlength=50', 'qin=33', 'overwrite=true',
@@ -34,8 +35,12 @@ class QualCheck:
                 'stats={0}'.format(stats_path)]
 
         #Run bbduk
-        bcmd = subprocess.Popen(bbcmd, shell=False)
+        bcmd = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bcmd.wait()
+        if bcmd.returncode == 0:
+            logger.info('Completed BBDuk sucessfully')
+        else:
+            logger.error('BBDuk failed on {0}, {1}'.format(rone_path, rtwo_path))
 
         return(orone_path, ortwo_path, bcmd.returncode)
 

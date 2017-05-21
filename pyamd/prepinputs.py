@@ -6,7 +6,6 @@ import logging
 from collections import namedtuple
 from pyamd.readers import Fastq
 
-logger = logging.getLogger('Assembler')
 
 class Identifier:
 
@@ -83,6 +82,7 @@ class Prepper:
 
     def __init__(self, input_path):
         self.input_path = os.path.abspath(input_path)
+        self.logger = logging.getLogger('MaRS Batch')
 
     def getFastqPaths(self):
         filenames = list()
@@ -90,8 +90,8 @@ class Prepper:
             for filename in files:
                 if '.fastq' in filename or '.fastq.gz' in filename:
                     filepath = subdir + os.sep + filename
-                    print(filepath)     
                     filenames.append(filepath)
+        self.logger.info('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))                    
         return(filenames)
 
     def prepInputs(self):
@@ -148,7 +148,7 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
+                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
 
             try:
                 paired = True
@@ -156,10 +156,7 @@ class Prepper:
             except KeyError:
                 experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
 
-        logger.info("The following libraries were detected in the given folder : {0}".format(self.input_path))
-        for files in experiment:
-            logger.info("Library: {0} ; Sequence type: {1} ; Files: {2} ; Library type: {3} ; Paired: {4}")
-
+        self.logger.info('Found {0} sequencing experiments'.format(len(experiment)))
         return(experiment)
 
 if __name__ == '__main__':

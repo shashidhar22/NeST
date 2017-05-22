@@ -6,7 +6,6 @@ import logging
 from collections import namedtuple
 from pyamd.readers import Fastq
 
-
 class Identifier:
 
     def __init__(self, record):
@@ -82,7 +81,7 @@ class Prepper:
 
     def __init__(self, input_path):
         self.input_path = os.path.abspath(input_path)
-        self.logger = logging.getLogger('MaRS Batch')
+        self.prep_logger = logging.getLogger('MaRS.Prepper')
 
     def getFastqPaths(self):
         filenames = list()
@@ -91,15 +90,22 @@ class Prepper:
                 if '.fastq' in filename or '.fastq.gz' in filename:
                     filepath = subdir + os.sep + filename
                     filenames.append(filepath)
-        self.logger.info('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))                    
+        self.prep_logger.debug('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))
         return(filenames)
+
+    def getReadNumbers(self, file_name):
+        reader = Fastq(file_name, None, None)
+        read_number = 0
+        for rec in reader.read():
+            read_number += 1
+        return(read_number)
 
     def prepInputs(self):
         files = self.getFastqPaths()
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
-            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired'])
+            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired', 'numreads'])
             rec = next(reader.read())
             identifier = Identifier(rec)
             metric = Metrics(fastq)
@@ -148,15 +154,20 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
 
+                self.prep_logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
             try:
                 paired = True
-                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0], fastq], libType, paired)
+                numreads = self.getReadNumbers(experiment[sample].files[0])
+                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0], fastq], libType, paired, numreads)
             except KeyError:
-                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
-
-        self.logger.info('Found {0} sequencing experiments'.format(len(experiment)))
+                numreads = self.getReadNumbers(fastq)
+                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired, numreads)
+        self.prep_logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
+        self.prep_logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
+        for sample, values in experiment.items():
+            self.prep_logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5} ; Total number of reads: {6}'.format(
+                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired, values.numreads))
         return(experiment)
 
 if __name__ == '__main__':

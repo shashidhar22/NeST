@@ -82,6 +82,7 @@ class Prepper:
     def __init__(self, input_path):
         self.input_path = os.path.abspath(input_path)
         self.prep_logger = logging.getLogger('MaRS.Prepper')
+
     def getFastqPaths(self):
         filenames = list()
         for subdir, dirname, files in os.walk(self.input_path):
@@ -89,7 +90,7 @@ class Prepper:
                 if '.fastq' in filename or '.fastq.gz' in filename:
                     filepath = subdir + os.sep + filename
                     filenames.append(filepath)
-        self.logger.info('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))
+        self.prep_logger.debug('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))
         return(filenames)
 
     def getReadNumbers(self, file_name):

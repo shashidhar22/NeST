@@ -148,7 +148,7 @@ class Summary:
         sns.set_context("notebook")
         plt.figure(figsize=(24,30))
         cmap = sns.color_palette("RdBu", n_colors=7)
-        heatmap = sns.heatmap(codons_of_int, linewidths=.5, cmap=cmap, square=False)
+        heatmap = sns.heatmap(codons_of_int, linewidths=.5,  square=False)
         fig = heatmap.get_figure()
         fig.savefig('{0}/heatmap.png'.format(self.out_path))
 

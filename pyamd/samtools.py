@@ -7,20 +7,22 @@ import subprocess
 
 
 class Samtools:
-    
+
     def __init__(self, sam_path, bft_path, out_path):
         self.sam_path = sam_path
         self.out_path = out_path
         self.bft_path = bft_path
-    
+        self.logger = logging.getLogger('Mars.sample_runner.Samtools')
+
     def fixmate(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
         obam_path = '{0}/{1}_fixmate.bam'.format(self.out_path, base)
         fmcmd = [self.sam_path, 'fixmate', '-O', 'BAM',
                 bam_path, obam_path]
-        print(' '.join(fmcmd))
-        fmrun = subprocess.Popen(fmcmd, shell=False)
+        fmrun = subprocess.Popen(fmcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         fmrun.wait()
+        if fmrun.returncode != 0:
+            self.logger.error('Samtools fixmate failed running the following command : {0}'.format(' '.join(fmcmd)))
 
         return(obam_path, fmrun.returncode)
 
@@ -30,52 +32,55 @@ class Samtools:
         obam_path = '{0}/{1}_sorted.bam'.format(self.out_path, base)
         stcmd = [self.sam_path, 'sort', '-O', 'bam',
                 '-o', obam_path, bam_path]
-
-        strun = subprocess.Popen(stcmd, shell=False)
+        strun = subprocess.Popen(stcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         strun.wait()
+        if strun.returncode != 0:
+            self.logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
 
         return(obam_path, strun.returncode)
 
     def pileup(self, ref_path, bam_path):
         obcf_path = '{0}/variants.bcf'.format(self.out_path)
-        
+
         mpcmd = [self.sam_path, 'mpileup', '-go', obcf_path,
                 '-f', ref_path, bam_path]
-        
-        mprun = subprocess.Popen(mpcmd, shell=False)
+        mprun = subprocess.Popen(mpcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         mprun.wait()
-        
+        if mprun.returncode != 0:
+            self.logger.error('Samtools mpileup failed running the following command : {0}'.format(' '.join(mpcmd)))
+
         return(obcf_path, mprun.returncode)
 
     def bcfindex(self, bcf_path):
-        
+
         bicmd = [self.bft_path, 'index', bcf_path]
-        
-        birun = subprocess.Popen(bicmd, shell=False)
+        birun = subprocess.Popen(bicmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         birun.wait()
-        
+        if birun.returncode != 0:
+            self.logger.error('Bcftools index failed running the following command : {0}'.format(' '.join(bicmd)))
+
         return(birun.returncode)
 
     def bcftools(self, bcf_path, bed_path, sam_name):
         ovcf_path = '{0}/{1}_variants.vcf'.format(self.out_path, sam_name)
         btcmd = [self.bft_path, 'call', '--skip-variants', 'indels',
-                '--multiallelic-caller', '--variants-only', '-O', 'v', 
-                '-s', sam_name, '-o', ovcf_path, bcf_path]        
-#        btcmd = [self.bft_path, 'call', '-V', 'indels', '-vmO', 'v', 
-#                '-o', ovcf_path, bcf_path]
-#        print(' '.join(btcmd))
-        btrun = subprocess.Popen(btcmd, shell=False)
+                '--multiallelic-caller', '--variants-only', '-O', 'v',
+                '-s', sam_name, '-o', ovcf_path, bcf_path]
+        btrun = subprocess.Popen(btcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         btrun.wait()
-        
+        if btrun.returncode != 0:
+            self.logger.error('Bcftools call failed running the following command : {0}'.format(' '.join(btcmd)))
+
         return(ovcf_path, btrun.returncode)
-      
+
 
     def bcfstats(self, vcf_path, ref_path):
         stats_path = '{0}/variants.stats'.format(self.out_path)
         bscmd = [self.bft_path, 'stats', '-F', ref_path, '-s' , '-',
                 vcf_path, '>', stats_path]
-        
-        bsrun = subprocess.Popen(' '.join(bscmd), shell=True)
+        bsrun = subprocess.Popen(' '.join(bscmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         bsrun.wait()
+        if bsrun.returncode != 0:
+            self.logger.error('Bcftools stats failed running the following command : {0}'.format(' '.join(bscmd)))
 
-        return(stats_path, bsrun.returncode) 
+        return(stats_path, bsrun.returncode)

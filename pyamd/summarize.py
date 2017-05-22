@@ -6,7 +6,7 @@ import math
 import pandas as pd
 import pysam
 from pyamd.parsers import Fasta
-from pyamd.annotater2 import Annotate
+from pyamd.annotater import Annotate
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
@@ -21,6 +21,36 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
+
+    def getVarStats(self, vcf_file):
+        vcf_file = vcf.Reader(filename=vcf_file)
+        total = 0
+        exonic = 0
+        intronic = 0
+        verfied = 0
+        syn = 0
+        nsyn = 0
+        trans = 0
+        tranv = 0
+        trasition = ['AG', 'GA', 'CT', 'TC']
+        transversion = ['AC', 'AT', 'CA', 'CG', 'GC', 'GT', 'TA', 'TG']
+        for variant in vcf_file:
+            total += 1
+            if variant.INFO['ExonNumber'][0] == 'Intron':
+                intronic += 1
+            else:
+                exonic += 1
+                if variant.INFO['Found'][0] == '2':
+                    verfied += 1
+                if variant.INFO['RefAA'] == variant.INFO['AltAA']:
+                    syn += 1
+                else:
+                    nsyn += 1
+                if '{0}{1}'.format(variant.REF, str(variant.ALT[0])) in trasition:
+                    trans += 1
+                else:
+                    tranv += 1
+        return(total, verfied, exonic, intronic, syn, nsyn, trans, tranv)
 
     def createTable(self):
         voi = pd.read_excel(self.voi, sheetname=1, parse_cols="B:C")
@@ -84,10 +114,9 @@ class Summary:
 
     def getVarOfInt(self, vcf_path):
         sample_dirs = glob.glob('{0}/*'.format(self.out_path))
-        print(sample_dirs)
         codons_of_int = self.createTable()
+        codon_annot = pd.DataFrame()
         for samples in sample_dirs:
-            print(samples)
             sample_folder = os.path.basename(samples)
             sample_bam = '{0}/output_sorted_RG.bam'.format(samples)
             if not os.path.isdir(samples):
@@ -95,20 +124,26 @@ class Summary:
             sample_vcf = vcf.Reader(filename='{0}/{1}_variants_merged_annotated.vcf'.format(samples, sample_folder))
             sample_name = sample_vcf.samples[0]
             sample_result = []
+            sample_annot = []
             sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): var.INFO['DP'] for var in sample_vcf}
             for val in codons_of_int.iterrows():
                 if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
                     depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
                                                                            val[1]['Ref'],val[1]['Alt'])]+1
                     sample_result.append(depth)
+                    sample_annot.append('{0}->{1}'.format(val[1]['AA'], val[1]['Alt']))
                 else:
                     depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
                                                            val[1]['CodonPos'])+1)
                     sample_result.append(depth)
+                    sample_annot.append('WT')
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
+            annot_series = pd.Series(sample_annot, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
+            codon_annot[sample_name] = sample_series
 
         codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).sum()
+        codon_annot = codon_annot.as_matrix()
         sns.set()
         sns.set_context("notebook")
         plt.figure(figsize=(24,30))

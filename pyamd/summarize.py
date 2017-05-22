@@ -112,6 +112,17 @@ class Summary:
             avg_codon_coverage = bamfile.count(chrom, pos-3, pos)
         return(avg_codon_coverage)
 
+    def plotHeatMap(self, codon_of_int):
+        sns.set()
+        sns.set_context('notebook')
+        plt.figure(figsize=(24,30))
+        cmap = sns.diverging_palette(0,359,sep=90, as_cmap=True)
+        heatmap = sns.heatmap(codon_of_int, annot=True, fmt='d', linewidths=0.5, cmap=cmap)
+        fig = heatmap.get_figure()
+        fig.savefig('{0}/heatmap.png'.format(self.out_path))
+        return
+
+
     def getVarOfInt(self, vcf_path):
         sample_dirs = glob.glob('{0}/*'.format(self.out_path))
         codons_of_int = self.createTable()
@@ -125,33 +136,35 @@ class Summary:
             sample_name = sample_vcf.samples[0]
             sample_result = []
             sample_annot = []
-            sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): var.INFO['DP'] for var in sample_vcf}
+            sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): float(var.INFO['AlFreq'][0]) for var in sample_vcf}
             for val in codons_of_int.iterrows():
                 if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
                     depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
-                                                                           val[1]['Ref'],val[1]['Alt'])]+1
+
+                                                                           val[1]['Ref'],val[1]['Alt'])]
+
                     sample_result.append(depth)
-                    sample_annot.append('{0}->{1}'.format(val[1]['AA'], val[1]['Alt']))
-                else:
-                    depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
-                                                           val[1]['CodonPos'])+1)
-                    sample_result.append(depth)
-                    sample_annot.append('WT')
+                    #sample_annot.append('{0}->{1}'.format(val[1]['AA'], val[1]['Alt']))
+                #else:
+                    #depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
+
+                     #                                      val[1]['CodonPos'])+1)
+
+                    #sample_result.append(depth)
+                    #sample_annot.append('WT')
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
             annot_series = pd.Series(sample_annot, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
+
             codon_annot[sample_name] = sample_series
 
-        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).sum()
-        codon_annot = codon_annot.as_matrix()
-        sns.set()
-        sns.set_context("notebook")
-        plt.figure(figsize=(24,30))
-        cmap = sns.color_palette("RdBu", n_colors=7)
-        heatmap = sns.heatmap(codons_of_int, linewidths=.5,  square=False)
-        fig = heatmap.get_figure()
-        fig.savefig('{0}/heatmap.png'.format(self.out_path))
 
+        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).max()
+
+        codon_annot = codon_annot.as_matrix()
+        self.plotHeatMap(codons_of_int)
+        return
+ 
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import vcf
 import glob
@@ -117,7 +118,7 @@ class Summary:
         sns.set_context('notebook')
         plt.figure(figsize=(24,30))
         cmap = sns.diverging_palette(0,359,sep=90, as_cmap=True)
-        heatmap = sns.heatmap(codon_of_int, annot=True, fmt='d', linewidths=0.5, cmap=cmap)
+        heatmap = sns.heatmap(codon_of_int, linewidths=0.5, cmap="Blues") #sns.cubehelix_palette(8, start=.5, rot=-.75, as_cmap=True))
         fig = heatmap.get_figure()
         fig.savefig('{0}/heatmap.png'.format(self.out_path))
         return
@@ -126,7 +127,7 @@ class Summary:
     def getVarOfInt(self, vcf_path):
         sample_dirs = glob.glob('{0}/*'.format(self.out_path))
         codons_of_int = self.createTable()
-        codon_annot = pd.DataFrame()
+        codons_of_int.to_excel('{0}/Codons_of_interest.xlsx'.format(self.out_path))
         for samples in sample_dirs:
             sample_folder = os.path.basename(samples)
             sample_bam = '{0}/output_sorted_RG.bam'.format(samples)
@@ -136,36 +137,121 @@ class Summary:
             sample_name = sample_vcf.samples[0]
             sample_result = []
             sample_annot = []
-            sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): float(var.INFO['AlFreq'][0]) for var in sample_vcf}
+            sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): float(var.INFO['AlFreq'][0]) * 100.0 for var in sample_vcf}
             for val in codons_of_int.iterrows():
                 if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
                     depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
 
                                                                            val[1]['Ref'],val[1]['Alt'])]
+                else:
+                    depth = 0.0 
 
-                    sample_result.append(depth)
-                    #sample_annot.append('{0}->{1}'.format(val[1]['AA'], val[1]['Alt']))
-                #else:
-                    #depth = -1 * (self.getBamStat(sample_bam, val[0][0], val[1]['NucPos'],
-
-                     #                                      val[1]['CodonPos'])+1)
-
-                    #sample_result.append(depth)
-                    #sample_annot.append('WT')
+                sample_result.append(depth)
+                            
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
-            annot_series = pd.Series(sample_annot, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
 
-            codon_annot[sample_name] = sample_series
-
-
+        codons_of_int.to_excel('{0}/Codons_of_interest.xlsx'.format(self.out_path))
         codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).max()
-
-        codon_annot = codon_annot.as_matrix()
+        codons_of_int['label'] = pd.Series([var[0] + ':' + str(var[1]) for var in codons_of_int.index.tolist()], index=codons_of_int.index)
+        codons_of_int.set_index('label', inplace=True)
+        #del codons_of_int['Gene']
+        codons_of_int.to_excel('{0}/al_freq_table.xlsx'.format(self.out_path))
         self.plotHeatMap(codons_of_int)
         return
- 
 
+    def getAfHeatmap(self, vcf_path):
+        voi_table = pd.read_excel(self.voi, sheetname=1)
+        experiment_df = pd.DataFrame()
+        for vcf_files in glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path)):
+            vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [], 'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
+            vcf_index = list()
+            vcf_file = vcf.Reader(filename=vcf_files)
+            barcode = re.compile('_[ATGC]*-[ATGC]*')
+            sample = barcode.split(vcf_file.samples[0])[0]
+            for variant in vcf_file:
+                vcf_dict['Gene'].append(variant.CHROM)
+                vcf_dict['Pos'].append(variant.POS)
+                vcf_dict['Qual'].append(variant.QUAL)
+                vcf_dict['Ref'].append(variant.REF)
+                vcf_dict['Alt'].append(str(variant.ALT[0]))
+                vcf_dict['Exon'].append(variant.INFO['ExonNumber'][0])
+                vcf_dict['CodonPos'].append(np.nan if variant.INFO['CodonPos'][0] == 'NA' else int(variant.INFO['CodonPos'][0]))
+                vcf_dict['RefCodon'].append(np.nan if variant.INFO['RefCodon'][0] == 'NA' else variant.INFO['RefCodon'][0])
+                vcf_dict['AltCodon'].append(np.nan if variant.INFO['AltCodon'][0] == 'NA' else variant.INFO['AltCodon'][0])
+                vcf_dict['RefAA'].append(np.nan if variant.INFO['RefAA'][0] == 'NA' else variant.INFO['RefAA'][0])
+                vcf_dict['AltAA'].append(np.nan if variant.INFO['AltAA'][0] == 'NA' else variant.INFO['AltAA'][0])
+                vcf_dict['DP'].append(variant.INFO['DP'])
+                vcf_dict['AF'].append(float(variant.INFO['AlFreq'][0]) * 100)
+                vcf_dict['Conf'].append(int(variant.INFO['Found'][0]))
+                vcf_index.append(sample)
+            vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
+            vcf_exon = vcf_df[vcf_df['Exon'] != 'Intron']
+            vcf_exon['SNP'] = vcf_exon['RefAA'] + vcf_exon['CodonPos'].map(int).map(str) + vcf_exon['AltAA']
+            voi_exon = vcf_exon.merge(voi_table, on=['Gene', 'SNP'], how='right')
+            sample = [vcf_index[0]] *  len(voi_exon)
+            voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
+            voi_exon.set_index('Sample', inplace=True)
+            experiment_df = experiment_df.append(voi_exon)
+        experiment_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
+        experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP'] 
+        experiment_af = experiment_df.pivot(experiment_df.index, 'SNP')['AF'].transpose()
+        af_mask = experiment_af.isnull()
+        sns.set()
+        sns.set_style('whitegrid')
+        fig, ax = plt.subplots()
+        fig.set_size_inches(24, 24)
+        cbar_ax = fig.add_axes([.92, .3, .02, .4])
+        heatmap_af = sns.heatmap(experiment_af, linewidths=0.5, vmin=0.0, cmap="Blues", ax=ax, cbar_ax=cbar_ax, mask=af_mask, square=True)
+        fig_af = heatmap_af.get_figure()
+        fig_af.savefig('{0}/alfreq_heatmap.png'.format(self.out_path))
+        experiment_count = experiment_af.count(axis=1, numeric_only=True).to_frame('Count')
+        experiment_count['Var'] = experiment_count.index
+        experiment_count['Gene'], experiment_count['SNP'] = experiment_count['Var'].str.split(':',1).str
+        del experiment_count['Var']
+        sns.set(font_scale=2)
+        plt.figure(figsize=(20, 20))
+        stripplot = sns.stripplot(y=experiment_af.index, x=experiment_af.count(axis=1, numeric_only=True), size=15, color='black')
+        plots = stripplot.get_figure()
+        plots.savefig('{0}/frequency.png'.format(self.out_path))
+		#Plot depth heatmap
+        bed_file = pd.read_table(self.bed, header=None, sep='\t', names=['Gene','Start','Stop','Exon','Info','Strand'] )
+        bed_file.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
+        cdna_dict = dict()
+        for index, row in bed_file.iterrows():
+            for base in range(row['Start'], row['Stop']):
+                try:
+                    cdna_dict[row['Gene']].append(base)
+                except KeyError:
+                    cdna_dict[row['Gene']] = [base]
+
+        for key, values in cdna_dict.items():
+            values = [values[i:i+3] for i in range(0, len(values),3)]
+            cdna_dict[key] = values
+        pfs = {'CRT' : 'PfCRT', 'MDR1' : 'PfMDR1'}
+        experiment_df['VOIPos'] = experiment_df['SNP'].str.extract('(\d+)').astype(int)
+        for index, row in experiment_df.iterrows():
+            filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
+            sample_bam = pysam.AlignmentFile(filename, 'rb')
+            if pd.isnull(row['DP']):
+                try:
+                    avg_codon_coverage = sample_bam.count(pfs[row['Gene']], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+                except KeyError:
+                    avg_codon_coverage = sample_bam.count(row['Gene'], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+                experiment_df['DP'].loc[index] = avg_codon_coverage
+        experiment_dp = experiment_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
+        #experiment_dp = np.log(experiment_dp + 1)
+        dp_mask = experiment_dp.isnull()
+        sns.set()
+        sns.set_style('whitegrid')
+        #sns.set_context('notebook')
+        fig, ax = plt.subplots()
+        fig.set_size_inches(24, 24)
+        cbar_ax = fig.add_axes([.92, .3, .02, .4])
+        heatmap_dp = sns.heatmap(experiment_dp, linewidths=0.5, vmin=0.0, cmap="Blues", ax=ax, cbar_ax=cbar_ax, mask=dp_mask, square=True)
+        fig_dp = heatmap_dp.get_figure()
+        fig_dp.savefig('{0}/depth_heatmap.png'.format(self.out_path))
+        return
 
 if __name__ == '__main__':
     fasta_path = sys.argv[1]

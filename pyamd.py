@@ -210,7 +210,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                             var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    summary.getVarOfInt(out_dir)
+    summary.getAfHeatmap(out_dir)
     return(0)
 
 if __name__ == '__main__':

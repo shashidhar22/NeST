@@ -69,8 +69,8 @@ class BBMap:
                 'out={0}'.format(sam_path)]
         bbrun = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bbrun.wait()
-        if bwrun.returncode != 0:
-            self.logger.error('BBMap failed running the following command : {0}'.format(' '.join(bwcmd)))
+        if bbrun.returncode != 0:
+            self.logger.error('BBMap failed running the following command : {0}'.format(' '.join(bbcmd)))
 
         return(sam_path, bbrun.returncode)
 

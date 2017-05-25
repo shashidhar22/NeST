@@ -217,6 +217,7 @@ if __name__ == '__main__':
     #Define deffault paths and aligner informations
     def_path = "{0}/lib".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
     bbduk_def = "{0}/bbmap/bbduk.sh".format(def_path)
+    bbmap_def = "{0}/bbmap/bbmap.sh".format(def_path)
     bwa_def = "{0}/bwa-0.7.12/bwa".format(def_path)
     bowtie_def = "{0}/bowtie2-2.3.0/bowtie2".format(def_path)
     snap_def = "{0}/snap/snap-aligner".format(def_path)
@@ -224,7 +225,7 @@ if __name__ == '__main__':
     bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
     gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = "{0}/picard.jar".format(def_path)
-    aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def}
+    aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
     parser.add_argument('-i', '--inp_path', type=str,

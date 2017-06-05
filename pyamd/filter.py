@@ -28,9 +28,6 @@ def filterer(gatk, samtools, sam_name, out_path):
                 gatk.add_info('Found', 1)
                 merged.write_record(gatk)
                 continue
-        except StopIteration:
-            out_vcf = None
-            break
 
     return(out_vcf)
 

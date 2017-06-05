@@ -25,7 +25,9 @@ class Summary:
         self.voi = voi
         self.out_path = out_path
 
-    def getVarStats(self, vcf_file):
+    def getVarStats(self, vcf_file, ret):
+        if ret == 1:
+            return(0, 0, 0, 0, 0, 0, 0, 0)
         vcf_file = vcf.Reader(filename=vcf_file)
         total = 0
         exonic = 0
@@ -146,10 +148,10 @@ class Summary:
 
                                                                            val[1]['Ref'],val[1]['Alt'])]
                 else:
-                    depth = 0.0 
+                    depth = 0.0
 
                 sample_result.append(depth)
-                            
+
             sample_series = pd.Series(sample_result, index=codons_of_int.index)
             codons_of_int[sample_name] = sample_series
 
@@ -195,8 +197,9 @@ class Summary:
             voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
             voi_exon.set_index('Sample', inplace=True)
             experiment_df = experiment_df.append(voi_exon)
+        experiment_df.to_excel('{0}/experiment_df.xlsx'.format(self.out_path))
         experiment_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
-        experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP'] 
+        experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP']
         experiment_af = experiment_df.pivot(experiment_df.index, 'SNP')['AF'].transpose()
         af_mask = experiment_af.isnull()
         sns.set()

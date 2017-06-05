@@ -16,7 +16,7 @@ def filterer(gatk, samtools, sam_name, out_path):
                 continue
             elif (len(gatk.REF) == 2 and len(gatk.ALT) == 2) or (len(samt.REF) == 2 and len(samt.ALT) == 2):
                 continue
-            
+
             if (gatk.REF and samt.REF) and (gatk.alleles and samt.alleles):
                 samt.add_info('Found', 2)
                 merged.write_record(samt)
@@ -25,10 +25,13 @@ def filterer(gatk, samtools, sam_name, out_path):
                 samt.add_info('Found', 1)
                 merged.write_record(samt)
             elif samt == None:
-                gatk.add_info('Found', 1)                
+                gatk.add_info('Found', 1)
                 merged.write_record(gatk)
                 continue
-            
+        except StopIteration:
+            out_vcf = None
+            break
+
     return(out_vcf)
 
 if __name__ == '__main__':
@@ -37,4 +40,3 @@ if __name__ == '__main__':
     kest = sys.argv[3]
 
     filter(gatk, samt, kest)
-

@@ -161,9 +161,12 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     else:
         logger.debug('GATK HaplotypeCaller stats completed')
 
-    #Filer  and annotate variant calls
+    #Filter  and annotate variant calls
     logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
     merged_vcf = filterer(gvcf_path, vcf_path, sam_name, out_path)
+    if merged_vcf == None:
+        logger.debug('No variants found in sample : {0}'.format(sam_name))
+        return(merged_vcf, 1)
     logger.debug('Annotating variants')
     annotate = Annotate(out_path)
     merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged')
@@ -205,7 +208,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         vcf, ret = main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
              rone_path, rtwo_path, ref_path, adp_path, bed_path,
              out_path, aligner, kes_path, kan_path, pic_path, sample_name)
-        var_sum = summary.getVarStats(vcf)
+        var_sum = summary.getVarStats(vcf, ret)
         mars_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
                             var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))

@@ -25,9 +25,7 @@ class Summary:
         self.voi = voi
         self.out_path = out_path
 
-    def getVarStats(self, vcf_file, ret):
-        if ret == 1:
-            return(0, 0, 0, 0, 0, 0, 0, 0)
+    def getVarStats(self, vcf_file):
         vcf_file = vcf.Reader(filename=vcf_file)
         total = 0
         exonic = 0

@@ -115,58 +115,14 @@ class Summary:
             avg_codon_coverage = bamfile.count(chrom, pos-3, pos)
         return(avg_codon_coverage)
 
-    def plotHeatMap(self, codon_of_int):
-        sns.set()
-        sns.set_context('notebook')
-        plt.figure(figsize=(24,30))
-        cmap = sns.diverging_palette(0,359,sep=90, as_cmap=True)
-        heatmap = sns.heatmap(codon_of_int, linewidths=0.5, cmap="Blues") #sns.cubehelix_palette(8, start=.5, rot=-.75, as_cmap=True))
-        fig = heatmap.get_figure()
-        fig.savefig('{0}/heatmap.png'.format(self.out_path))
-        return
 
-
-    def getVarOfInt(self, vcf_path):
-        sample_dirs = glob.glob('{0}/*'.format(self.out_path))
-        codons_of_int = self.createTable()
-        codons_of_int.to_excel('{0}/Codons_of_interest.xlsx'.format(self.out_path))
-        for samples in sample_dirs:
-            sample_folder = os.path.basename(samples)
-            sample_bam = '{0}/output_sorted_RG.bam'.format(samples)
-            if not os.path.isdir(samples):
-                continue
-            sample_vcf = vcf.Reader(filename='{0}/{1}_variants_merged_annotated.vcf'.format(samples, sample_folder))
-            sample_name = sample_vcf.samples[0]
-            sample_result = []
-            sample_annot = []
-            sample_vars = {'{0}_{1}_{2}_{3}'.format(var.CHROM, var.POS, var.INFO['RefAA'][0], var.INFO['AltAA'][0]): float(var.INFO['AlFreq'][0]) * 100.0 for var in sample_vcf}
-            for val in codons_of_int.iterrows():
-                if '{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'], val[1]['Ref'],val[1]['Alt']) in sample_vars.keys():
-                    depth = sample_vars['{0}_{1}_{2}_{3}'.format(val[0][0], val[1]['NucPos'],
-
-                                                                           val[1]['Ref'],val[1]['Alt'])]
-                else:
-                    depth = 0.0
-
-                sample_result.append(depth)
-
-            sample_series = pd.Series(sample_result, index=codons_of_int.index)
-            codons_of_int[sample_name] = sample_series
-
-        codons_of_int.to_excel('{0}/Codons_of_interest.xlsx'.format(self.out_path))
-        codons_of_int = codons_of_int.iloc[:,9:].groupby(codons_of_int.index).max()
-        codons_of_int['label'] = pd.Series([var[0] + ':' + str(var[1]) for var in codons_of_int.index.tolist()], index=codons_of_int.index)
-        codons_of_int.set_index('label', inplace=True)
-        #del codons_of_int['Gene']
-        codons_of_int.to_excel('{0}/al_freq_table.xlsx'.format(self.out_path))
-        self.plotHeatMap(codons_of_int)
-        return
-
-    def getAfHeatmap(self, vcf_path):
+    def vcfToTable(self, vcf_path):
         voi_table = pd.read_excel(self.voi, sheetname=1)
         experiment_df = pd.DataFrame()
+        experiment_nov_df = pd.DataFrame()
         for vcf_files in glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path)):
-            vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [], 'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
+            vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [],
+                        'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
             vcf_index = list()
             vcf_file = vcf.Reader(filename=vcf_files)
             barcode = re.compile('_[ATGC]*-[ATGC]*')
@@ -191,33 +147,31 @@ class Summary:
             vcf_exon = vcf_df[vcf_df['Exon'] != 'Intron']
             vcf_exon['SNP'] = vcf_exon['RefAA'] + vcf_exon['CodonPos'].map(int).map(str) + vcf_exon['AltAA']
             voi_exon = vcf_exon.merge(voi_table, on=['Gene', 'SNP'], how='right')
+            nov_exon = vcf_exon[(vcf_exon['SNP'] != voi_table['SNP']) & (vcf_exon['Gene'] == voi_table['Gene'])]
             sample = [vcf_index[0]] *  len(voi_exon)
             voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
             voi_exon.set_index('Sample', inplace=True)
             experiment_df = experiment_df.append(voi_exon)
-        experiment_df.to_excel('{0}/experiment_df.xlsx'.format(self.out_path))
+            experiment_nov_df experiment_nov_df.append(nov_exon)
+        return(experiment_df, experiment_nov_df)
+
+    def getVarTable(self, vcf_path):
+        #Iterate through all vcf files and generate table for variants of interest and novel variants
+        experiment_df, experiment_nov_df = self.vcfToTable(vcf_path)
         experiment_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
+        experiment_nov_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
         experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP']
+        experiment_nov_df['SNP'] = experiment_nov_df['Gene'] + ':' + experiment_nov_df['SNP']
+        #Create allele frequency table for all samples
         experiment_af = experiment_df.pivot(experiment_df.index, 'SNP')['AF'].transpose()
-        af_mask = experiment_af.isnull()
-        sns.set()
-        sns.set_style('whitegrid')
-        fig, ax = plt.subplots()
-        fig.set_size_inches(24, 24)
-        cbar_ax = fig.add_axes([.92, .3, .02, .4])
-        heatmap_af = sns.heatmap(experiment_af, linewidths=0.5, vmin=0.0, cmap="Blues", ax=ax, cbar_ax=cbar_ax, mask=af_mask, square=True)
-        fig_af = heatmap_af.get_figure()
-        fig_af.savefig('{0}/alfreq_heatmap.png'.format(self.out_path))
+        experiment_nov_af = experiment_nov_df.pivot(experiment_nov_df.index, 'SNP')['AF'].transpose()
+        #Create count table containing number of samples containing a particular SNP
         experiment_count = experiment_af.count(axis=1, numeric_only=True).to_frame('Count')
+        experiment_nov_count = experiment_nov_af.count(axis=1, numeric_only=True).to_frame('Count')
         experiment_count['Var'] = experiment_count.index
         experiment_count['Gene'], experiment_count['SNP'] = experiment_count['Var'].str.split(':',1).str
         del experiment_count['Var']
-        sns.set(font_scale=2)
-        plt.figure(figsize=(20, 20))
-        stripplot = sns.stripplot(y=experiment_af.index, x=experiment_af.count(axis=1, numeric_only=True), size=15, color='black')
-        plots = stripplot.get_figure()
-        plots.savefig('{0}/frequency.png'.format(self.out_path))
-		#Plot depth heatmap
+        #Create depth of coverage table for all samples
         bed_file = pd.read_table(self.bed, header=None, sep='\t', names=['Gene','Start','Stop','Exon','Info','Strand'] )
         bed_file.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
         cdna_dict = dict()
@@ -233,6 +187,8 @@ class Summary:
             cdna_dict[key] = values
         pfs = {'CRT' : 'PfCRT', 'MDR1' : 'PfMDR1'}
         experiment_df['VOIPos'] = experiment_df['SNP'].str.extract('(\d+)').astype(int)
+        experiment_nov_df['VOIPos'] = experiment_nov_df['SNP'].str.extract('(\d+)').astype(int)
+        #Get codon depth for vairiants of interest
         for index, row in experiment_df.iterrows():
             filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
             sample_bam = pysam.AlignmentFile(filename, 'rb')
@@ -243,18 +199,57 @@ class Summary:
                     avg_codon_coverage = sample_bam.count(row['Gene'], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
                 experiment_df['DP'].loc[index] = avg_codon_coverage
         experiment_dp = experiment_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
-        #experiment_dp = np.log(experiment_dp + 1)
-        dp_mask = experiment_dp.isnull()
+        #Get codon depth for novel vairiants
+        for index, row in experiment_nov_df.iterrows():
+            filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
+            sample_bam = pysam.AlignmentFile(filename, 'rb')
+            if pd.isnull(row['DP']):
+                try:
+                    avg_codon_coverage = sample_bam.count(pfs[row['Gene']], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+                except KeyError:
+                    avg_codon_coverage = sample_bam.count(row['Gene'], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+                experiment_nov_df['DP'].loc[index] = avg_codon_coverage
+        experiment_nov_dp = experiment_nov_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
+        return(experiment_df, experiment_af, experiment_count, experiment_dp, experiment_nov_df, experiment_nov_af, experiment_nov_count, experiment_nov_dp)
+
+    def plotHeatMap(self, data_frame, title, mask):
+        dp_mask = mask
         sns.set()
         sns.set_style('whitegrid')
-        #sns.set_context('notebook')
         fig, ax = plt.subplots()
         fig.set_size_inches(24, 24)
         cbar_ax = fig.add_axes([.92, .3, .02, .4])
-        heatmap_dp = sns.heatmap(experiment_dp, linewidths=0.5, vmin=0.0, cmap="Blues", ax=ax, cbar_ax=cbar_ax, mask=dp_mask, square=True)
+        heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0, cmap="Blues", ax=ax, cbar_ax=cbar_ax, mask=dp_mask, square=True)
         fig_dp = heatmap_dp.get_figure()
-        fig_dp.savefig('{0}/depth_heatmap.png'.format(self.out_path))
+        fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return
+
+    def plotCountPlot(self, data_frame, title, mask):
+        sns.set(font_scale=2)
+        plt.figure(figsize=(20, 20))
+        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=True), size=15, color='black')
+        plots = stripplot.get_figure()
+        plots.savefig('{0}/{1}_frequency.png'.format(self.out_path))
+
+
+    def getSummary(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
+        #Create masks for heatmap
+        dp_voi_mask = voi_dp.isnull()
+        af_voi_mask = voi_af.isnull()
+        dp_nov_mask = nov_dp.isnull()
+        af_nov_mask = nov_af.isnull()
+        #Plot depth heatmap for variants of interest
+        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask)
+        #Plot depth heatmap for novel variants
+        self.plotHeatMap(nov_dp, 'nov_depth', dp_nov_mask)
+        #Plot allele frequency heatmap for variants of interest
+        self.plotHeatMap(voi_dp, 'nov_alfreq', af_voi_mask)
+        #plot allele frequency heatmap for novel variants
+        self.plotHeatMap(nov_dp, 'nov_alfreq', af_voi_mask)
+        #Plot frequency plots
+        self.plotCountPlot(voi_af, 'voi')
+        self.plotCountPlot(nov_af, 'nov')
+		return
 
 if __name__ == '__main__':
     fasta_path = sys.argv[1]

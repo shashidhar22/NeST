@@ -152,7 +152,7 @@ class Summary:
             voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
             voi_exon.set_index('Sample', inplace=True)
             experiment_df = experiment_df.append(voi_exon)
-            experiment_nov_df experiment_nov_df.append(nov_exon)
+            experiment_nov_df = experiment_nov_df.append(nov_exon)
         return(experiment_df, experiment_nov_df)
 
     def getVarTable(self, vcf_path):
@@ -249,7 +249,7 @@ class Summary:
         #Plot frequency plots
         self.plotCountPlot(voi_af, 'voi')
         self.plotCountPlot(nov_af, 'nov')
-		return
+        return
 
 if __name__ == '__main__':
     fasta_path = sys.argv[1]

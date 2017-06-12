@@ -146,28 +146,31 @@ class Summary:
             vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
             vcf_exon = vcf_df[vcf_df['Exon'] != 'Intron']
             vcf_exon['SNP'] = vcf_exon['RefAA'] + vcf_exon['CodonPos'].map(int).map(str) + vcf_exon['AltAA']
+            vcf_exon.to_excel('{0}/vcf_exon_table.xlsx'.format(self.out_path))
+            voi_table.to_excel('{0}/voi_var_table.xlsx'.format(self.out_path))
+            #nov_exon = vcf_exon[(vcf_exon['SNP'] != voi_table['SNP']) & (vcf_exon['Gene'] == voi_table['Gene'])]
             voi_exon = vcf_exon.merge(voi_table, on=['Gene', 'SNP'], how='right')
-            nov_exon = vcf_exon[(vcf_exon['SNP'] != voi_table['SNP']) & (vcf_exon['Gene'] == voi_table['Gene'])]
+            #nov_exon = vcf_exon[(vcf_exon['SNP'] != voi_table['SNP']) & (vcf_exon['Gene'] == voi_table['Gene'])]
             sample = [vcf_index[0]] *  len(voi_exon)
             voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
             voi_exon.set_index('Sample', inplace=True)
             experiment_df = experiment_df.append(voi_exon)
-            experiment_nov_df = experiment_nov_df.append(nov_exon)
-        return(experiment_df, experiment_nov_df)
+            #experiment_nov_df = experiment_nov_df.append(nov_exon)
+        return(experiment_df)
 
     def getVarTable(self, vcf_path):
         #Iterate through all vcf files and generate table for variants of interest and novel variants
-        experiment_df, experiment_nov_df = self.vcfToTable(vcf_path)
+        experiment_df = self.vcfToTable(vcf_path)
         experiment_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
-        experiment_nov_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
+        #experiment_nov_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
         experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP']
-        experiment_nov_df['SNP'] = experiment_nov_df['Gene'] + ':' + experiment_nov_df['SNP']
+        #experiment_nov_df['SNP'] = experiment_nov_df['Gene'] + ':' + experiment_nov_df['SNP']
         #Create allele frequency table for all samples
         experiment_af = experiment_df.pivot(experiment_df.index, 'SNP')['AF'].transpose()
-        experiment_nov_af = experiment_nov_df.pivot(experiment_nov_df.index, 'SNP')['AF'].transpose()
+        #experiment_nov_af = experiment_nov_df.pivot(experiment_nov_df.index, 'SNP')['AF'].transpose()
         #Create count table containing number of samples containing a particular SNP
         experiment_count = experiment_af.count(axis=1, numeric_only=True).to_frame('Count')
-        experiment_nov_count = experiment_nov_af.count(axis=1, numeric_only=True).to_frame('Count')
+        #experiment_nov_count = experiment_nov_af.count(axis=1, numeric_only=True).to_frame('Count')
         experiment_count['Var'] = experiment_count.index
         experiment_count['Gene'], experiment_count['SNP'] = experiment_count['Var'].str.split(':',1).str
         del experiment_count['Var']
@@ -187,7 +190,7 @@ class Summary:
             cdna_dict[key] = values
         pfs = {'CRT' : 'PfCRT', 'MDR1' : 'PfMDR1'}
         experiment_df['VOIPos'] = experiment_df['SNP'].str.extract('(\d+)').astype(int)
-        experiment_nov_df['VOIPos'] = experiment_nov_df['SNP'].str.extract('(\d+)').astype(int)
+        #experiment_nov_df['VOIPos'] = experiment_nov_df['SNP'].str.extract('(\d+)').astype(int)
         #Get codon depth for vairiants of interest
         for index, row in experiment_df.iterrows():
             filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
@@ -200,17 +203,17 @@ class Summary:
                 experiment_df['DP'].loc[index] = avg_codon_coverage
         experiment_dp = experiment_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
         #Get codon depth for novel vairiants
-        for index, row in experiment_nov_df.iterrows():
-            filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
-            sample_bam = pysam.AlignmentFile(filename, 'rb')
-            if pd.isnull(row['DP']):
-                try:
-                    avg_codon_coverage = sample_bam.count(pfs[row['Gene']], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
-                except KeyError:
-                    avg_codon_coverage = sample_bam.count(row['Gene'], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
-                experiment_nov_df['DP'].loc[index] = avg_codon_coverage
-        experiment_nov_dp = experiment_nov_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
-        return(experiment_df, experiment_af, experiment_count, experiment_dp, experiment_nov_df, experiment_nov_af, experiment_nov_count, experiment_nov_dp)
+        #for index, row in experiment_nov_df.iterrows():
+        #    filename = glob.glob('{0}/{1}_*/output_sorted_RG.bam'.format(self.out_path, index))[0]
+        #    sample_bam = pysam.AlignmentFile(filename, 'rb')
+        #    if pd.isnull(row['DP']):
+        #        try:
+        #            avg_codon_coverage = sample_bam.count(pfs[row['Gene']], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+        #        except KeyError:
+        #            avg_codon_coverage = sample_bam.count(row['Gene'], min(cdna_dict[row['Gene']][row['VOIPos']]), max(cdna_dict[row['Gene']][row['VOIPos']]))
+        #        experiment_nov_df['DP'].loc[index] = avg_codon_coverage
+        #experiment_nov_dp = experiment_nov_df.pivot(experiment_df.index, 'SNP')['DP'].transpose()
+        return(experiment_df, experiment_af, experiment_count, experiment_dp)
 
     def plotHeatMap(self, data_frame, title, mask):
         dp_mask = mask
@@ -224,31 +227,31 @@ class Summary:
         fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return
 
-    def plotCountPlot(self, data_frame, title, mask):
+    def plotCountPlot(self, data_frame, title):
         sns.set(font_scale=2)
         plt.figure(figsize=(20, 20))
         stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=True), size=15, color='black')
         plots = stripplot.get_figure()
-        plots.savefig('{0}/{1}_frequency.png'.format(self.out_path))
+        plots.savefig('{0}/{1}_frequency.png'.format(self.out_path, title))
 
 
-    def getSummary(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
+    def getSummary(self, voi_df, voi_af, voi_count, voi_dp):
         #Create masks for heatmap
         dp_voi_mask = voi_dp.isnull()
         af_voi_mask = voi_af.isnull()
-        dp_nov_mask = nov_dp.isnull()
-        af_nov_mask = nov_af.isnull()
+        #dp_nov_mask = nov_dp.isnull()
+        #af_nov_mask = nov_af.isnull()
         #Plot depth heatmap for variants of interest
         self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask)
         #Plot depth heatmap for novel variants
-        self.plotHeatMap(nov_dp, 'nov_depth', dp_nov_mask)
+        #self.plotHeatMap(nov_dp, 'nov_depth', dp_nov_mask)
         #Plot allele frequency heatmap for variants of interest
-        self.plotHeatMap(voi_dp, 'nov_alfreq', af_voi_mask)
+        self.plotHeatMap(voi_dp, 'voi_alfreq', af_voi_mask)
         #plot allele frequency heatmap for novel variants
-        self.plotHeatMap(nov_dp, 'nov_alfreq', af_voi_mask)
+        #self.plotHeatMap(nov_dp, 'nov_alfreq', af_voi_mask)
         #Plot frequency plots
         self.plotCountPlot(voi_af, 'voi')
-        self.plotCountPlot(nov_af, 'nov')
+        #self.plotCountPlot(nov_af, 'nov')
         return
 
 if __name__ == '__main__':

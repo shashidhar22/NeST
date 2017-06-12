@@ -210,8 +210,8 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                             var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp = summary.getVarTable(out_dir)
-    summary.getSummary(voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp)
+    voi_df, voi_af, voi_count, voi_dp = summary.getVarTable(out_dir)
+    summary.getSummary(voi_df, voi_af, voi_count, voi_dp)
     return(0)
 
 if __name__ == '__main__':

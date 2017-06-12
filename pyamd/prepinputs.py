@@ -5,6 +5,7 @@ import glob
 import logging
 from collections import namedtuple
 from pyamd.readers import Fastq
+from itertools import groupby
 
 class Identifier:
 
@@ -116,7 +117,7 @@ class Prepper:
             isPac = identifier.isPacbio()
             seqType = ''
             libType = ''
-            sample_regex = re.compile('_r1|_r2|r1|r2|_l001|_l002|l001|l002|l003|l004|_R1|_R2|R1|R2|_L001|_L002|L001|L002|L003|L004')
+            sample_regex = re.compile('_r1|_r2|r1|r2|_?l001|_?l002|l001|l002|l003|l004|_R1|_R2|R1|R2|_?L001|_?L002|_?L003|_?L004') #|L001|L002|L003|L004')
             sample = sample_regex.split(os.path.basename(fastq))[0]
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
@@ -159,8 +160,8 @@ class Prepper:
             try:
                 paired = True
                 numreads = self.getReadNumbers(experiment[sample].files[0])
-                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0], fastq], libType, paired, numreads)
-            except KeyError:
+                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0],fastq], libType, paired, numreads)
+            except (KeyError, AttributeError):
                 numreads = self.getReadNumbers(fastq)
                 experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired, numreads)
         self.prep_logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
@@ -172,5 +173,15 @@ class Prepper:
 
 if __name__ == '__main__':
     path = os.path.abspath(sys.argv[1])
-    prepper = Fastq(path)
+    prepper = Prepper(path)
     experiment = prepper.prepInputs()
+    rone = list()
+    rtwo = list()
+    for study in experiment:
+        for files in experiment[study].files:
+            if re.findall('.*_R1.*', files):
+                rone.append(files)
+            else: 
+                rtwo.append(files)
+    print(rone)
+    print(rtwo)

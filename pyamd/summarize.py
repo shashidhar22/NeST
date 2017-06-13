@@ -6,8 +6,8 @@ import glob
 import math
 import pandas as pd
 import pysam
-from pyamd.parsers import Fasta
-from pyamd.annotater import Annotate
+from parsers import Fasta
+from annotater import Annotate
 import matplotlib
 matplotlib.use('Agg')
 import numpy as np
@@ -24,6 +24,12 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
+
+    def getVarOfInt(self):
+        voi_table = pd.read_excel(self.voi, sheetname=1, parse_cols="B:C")
+        voi_df = voi_table['SNP'].str.extract('(?P<RefAA>[a-zA-Z]?)(?P<AAPos>[0-9]*)(?P<AltAA>[a-zA-Z]?)', expand=True)
+        voi_df['Gene'] = voi_table['Gene']
+        return(voi_df)
 
     def getVarStats(self, vcf_file):
         vcf_file = vcf.Reader(filename=vcf_file)
@@ -118,46 +124,78 @@ class Summary:
 
     def vcfToTable(self, vcf_path):
         voi_table = pd.read_excel(self.voi, sheetname=1)
+        voi_table['Var'] = voi_table['Gene'] + ':' + voi_table['SNP']
+        voi_list = voi_table['Var'].tolist()
         experiment_df = pd.DataFrame()
         experiment_nov_df = pd.DataFrame()
         for vcf_files in glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path)):
-            vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [],
+            vcf_voi = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [],
                         'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
-            vcf_index = list()
+            vcf_nov = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [],
+                        'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
+            voi_index = list()
+            nov_index = list()
             vcf_file = vcf.Reader(filename=vcf_files)
             barcode = re.compile('_[ATGC]*-[ATGC]*')
             sample = barcode.split(vcf_file.samples[0])[0]
             for variant in vcf_file:
-                vcf_dict['Gene'].append(variant.CHROM)
-                vcf_dict['Pos'].append(variant.POS)
-                vcf_dict['Qual'].append(variant.QUAL)
-                vcf_dict['Ref'].append(variant.REF)
-                vcf_dict['Alt'].append(str(variant.ALT[0]))
-                vcf_dict['Exon'].append(variant.INFO['ExonNumber'][0])
-                vcf_dict['CodonPos'].append(np.nan if variant.INFO['CodonPos'][0] == 'NA' else int(variant.INFO['CodonPos'][0]))
-                vcf_dict['RefCodon'].append(np.nan if variant.INFO['RefCodon'][0] == 'NA' else variant.INFO['RefCodon'][0])
-                vcf_dict['AltCodon'].append(np.nan if variant.INFO['AltCodon'][0] == 'NA' else variant.INFO['AltCodon'][0])
-                vcf_dict['RefAA'].append(np.nan if variant.INFO['RefAA'][0] == 'NA' else variant.INFO['RefAA'][0])
-                vcf_dict['AltAA'].append(np.nan if variant.INFO['AltAA'][0] == 'NA' else variant.INFO['AltAA'][0])
-                vcf_dict['DP'].append(variant.INFO['DP'])
-                vcf_dict['AF'].append(float(variant.INFO['AlFreq'][0]) * 100)
-                vcf_dict['Conf'].append(int(variant.INFO['Found'][0]))
-                vcf_index.append(sample)
-            vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
-            vcf_exon = vcf_df[vcf_df['Exon'] != 'Intron']
-            vcf_exon['SNP'] = vcf_exon['RefAA'] + vcf_exon['CodonPos'].map(int).map(str) + vcf_exon['AltAA']
-            voi_exon = vcf_exon.merge(voi_table, on=['Gene', 'SNP'], how='right')
-            nov_exon = vcf_exon[(vcf_exon['SNP'] != voi_table['SNP']) & (vcf_exon['Gene'] == voi_table['Gene'])]
-            sample = [vcf_index[0]] *  len(voi_exon)
-            voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
-            voi_exon.set_index('Sample', inplace=True)
+                if variant.INFO['ExonNumber'] == 'Intron' or variant.INFO['CodonPos'][0] == 'NA':
+                    continue
+                elif '{0}:{1}{2}{3}'.format(variant.CHROM, variant.INFO['RefAA'][0], variant.INFO['CodonPos'][0], variant.INFO['AltAA'][0]) in voi_list:
+                    vcf_voi['Gene'].append(variant.CHROM)
+                    vcf_voi['Pos'].append(variant.POS)
+                    vcf_voi['Qual'].append(variant.QUAL)
+                    vcf_voi['Ref'].append(variant.REF)
+                    vcf_voi['Alt'].append(str(variant.ALT[0]))
+                    vcf_voi['Exon'].append(variant.INFO['ExonNumber'][0])
+                    vcf_voi['CodonPos'].append(np.nan if variant.INFO['CodonPos'][0] == 'NA' else int(variant.INFO['CodonPos'][0]))
+                    vcf_voi['RefCodon'].append(np.nan if variant.INFO['RefCodon'][0] == 'NA' else variant.INFO['RefCodon'][0])
+                    vcf_voi['AltCodon'].append(np.nan if variant.INFO['AltCodon'][0] == 'NA' else variant.INFO['AltCodon'][0])
+                    vcf_voi['RefAA'].append(np.nan if variant.INFO['RefAA'][0] == 'NA' else variant.INFO['RefAA'][0])
+                    vcf_voi['AltAA'].append(np.nan if variant.INFO['AltAA'][0] == 'NA' else variant.INFO['AltAA'][0])
+                    vcf_voi['DP'].append(variant.INFO['DP'])
+                    vcf_voi['AF'].append(float(variant.INFO['AlFreq'][0]) * 100)
+                    vcf_voi['Conf'].append(int(variant.INFO['Found'][0]))
+                    voi_index.append(sample)
+                elif int(variant.INFO['Found'][0]) == 2:
+                    vcf_nov['Gene'].append(variant.CHROM)
+                    vcf_nov['Pos'].append(variant.POS)
+                    vcf_nov['Qual'].append(variant.QUAL)
+                    vcf_nov['Ref'].append(variant.REF)
+                    vcf_nov['Alt'].append(str(variant.ALT[0]))
+                    vcf_nov['Exon'].append(variant.INFO['ExonNumber'][0])
+                    vcf_nov['CodonPos'].append(np.nan if variant.INFO['CodonPos'][0] == 'NA' else int(variant.INFO['CodonPos'][0]))
+                    vcf_nov['RefCodon'].append(np.nan if variant.INFO['RefCodon'][0] == 'NA' else variant.INFO['RefCodon'][0])
+                    vcf_nov['AltCodon'].append(np.nan if variant.INFO['AltCodon'][0] == 'NA' else variant.INFO['AltCodon'][0])
+                    vcf_nov['RefAA'].append(np.nan if variant.INFO['RefAA'][0] == 'NA' else variant.INFO['RefAA'][0])
+                    vcf_nov['AltAA'].append(np.nan if variant.INFO['AltAA'][0] == 'NA' else variant.INFO['AltAA'][0])
+                    vcf_nov['DP'].append(variant.INFO['DP'])
+                    vcf_nov['AF'].append(float(variant.INFO['AlFreq'][0]) * 100)
+                    vcf_nov['Conf'].append(int(variant.INFO['Found'][0]))
+                    nov_index.append(sample)
+            #vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
+            voi_exon = pd.DataFrame(vcf_voi, index=voi_index)
+            voi_exon['SNP'] = voi_exon['Gene'] + voi_exon['RefAA'] + voi_exon['CodonPos'].map(int).map(str) + voi_exon['AltAA']
             experiment_df = experiment_df.append(voi_exon)
-            experiment_nov_df = experiment_nov_df.append(nov_exon)
+            if len(vcf_nov.keys()) > 0 :
+                nov_exon = pd.DataFrame(vcf_nov, index=nov_index)
+                nov_exon['SNP'] = nov_exon['Gene'] + ':' + nov_exon['RefAA'] + nov_exon['CodonPos'].map(int).map(str) + nov_exon['AltAA']
+                experiment_nov_df = experiment_nov_df.append(nov_exon)
+            #vcf_exon = vcf_df[vcf_df['Exon'] != 'Intron']
+            #voi_exon['SNP'] = voi_exon['Gene'] + voi_exon['RefAA'] + voi_exon['CodonPos'].map(int).map(str) + voi_exon['AltAA']
+
+            #sample = [vcf_index[0]] *  len(voi_exon)
+            #voi_exon['Sample'] = pd.Series(sample, index=voi_exon.index)
+            #voi_exon.set_index('Sample', inplace=True)
+            #experiment_df = experiment_df.append(voi_exon)
+            #experiment_nov_df = experiment_nov_df.append(nov_exon)
         return(experiment_df, experiment_nov_df)
 
     def getVarTable(self, vcf_path):
         #Iterate through all vcf files and generate table for variants of interest and novel variants
         experiment_df, experiment_nov_df = self.vcfToTable(vcf_path)
+        experiment_df.to_excel('experiment_df.xlsx')
+        experiment_nov_df.to_excel('experiment_nov_df.xlsx')
         experiment_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
         experiment_nov_df.replace({'PfCRT':'CRT', 'PfMDR1':'MDR1'}, inplace=True)
         experiment_df['SNP'] = experiment_df['Gene'] + ':' + experiment_df['SNP']
@@ -232,7 +270,7 @@ class Summary:
         plots.savefig('{0}/{1}_frequency.png'.format(self.out_path))
 
 
-    def getSummary(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
+    def getHeatmap(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
         #Create masks for heatmap
         dp_voi_mask = voi_dp.isnull()
         af_voi_mask = voi_af.isnull()
@@ -257,4 +295,4 @@ if __name__ == '__main__':
     voi_path = sys.argv[3]
     out_path = sys.argv[4]
     summarizer = Summary(fasta_path, bed_path, voi_path, out_path)
-    summarizer.getVarOfInt(out_path)
+    summarizer.getVarOfInt()

@@ -5,7 +5,7 @@ import vcf
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
-from pyamd.reader import Reader
+from reader import Reader
 
 
 class Annotate:

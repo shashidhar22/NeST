@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import vcf
+import numpy as np
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter

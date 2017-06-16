@@ -28,7 +28,7 @@ class QualCheck:
         #Set up the command
         bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=0', 'ktrim=l',
                 'mink=4', 'ref={0}'.format(self.adp_path), 'qtrim=rl',
-                'trimq=30', 'minlength=50', 'qin=33', 'overwrite=true',
+                'trimq=30', 'minlength=100', 'qin=33', 'overwrite=true',
                 'in={0}'.format(rone_path), 'in2={0}'.format(rtwo_path),
                 'out={0}'.format(orone_path), 'out2={0}'.format(ortwo_path),
                 'stats={0}'.format(stats_path)]

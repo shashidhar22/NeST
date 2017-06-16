@@ -5,7 +5,7 @@ import vcf
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
-from reader import Reader
+from pyamd.reader import Reader
 
 
 class Annotate:
@@ -164,8 +164,13 @@ class Annotate:
         vcf_ord = self.getBedOrder(bed_path)    #Need to fix this
         if vcf_ord != bed_ord:
             print('Bed or VCF file not in order')
-        bed_rec = next(bed_reader)
-        vcf_rec = next(vcf_reader)
+        try:
+            bed_rec = next(bed_reader)
+            vcf_rec = next(vcf_reader)
+        except StopIteration:
+            out_file.close()
+            vcf_writer.close()
+            return(out_vcf)
         mrna_len = 0
         bed_changed = 0
         sample = vcf_reader.samples[0]

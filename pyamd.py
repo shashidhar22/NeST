@@ -210,8 +210,33 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                             var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp = summary.getVarTable(out_dir)
-    summary.getSummary(voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp)
+    #Sumarize variants of intrest
+    exp_voi = summary.getRepSnps()
+    exp_voi = summary.getDepthStats(exp_voi)
+    exp_voi = exp_voi.reset_index(level=1)
+    exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
+    af_mask = exp_af.isnull()
+    summary.plotHeatMap(exp_af, 'voi_af', af_mask)
+    exp_dp = exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
+    dp_mask = exp_dp.isnull()
+    summary.plotHeatMap(exp_dp, 'voi_dp', dp_mask)
+    summary.plotCountPlot(exp_af, 'voi')
+    #Summarize novel variants
+    exp_nov = summary.getNovSnps()
+    exp_nov = summary.getNovDepthStats(exp_nov)
+    exp_nov = exp_nov.reset_index(level=1)
+    exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
+    exp_nov_af.to_excel('{0}/exp_nov_af.xlsx'.format(out_dir))
+    #nov_af = exp_nov.pivot(exp_nov.index, 'Variant')['AF'].transpose()
+    #nov_mask = nov_af.isnull()
+    #summary.plotHeatMap(nov_af, 'nov_af', nov_mask)
+    exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
+    exp_nov_dp.to_excel('{0}/exp_nov_dp.xlsx'.format(out_dir))
+    #nov_dp = exp_nov.pivot(exp_nov.index, 'Variant')['DP'].transpose()
+    #nov_mask = nov_dp.isnull()
+    #summary.plotHeatMap(nov_dp, 'nov_dp', nov_mask)
+    #summary.plotCountPlot(nov_af, 'nov')
+    #summary.getSummary(voi_df, voi_af, voi_count, voi_dp)
     return(0)
 
 if __name__ == '__main__':

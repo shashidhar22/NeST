@@ -185,7 +185,10 @@ class Annotate:
                             alfreq = self.getAlFreq(vcf_rec.INFO['DP4'])
                         except KeyError:
                             #alfreq = self.getAlFreq(vcf_rec.format['Test'].AD)
-                            alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            try:
+                                alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            except AttributeError:
+                                alfreq = 0
                         pval = 100**(vcf_rec.QUAL/float(-10))
                         #Wrie intronic var to file
                         out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM,

@@ -248,7 +248,6 @@ class Summary:
 
 
     def plotHeatMap(self, data_frame, title, mask):
-        dp_mask = mask
         sns.set()
         sns.set_style('whitegrid')
         fig, ax = plt.subplots()
@@ -256,13 +255,14 @@ class Summary:
         cbar_ax = fig.add_axes([.92, .3, .02, .4])
         heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
                                 cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                mask=dp_mask, square=True, linecolor="black")
+                                mask=mask, square=True, linecolor="black")
         fig_dp = heatmap_dp.get_figure()
         fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return
 
     def plotCountPlot(self, data_frame, title):
         sns.set(font_scale=2)
+        sns.set_style('whitegrid')
         plt.figure(figsize=(20, 20))
         stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=True), size=15, color='black')
         plots = stripplot.get_figure()

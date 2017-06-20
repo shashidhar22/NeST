@@ -6,6 +6,7 @@ import glob
 import math
 import pandas as pd
 import pysam
+import logging
 from pyamd.parsers import Fasta
 from pyamd.readers import Bed
 from pyamd.annotater import Annotate
@@ -25,6 +26,7 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
+        self.logger = logging.getLogger('Mars.sample_runner.summarize')
 
     def getVarOfInt(self):
         voi_table = pd.read_excel(self.voi, sheetname=1, parse_cols="B:C")
@@ -79,6 +81,7 @@ class Summary:
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
+        voi_df = self.getVarOfInt()
         for files in vcf_files:
             vcf_file = vcf.Reader(filename=files)
             barcode = re.compile('_[ATGC]*-[ATGC]*')
@@ -87,6 +90,8 @@ class Summary:
             for var in vcf_file:
                 if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
                     continue
+                if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
+                    count += 1
                 vcf_dict['Gene'].append(var.CHROM)
                 vcf_dict['Pos'].append(var.POS)
                 vcf_dict['Qual'].append(var.QUAL)
@@ -104,10 +109,9 @@ class Summary:
                 vcf_gene.append(var.CHROM)
                 vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
                 vcf_sample.append(sample)
-                count += 1
+                #count += 1
             if count == 0:
-                print('No variants found; adding ref calls to dataframe')
-                voi_df = self.getVarOfInt()
+                self.logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Gene'].append(rec.Gene)
                     vcf_dict['Pos'].append(np.nan)
@@ -253,9 +257,14 @@ class Summary:
         fig, ax = plt.subplots()
         fig.set_size_inches(24, 24)
         cbar_ax = fig.add_axes([.92, .3, .02, .4])
-        heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
-                                cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                mask=mask, square=True, linecolor="black")
+        if 'af' in title:
+            heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0, vmax=100.0,
+                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
+                                    mask=mask, square=True, linecolor="black")
+        else:
+            heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
+                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
+                                    mask=mask, square=True, linecolor="black")
         fig_dp = heatmap_dp.get_figure()
         fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return

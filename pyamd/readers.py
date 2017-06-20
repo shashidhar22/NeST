@@ -4,6 +4,7 @@ import csv
 import gzip
 import time
 import logging
+import numpy as np
 from collections import namedtuple
 
 
@@ -16,7 +17,7 @@ class Fastq:
         FORMAT = '%(asctime)-15s : %(levelname)-8s :  %(message)s'
         logging.basicConfig(format=FORMAT)
         self.phreddict = self.phredmap()
-        
+
 
     def phredmap(self):
         phreddict = dict()
@@ -43,11 +44,11 @@ class Fastq:
             else:
                 maskedseq.append(base)
         return(maskedseq, quals)
-        
+
     def read(self):
         if '.gz' in self.fastq or '.fastqgz' in self.fastq :
             fqhandle = gzip.open(self.fastq, 'rb')
-        else:            
+        else:
             fqhandle = open(self.fastq, 'r')
         Record = namedtuple('Record',['header', 'sheader', 'seq', 'quals'])
         lineno = 0
@@ -66,7 +67,7 @@ class Fastq:
                     quals = next(fqhandle).strip()
                 #quals = [self.phreddict[int(ord(str(qual)))] for qual in next(fqhandle).strip()]
                 lineno += 1
-            
+
                 #Check if record adheres to fastq format
                 check = self.formatChecker(header, seq, sheader, quals, lineno, self.phred)
                 if check == 1:
@@ -96,6 +97,24 @@ class Fastq:
 
         return
 
+class Bed:
 
+    def __init__(self, bed_path):
+        self.bed_path = os.path.abspath(bed_path)
 
-            
+    def read(self):
+        Bed = namedtuple('Bed', ['chrom', 'start', 'stop', 'gene', 'score', 'strand'])
+        bed_handle = open(self.bed_path)
+        for lines in bed_handle:
+            line = lines.strip().split('\t')
+            chrom = line[0]
+            start = int(line[1])
+            stop = int(line[2])
+            gene = line[3]
+            if line[4] == '.':
+                score = 0
+            else:
+                score = int(line[4])
+            strand = line[5]
+            record = Bed(chrom, start, stop, gene, score, strand)
+            yield(record)

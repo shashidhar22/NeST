@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import vcf
+import numpy as np
 from collections import namedtuple
 from collections import OrderedDict
 from operator import attrgetter
@@ -164,8 +165,13 @@ class Annotate:
         vcf_ord = self.getBedOrder(bed_path)    #Need to fix this
         if vcf_ord != bed_ord:
             print('Bed or VCF file not in order')
-        bed_rec = next(bed_reader)
-        vcf_rec = next(vcf_reader)
+        try:
+            bed_rec = next(bed_reader)
+            vcf_rec = next(vcf_reader)
+        except StopIteration:
+            out_file.close()
+            vcf_writer.close()
+            return(out_vcf)
         mrna_len = 0
         bed_changed = 0
         sample = vcf_reader.samples[0]
@@ -179,7 +185,10 @@ class Annotate:
                             alfreq = self.getAlFreq(vcf_rec.INFO['DP4'])
                         except KeyError:
                             #alfreq = self.getAlFreq(vcf_rec.format['Test'].AD)
-                            alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            try:
+                                alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            except AttributeError:
+                                alfreq = 0
                         pval = 100**(vcf_rec.QUAL/float(-10))
                         #Wrie intronic var to file
                         out_file.write('{0}\t{1}\t{2}\t{3}\t{4}\tNA\tNA\tNA\tNA\tNA\t{5}\t{6}\t{7}\t{8}\n'.format(vcf_rec.CHROM,

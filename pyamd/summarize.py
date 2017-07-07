@@ -17,6 +17,11 @@ import matplotlib.pyplot as plt
 import warnings
 import seaborn as sns
 
+print('matplotlib', matplotlib.__version__)
+print('numpy', np.__version__)
+print('pysam', pysam.__version__)
+print('seaborn', sns.__version__)
+print('pandas', pd.__version__)
 warnings.filterwarnings('ignore')
 
 class Summary:
@@ -125,7 +130,7 @@ class Summary:
                     vcf_dict['RefAA'].append(rec.RefAA)
                     vcf_dict['AltAA'].append(rec.AltAA)
                     vcf_dict['DP'].append(0)
-                    vcf_dict['AF'].append(0)
+                    vcf_dict['AF'].append(np.nan)
                     vcf_dict['Conf'].append(2)
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
@@ -273,7 +278,7 @@ class Summary:
         sns.set(font_scale=2)
         sns.set_style('whitegrid')
         plt.figure(figsize=(20, 20))
-        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=True), size=15, color='black')
+        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=float), size=15, color='black')
         plots = stripplot.get_figure()
         plots.savefig('{0}/{1}_frequency.png'.format(self.out_path, title))
 

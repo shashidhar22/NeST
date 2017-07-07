@@ -212,7 +212,10 @@ class Annotate:
                         try:
                             alfreq = self.getAlFreq(vcf_rec.INFO['DP4'])
                         except KeyError:
-                            alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            try:
+                                alfreq = self.getAlFreq(vcf_rec.genotype(sample)['AD'])
+                            except AttributeError:
+                                alfreq = np.nan
                         pval = 10**(vcf_rec.QUAL/float(-10))
                         if vcf_rec.CHROM == 'MT':
                             fasta = coding_dict['{0}{1}'.format(bed_rec.chrom, bed_rec.gene)]

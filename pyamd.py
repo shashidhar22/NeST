@@ -214,6 +214,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_voi = summary.getRepSnps()
     exp_voi = summary.getDepthStats(exp_voi)
     exp_voi = exp_voi.reset_index(level=1)
+    #exp_voi.drop_duplicates(subset='Variant', inplace=True)
     exp_voi.to_excel('{0}/Study_variants.xlsx'.format(out_dir))
     exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
     af_mask = exp_af.isnull()

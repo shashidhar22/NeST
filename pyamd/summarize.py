@@ -200,7 +200,7 @@ class Summary:
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
             nuc_pos = self.getNucPos(value.Gene_y, value.AAPos)
             depth = self.getBamStat(bamfile, value.Gene_y, nuc_pos[0], nuc_pos[1])
-            depth_list.append(np.log10(depth))
+            depth_list.append(np.log10(depth+1))
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
 

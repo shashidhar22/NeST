@@ -7,6 +7,8 @@ import shutil
 import logging
 import argparse
 import subprocess
+from itertools import repeat
+from multiprocessing import Pool
 from pyamd.bbduk import QualCheck
 from pyamd.alignment import Bwa
 from pyamd.alignment import Bowtie
@@ -22,13 +24,36 @@ from pyamd.filter import filterer
 from pyamd.summarize import Summary
 from pyamd.prepinputs import Prepper
 
-
-def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
-        rone_path, rtwo_path, ref_path, adp_path, bed_path,
-        out_path, aligner,kes_path, kan_path, pic_path, sam_name):
+def main(arguments):
+    bbduk_path = arguments[0]
+    alinger_path = arguments[1]
+    smt_path = arguments[2]
+    bft_path = arguments[3]
+    gatk_path = arguments[4]
+    rone_path = arguments[5]
+    rtwo_path = arguments[6]
+    ref_path = arguments[7]
+    adp_path = arguments[8]
+    bed_path = arguments[9]
+    out_dir = arguments[10]
+    aligner = arguments[11]
+    kes_path = arguments[12]
+    kan_path = arguments[13]
+    pic_path = arguments[14]
+    sam_name = arguments[15]
+    voi_path = arguments[16]
     #Setup logging
     logger = logging.getLogger('MaRS.sample_runner')
     #Check if files are present
+    #sam_name = config[samples].sample
+    #rone_path = config[samples].files[0]
+    #rtwo_path = config[samples].files[1]
+    out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
+    if not os.path.exists(out_path):
+        os.mkdir(out_path)
+    #logger.info('Analyzing sample : {0}'.format(sam_name))
+
+
     if not os.path.exists(rone_path):
         raise FileNotFoundException('Forward read not found; Exiting MARs')
         sys.exit()
@@ -169,6 +194,10 @@ def main(bbduk_path, alinger_path, smt_path, bft_path, gatk_path,
     merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged')
     gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
     samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
+    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    var_sum = summary.getVarStats(merged_vcf)
+    logger.info('Finished analyzing sample : {8} \n Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
+                        var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7], sam_name))
     return(merged_vcf, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
@@ -193,21 +222,38 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     prep = Prepper(inp_path)
     config = prep.prepInputs()
     mars_logger.info('Running MaRS on {0} experiments'.format(len(config)))
-    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    #summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    samples = config.keys()
+    pools = Pool(5)
+    rone_list = list()
+    rtwo_list = list()
+    name_list = list()
     for samples in config:
-        sample_name = config[samples].sample
-        rone_path = config[samples].files[0]
-        rtwo_path = config[samples].files[1]
-        out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sample_name)
-        if not os.path.exists(out_path):
-            os.mkdir(out_path)
-        mars_logger.info('Analyzing sample : {0}'.format(sample_name))
-        vcf, ret = main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-             rone_path, rtwo_path, ref_path, adp_path, bed_path,
-             out_path, aligner, kes_path, kan_path, pic_path, sample_name)
-        var_sum = summary.getVarStats(vcf)
-        mars_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
-                            var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
+        name_list.append(config[samples].sample)
+        rone_list.append(config[samples].files[0])
+        rtwo_list.append(config[samples].files[1])
+
+
+    vcf_list = pools.map(main, zip(repeat(bbduk_path), repeat(aligner_path),
+                repeat(smt_path), repeat(bft_path), repeat(gatk_path),
+                rone_list, rtwo_list, repeat(ref_path), repeat(adp_path),
+                repeat(bed_path), repeat(out_dir), repeat(aligner),
+                repeat(kes_path), repeat(kan_path), repeat(pic_path), name_list,
+                repeat(voi_path)))
+#    for samples in config:#
+#        sample_name = config[samples].sample
+#        rone_path = config[samples].files[0]
+#        rtwo_path = config[samples].files[1]
+#        out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sample_name)
+#        if not os.path.exists(out_path):
+#            os.mkdir(out_path)
+#        mars_logger.info('Analyzing sample : {0}'.format(sample_name))
+#        vcf, ret = main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
+#             rone_path, rtwo_path, ref_path, adp_path, bed_path,
+#             out_path, aligner, kes_path, kan_path, pic_path, sample_name)
+#        var_sum = summary.getVarStats(vcf)
+#        mars_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
+#                            var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #Sumarize variants of intrest

@@ -1,5 +1,5 @@
 #Summary
-#Generated on	Thu Jun 08 21:17:56 GMT 2017
+#Generated on	Sat Jun 17 20:17:57 GMT 2017
 #Version	5
 chroms	1
 bases	37551
@@ -10,4 +10,4 @@ scaffolds	6
 interpad	300
 source	/mnt/d/Projects/pyamd/ref/mdr.fa
 bytes	20093
-last modified	1494307585000
+last modified	1497570688000

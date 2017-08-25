@@ -12,6 +12,20 @@ def has_next(iterator):
     except StopIteration:
         return(None)
 
+def exclude(var):
+    interval = {'K13': [[50, 2100]], 'PfCRT' : [[45, 3220]], 'MDR' : [[2025, 4286],
+                [62, 1904]], 'DHPS' : [[1, 2417]], 'DHFR' : [[1, 1827]],
+                'MT' : [[35,5945]]}
+    try:
+        if var.POS in range(interval[var.CHROM][0][0], interval[var.CHROM][0][1]):
+            return(False)
+        elif var.CHROM == 'MDR' in range(interval[var.CHROM][1][0], interval[var.CHROM][1][1]):
+            return(False)
+        else:
+            return(True)
+    except KeyError:
+        return(True)
+
 def filterer(gatk, samtools, sam_name, out_path):
     gat_reader = vcf.Reader(filename=gatk)
     sam_reader = vcf.Reader(filename=samtools)
@@ -35,7 +49,8 @@ def filterer(gatk, samtools, sam_name, out_path):
                     gatk = has_next(gat_reader)
                 elif (gatk.REF and samt.REF) and (gatk.alleles and samt.alleles):
                     samt.add_info('Found', 2)
-                    merged.write_record(samt)
+                    if not exclude(samt):
+                        merged.write_record(samt)
                     samt = has_next(sam_reader)
                     gatk = has_next(gat_reader)
             elif samt.POS < gatk.POS:
@@ -45,7 +60,8 @@ def filterer(gatk, samtools, sam_name, out_path):
                     samt = has_next(sam_reader)
                 else:
                     samt.add_info('Found',1)
-                    merged.write_record(samt)
+                    if not exclude(samt):
+                        merged.write_record(samt)
                     samt = has_next(sam_reader)
             elif samt.POS > gatk.POS:
                 if gatk.is_indel:
@@ -54,7 +70,8 @@ def filterer(gatk, samtools, sam_name, out_path):
                     gatk = has_next(gat_reader)
                 else:
                     gatk.add_info('Found', 1)
-                    merged.write_record(gatk)
+                    if not exclude(gatk):
+                        merged.write_record(gatk)
                     gatk = has_next(gat_reader)
 
             #They are on the same chromosome, merge internally
@@ -65,7 +82,8 @@ def filterer(gatk, samtools, sam_name, out_path):
                 samt = has_next(sam_reader)
             else:
                 samt.add_info('Found',1)
-                merged.write_record(samt)
+                if not exclude(samt):
+                    merged.write_record(samt)
                 samt = has_next(sam_reader)
 
         elif sam_contig.index(samt.CHROM) > sam_contig.index(gatk.CHROM):
@@ -75,7 +93,8 @@ def filterer(gatk, samtools, sam_name, out_path):
                 gatk = has_next(gat_reader)
             else:
                 gatk.add_info('Found', 1)
-                merged.write_record(gatk)
+                if not exclude(gatk):
+                    merged.write_record(gatk)
                 gatk = has_next(gat_reader)
 
     while samt != None:
@@ -85,7 +104,8 @@ def filterer(gatk, samtools, sam_name, out_path):
             samt = has_next(sam_reader)
         else:
             samt.add_info('Found',1)
-            merged.write_record(samt)
+            if not exclude(samt):
+                merged.write_record(samt)
             samt = has_next(sam_reader)
 
     while gatk != None:
@@ -95,7 +115,8 @@ def filterer(gatk, samtools, sam_name, out_path):
             gatk = has_next(gat_reader)
         else:
             gatk.add_info('Found', 1)
-            merged.write_record(gatk)
+            if not exclude(gatk):
+                merged.write_record(gatk)
             gatk = has_next(gat_reader)
 
     return(out_vcf)

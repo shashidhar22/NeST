@@ -59,6 +59,8 @@ class Annotate:
             return(None)
         depth = [int(val) for val in depth]
         total = sum(depth)
+        if total == 0:
+            return(None)
         if len(depth) == 4:
             ref = sum(depth[:2])
             alt = sum(depth[2:])

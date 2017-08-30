@@ -263,13 +263,16 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov = summary.getNovDepthStats(exp_nov)
     exp_nov = exp_nov.reset_index(level=1)
     #Separate and capture Intron and exonic variants
-    exp_nov.to_excel('{0}/Study_novel_variants.xlsx'.format(out_dir))
-    exp_nov.loc[:,exp_nov['Exon'] == 'Intron'].to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     exp_nov.loc[:,exp_nov['Exon'] != 'Intron'].to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
+    exp_nov.loc[:,exp_nov['Exon'] == 'Intron'].to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
     exp_nov_af.to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
     exp_nov_dp.to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
+    exp_nov = exp_nov.reset_index()
+    exp_nov.to_excel('{0}/Study_novel_variants.xlsx'.format(out_dir))
+    exp_nov.loc[:,exp_nov['Exon'] != 'Intron'].to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
+    exp_nov.loc[:,exp_nov['Exon'] == 'Intron'].to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':

@@ -240,20 +240,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
                 repeat(kes_path), repeat(kan_path), repeat(pic_path), name_list,
                 repeat(voi_path)))
-#    for samples in config:#
-#        sample_name = config[samples].sample
-#        rone_path = config[samples].files[0]
-#        rtwo_path = config[samples].files[1]
-#        out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sample_name)
-#        if not os.path.exists(out_path):
-#            os.mkdir(out_path)
-#        mars_logger.info('Analyzing sample : {0}'.format(sample_name))
-#        vcf, ret = main(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-#             rone_path, rtwo_path, ref_path, adp_path, bed_path,
-#             out_path, aligner, kes_path, kan_path, pic_path, sample_name)
-#        var_sum = summary.getVarStats(vcf)
-#        mars_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
-#                            var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
+
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #Sumarize variants of intrest
@@ -275,18 +262,13 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov = summary.getNovSnps()
     exp_nov = summary.getNovDepthStats(exp_nov)
     exp_nov = exp_nov.reset_index(level=1)
+    #Separate and capture Intron and exonic variants
+    exp_nov.loc[:,exp_nov['Exon'] == 'Intron'].to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
+    exp_nov.loc[:,exp_nov['Exon'] != 'Intron'].to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
     exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
-    exp_nov_af.to_excel('{0}/exp_nov_af.xlsx'.format(out_dir))
-    #nov_af = exp_nov.pivot(exp_nov.index, 'Variant')['AF'].transpose()
-    #nov_mask = nov_af.isnull()
-    #summary.plotHeatMap(nov_af, 'nov_af', nov_mask)
+    exp_nov_af.to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
-    exp_nov_dp.to_excel('{0}/exp_nov_dp.xlsx'.format(out_dir))
-    #nov_dp = exp_nov.pivot(exp_nov.index, 'Variant')['DP'].transpose()
-    #nov_mask = nov_dp.isnull()
-    #summary.plotHeatMap(nov_dp, 'nov_dp', nov_mask)
-    #summary.plotCountPlot(nov_af, 'nov')
-    #summary.getSummary(voi_df, voi_af, voi_count, voi_dp)
+    exp_nov_dp.to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':

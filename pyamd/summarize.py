@@ -93,7 +93,7 @@ class Summary:
             sample = barcode.split(vcf_file.samples[0])[0]
             count = 0
             for var in vcf_file:
-                if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
+                if var.CHROM == 'NA': #var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1

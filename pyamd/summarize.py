@@ -103,7 +103,10 @@ class Summary:
                 vcf_dict['Ref'].append(var.REF)
                 vcf_dict['Alt'].append(str(var.ALT[0]))
                 vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
-                vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
+                if var.INFO['CodonPos'][0] == 'NA':
+                    vcf_dict['CodonPos'].append(np.nan)
+                else:
+                    vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
                 vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
                 vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
                 vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
@@ -115,6 +118,7 @@ class Summary:
                 vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
                 vcf_sample.append(sample)
                 #count += 1
+
             if count == 0:
                 self.logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():

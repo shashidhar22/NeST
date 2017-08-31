@@ -196,7 +196,10 @@ class Summary:
             if gene == records.chrom:
                 bed_list += [val for val in range(records.start, records.stop+1)]
         bed_list = [bed_list[ind:ind+3] for ind in range(0, len(bed_list),3)]
-        return(bed_list[int(aapos)-1])
+        if aapos != np.nan:
+            return(bed_list[int(aapos)-1])
+        else:
+            return(np.nan)
 
     def getDepthStats(self, var_df):
         depth_list = list()

@@ -217,6 +217,8 @@ class Summary:
         depth_list = list()
         for row, value in var_df.iterrows():
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
+            if nuc_pos == np.nan:
+                nuc_pos = [value.Pos -1, value.Pos + 1]
             nuc_pos = self.getNucPos(value.Gene, value.CodonPos)
             depth = self.getBamStat(bamfile, value.Gene, nuc_pos[0], nuc_pos[1])
             depth_list.append(depth)

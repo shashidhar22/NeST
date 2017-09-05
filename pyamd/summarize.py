@@ -92,6 +92,7 @@ class Summary:
             sample = barcode.split(vcf_file.samples[0])[0]
             for var in vcf_file:
                 if var.INFO['ExonNumber'][0] == 'Intron':
+                    vcf_dict['Gene'].append(var.CHROM)
                     vcf_dict['Pos'].append(var.POS)
                     vcf_dict['Qual'].append(var.QUAL)
                     vcf_dict['Ref'].append(var.REF)

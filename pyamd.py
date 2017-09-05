@@ -224,7 +224,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     mars_logger.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     samples = config.keys()
-    pools = Pool(6)
+    pools = Pool(4)
     rone_list = list()
     rtwo_list = list()
     name_list = list()
@@ -267,10 +267,9 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov_af.to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
     exp_nov_dp.to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
-    exp_nov = exp_nov.reset_index(drop=True)
-    exp_nov.to_excel('{0}/Study_novel_variants.xlsx'.format(out_dir))
-    exp_nov.loc[exp_nov['Exon'] != 'Intron'].to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
-    exp_nov.loc[exp_nov['Exon'] == 'Intron'].to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
+    exp_nov.to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
+    exp_intron = summary.getIntronTables()
+    exp_intron.to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':

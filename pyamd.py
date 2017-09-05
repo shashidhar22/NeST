@@ -248,14 +248,14 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_voi = summary.getDepthStats(exp_voi)
     exp_voi = exp_voi.reset_index(level=1)
     #exp_voi.drop_duplicates(subset='Variant', inplace=True)
-    exp_voi.to_excel('{0}/Study_variants.xlsx'.format(out_dir))
+    exp_voi.sort_index().to_excel('{0}/Study_variants.xlsx'.format(out_dir))
     exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
     af_mask = exp_af.isnull()
-    exp_af.to_excel('{0}/Study_al_freq.xlsx'.format(out_dir))
+    exp_af.sort_index().to_excel('{0}/Study_al_freq.xlsx'.format(out_dir))
     summary.plotHeatMap(exp_af, 'voi_af', af_mask)
     exp_dp = exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
     dp_mask = exp_dp.isnull()
-    exp_dp.to_excel('{0}/Study_depth.xlsx'.format(out_dir))
+    exp_dp.sort_index().to_excel('{0}/Study_depth.xlsx'.format(out_dir))
     summary.plotHeatMap(exp_dp, 'voi_dp', dp_mask)
     summary.plotCountPlot(exp_af, 'voi')
     #Summarize novel variants
@@ -264,12 +264,12 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov = exp_nov.reset_index(level=1)
     #Separate and capture Intron and exonic variants
     exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
-    exp_nov_af.to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
+    exp_nov_af.sort_index().to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
-    exp_nov_dp.to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
-    exp_nov.to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
+    exp_nov_dp.sort_index().to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
+    exp_nov.sort_index().to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
     exp_intron = summary.getIntronTables()
-    exp_intron.to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
+    exp_intron.sort_index().to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':

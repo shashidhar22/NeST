@@ -77,6 +77,43 @@ class Summary:
             exp_pass[samples] = gene_pass
         return(exp_pass)
 
+    def getIntronTables(self):
+        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
+        vcf_df = pd.DataFrame()
+        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [], 'CodonPos': [],
+                    'AltCodon': [], 'RefCodon': [], 'RefAA': [], 'AltAA': [], 'DP': [],
+                    'AF': [], 'Conf': [], 'Exon': []}
+        vcf_var = list()
+        vcf_sample = list()
+        vcf_gene = list()
+        for files in vcf_files:
+            vcf_file = vcf.Reader(filename=files)
+            barcode = re.compile('_[ATGC]*-[ATGC]*')
+            sample = barcode.split(vcf_file.samples[0])[0]
+            for var in vcf_file:
+                if var.INFO['ExonNumber'][0] == 'Intron':
+                    vcf_dict['Pos'].append(var.POS)
+                    vcf_dict['Qual'].append(var.QUAL)
+                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Exon'].append('Intron')
+                    vcf_dict['CodonPos'].append(np.nan)
+                    vcf_dict['RefCodon'].append('NA')
+                    vcf_dict['AltCodon'].append('NA')
+                    vcf_dict['RefAA'].append('NA')
+                    vcf_dict['AltAA'].append('NA')
+                    vcf_dict['DP'].append(var.INFO['DP'])
+                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0])*100)
+                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_gene.append(var.CHROM)
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.REF, var.POS, str(var.ALT[0])))
+                    vcf_sample.append(sample)
+        vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
+        vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
+        vcf_df.index.names = ['Sample', 'Variant']
+        return(vcf_df)
+
+
     def getVarTables(self):
         voi_table = self.getVarOfInt()
         vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
@@ -93,7 +130,7 @@ class Summary:
             sample = barcode.split(vcf_file.samples[0])[0]
             count = 0
             for var in vcf_file:
-                if var.CHROM == 'NA': #var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
+                if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
@@ -103,10 +140,7 @@ class Summary:
                 vcf_dict['Ref'].append(var.REF)
                 vcf_dict['Alt'].append(str(var.ALT[0]))
                 vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
-                if var.INFO['CodonPos'][0] == 'NA':
-                    vcf_dict['CodonPos'].append(np.nan)
-                else:
-                    vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
+                vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
                 vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
                 vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
                 vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
@@ -141,7 +175,6 @@ class Summary:
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
-        vcf_df.to_excel('Varcalls_table.xlsx')
         return(vcf_df)
 
     def getRepSnps(self):
@@ -220,6 +253,7 @@ class Summary:
             nuc_pos = self.getNucPos(value.Gene, value.CodonPos)
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]
+
             depth = self.getBamStat(bamfile, value.Gene, nuc_pos[0], nuc_pos[1])
             depth_list.append(depth)
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)

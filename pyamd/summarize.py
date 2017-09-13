@@ -243,7 +243,7 @@ class Summary:
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]
             depth = self.getBamStat(bamfile, value.Gene_y, nuc_pos[0], nuc_pos[1])
-            depth_list.append(np.log10(depth+1))
+            depth_list.append(depth)            #np.log10(depth+1))
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
 
@@ -306,16 +306,16 @@ class Summary:
         sns.set()
         sns.set_style('whitegrid')
         fig, ax = plt.subplots()
-        fig.set_size_inches(24, 24)
-        cbar_ax = fig.add_axes([.92, .3, .02, .4])
+        fig.set_size_inches(len(data_frame.columns.tolist()), 25)
+        #cbar_ax = fig.add_axes([.92, .3, .02, .4])
         if 'af' in title:
             heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0, vmax=100.0,
-                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                    mask=mask, square=True, linecolor="black")
+                                    cmap="Blues",  cbar=False, annot=True,
+                                    fmt=".0f", mask=mask, linecolor="black")
         else:
             heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
-                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                    mask=mask, square=True, linecolor="black")
+                                    cmap="Blues", cbar=False, annot=True,
+                                    fmt=".0f", mask=mask, linecolor="black")
         fig_dp = heatmap_dp.get_figure()
         fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return
@@ -331,9 +331,10 @@ class Summary:
 
     def getHeatmap(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
         #Create masks for heatmap
+        sns.set(font_scale=0.5)
         dp_voi_mask = voi_dp.isnull()
         af_voi_mask = voi_af.isnull()
-        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask)
+        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask )
         self.plotHeatMap(voi_dp, 'voi_alfreq', af_voi_mask)
         self.plotCountPlot(voi_af, 'voi')
         return

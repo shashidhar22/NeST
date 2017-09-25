@@ -1,0 +1,13 @@
+#Summary
+#Generated on	Mon Sep 25 05:36:15 GMT 2017
+#Version	5
+chroms	1
+bases	37551
+defined	20051
+undefined	17500
+contigs	6
+scaffolds	6
+interpad	300
+source	/mnt/d/Projects/pyamd/ref/mdr.fa
+bytes	20099
+last modified	1506317485000

@@ -34,7 +34,7 @@ class Summary:
         self.logger = logging.getLogger('Mars.sample_runner.summarize')
 
     def getVarOfInt(self):
-        voi_table = pd.read_excel(self.voi, sheetname=1, parse_cols="B:C")
+        voi_table = pd.read_excel(self.voi)
         voi_df = voi_table['SNP'].str.extract('(?P<RefAA>[a-zA-Z]?)(?P<AAPos>[0-9]*)(?P<AltAA>[a-zA-Z]?)', expand=True)
         voi_df['Gene'] = voi_table['Gene']
         voi_df['SNP'] = voi_table['SNP']

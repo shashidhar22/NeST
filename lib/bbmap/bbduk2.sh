@@ -282,7 +282,7 @@ bbduk2() {
 		module load pigz
 		module load samtools
 	fi
-	local CMD="java -Djava.library.path=$NATIVELIBDIR $EA $z $z2 -cp $CP jgi.BBDuk2 $@"
+	local CMD="../jdk1.8.0_131/bin -Djava.library.path=$NATIVELIBDIR $EA $z $z2 -cp $CP jgi.BBDuk2 $@"
 	echo $CMD >&2
 	eval $CMD
 }

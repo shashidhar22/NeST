@@ -42,6 +42,7 @@ def main(arguments):
     pic_path = arguments[14]
     sam_name = arguments[15]
     voi_path = arguments[16]
+    java_path = arguments[17]
     #Setup logging
     logger = logging.getLogger('MaRS.sample_runner')
     #Check if files are present
@@ -76,7 +77,7 @@ def main(arguments):
 
     #Call Bbduk
     logger.debug('Running BBDuk')
-    bbduk = QualCheck(bbduk_path, adp_path, out_path)
+    bbduk = QualCheck(bbduk_path, adp_path, out_path, java_path)
     rone_path, rtwo_path, bret = bbduk.bbduk(rone_path, rtwo_path)
     if bret != 0:
         raise RuntimeError('BBDuk failed to complete; Exiting MARs')
@@ -140,7 +141,7 @@ def main(arguments):
     else:
         logger.debug('Samtools sort completed')
 
-    rgadder = Picard(pic_path, out_path)
+    rgadder = Picard(java_path, pic_path, out_path)
     bam_path, aret = rgadder.picard(bam_path, sam_name)
     logger.debug('Running Picard AddOrReplaceReadGroups')
     if aret != 0:
@@ -178,7 +179,7 @@ def main(arguments):
         logger.debug('Bcftools stats completed')
 
     #Call GATK HaplotypeCaller to generate VCF files
-    varcaller = GenAnTK(gatk_path, out_path)
+    varcaller = GenAnTK(gatk_path, out_path, java_path)
     logger.debug('Running GATK HaplotypeCaller')
     gvcf_path, gret = varcaller.hapCaller(bam_path, ref_path, sam_name)
     if gret != 0:
@@ -202,7 +203,7 @@ def main(arguments):
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               inp_path, ref_path, adp_path, bed_path,
-              out_dir, aligner, kes_path, kan_path, pic_path, voi_path):
+              out_dir, aligner, kes_path, kan_path, pic_path, voi_path, java_path):
     #Create logger for MaRS
     mars_logger = logging.getLogger('MaRS')
     mars_logger.setLevel(logging.INFO)
@@ -239,7 +240,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 rone_list, rtwo_list, repeat(ref_path), repeat(adp_path),
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
                 repeat(kes_path), repeat(kan_path), repeat(pic_path), name_list,
-                repeat(voi_path)))
+                repeat(voi_path), repeat(java_path)))
 
     mars_logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
@@ -284,6 +285,7 @@ if __name__ == '__main__':
     bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
     gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = "{0}/picard.jar".format(def_path)
+    java_def = "{0}/jdk1.8.0_131/bin/java".format(def_path)
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
@@ -346,9 +348,10 @@ if __name__ == '__main__':
                     args.bft_path, args.gatk_path, args.rone_path,
                     args.rtwo_path, args.ref_path, args.adp_path, args.bed_path,
                     args.out_path, args.aligner, args.kes_path, args.kan_path,
-                    args.pic_path, sam_name)
+                    args.pic_path, sam_name, java_def)
     elif args.inp_path != None and args.rone_path == None:
         status = marsBatch(args.bbduk_path, args.aligner_path, args.smt_path,
                     args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
                     args.adp_path, args.bed_path, args.out_path, args.aligner,
-                    args.kes_path, args.kan_path, args.pic_path, args.voi_path)
+                    args.kes_path, args.kan_path, args.pic_path, args.voi_path,
+                    java_def)

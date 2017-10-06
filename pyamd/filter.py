@@ -13,8 +13,8 @@ def has_next(iterator):
         return(None)
 
 def exclude(var):
-    interval = {'K13': [[50, 2100]], 'PfCRT' : [[45, 3220]], 'MDR' : [[2025, 4286],
-                [62, 1904]], 'DHPS' : [[1, 2417]], 'DHFR' : [[1, 1827]],
+    interval = {'PfK13': [[50, 2100]], 'PfCRT' : [[45, 3220]], 'PfMDR1' : [[2025, 4286],
+                [62, 1904]], 'PfDHPS' : [[1, 2417]], 'PfDHFR' : [[1, 1827]],
                 'MT' : [[35,5945]]}
     try:
         if var.POS in range(interval[var.CHROM][0][0], interval[var.CHROM][0][1]):

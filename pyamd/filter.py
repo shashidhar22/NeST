@@ -19,7 +19,7 @@ def exclude(var):
     try:
         if var.POS in range(interval[var.CHROM][0][0], interval[var.CHROM][0][1]):
             return(False)
-        elif var.CHROM == 'MDR' in range(interval[var.CHROM][1][0], interval[var.CHROM][1][1]):
+        elif var.CHROM == 'PfMDR1' in range(interval[var.CHROM][1][0], interval[var.CHROM][1][1]):
             return(False)
         else:
             return(True)

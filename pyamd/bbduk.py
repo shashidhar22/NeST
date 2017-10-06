@@ -8,9 +8,10 @@ import subprocess
 
 class QualCheck:
 
-    def __init__(self, bbduk_path, adp_path, out_path):
+    def __init__(self, bbduk_path, adp_path, out_path, java):
         self.bbduk_path = bbduk_path
         self.adp_path = adp_path
+        self.java = java
         self.out_path = '{0}/CleanedFastq'.format(out_path)
         self.logger = logging.getLogger('Mars.sample_runner.BBDuk')
         if not os.path.exists(self.out_path):

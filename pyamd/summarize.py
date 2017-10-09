@@ -3,20 +3,16 @@ import re
 import sys
 import vcf
 import glob
-import math
+import warnings
+import numpy as np
 import pandas as pd
-import pysam
 import logging
-from pyamd.parsers import Fasta
+import pysam
 from pyamd.readers import Bed
-from pyamd.annotater import Annotate
 import matplotlib
 matplotlib.use('Agg')
-import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 import seaborn as sns
-
 print('matplotlib', matplotlib.__version__)
 print('numpy', np.__version__)
 print('pysam', pysam.__version__)
@@ -171,6 +167,7 @@ class Summary:
                     vcf_dict['DP'].append(0)
                     vcf_dict['AF'].append(np.nan)
                     vcf_dict['Conf'].append(2)
+                    #print('{0}{1}{2}'.format(var.group('RefAA'), var.group('AAPos'), var.group('RefAA')))
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
@@ -193,6 +190,14 @@ class Summary:
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
             #print(var_voi.head())
+        exp_voi['FinalCall'] = exp_voi['SNP']
+        for index, series in exp_voi.iterrows():
+            #print(exp_voi.at[index, 'FinalCall'])
+            if pd.isnull(series['Alt']):
+                var_reg = re.match(r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])', series['SNP'])
+                exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos'))
+                #print('{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos')))
+                #print(series['FinalCall'])
         return(exp_voi)
 
     def getNovSnps(self):

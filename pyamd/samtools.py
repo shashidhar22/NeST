@@ -5,6 +5,12 @@ import logging
 import argparse
 import subprocess
 
+logger = logging.getLogger('Samtools')
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 class Samtools:
 
@@ -12,7 +18,7 @@ class Samtools:
         self.sam_path = sam_path
         self.out_path = out_path
         self.bft_path = bft_path
-        self.logger = logging.getLogger('Mars.sample_runner.Samtools')
+
 
     def fixmate(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
@@ -22,7 +28,7 @@ class Samtools:
         fmrun = subprocess.Popen(fmcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         fmrun.wait()
         if fmrun.returncode != 0:
-            self.logger.error('Samtools fixmate failed running the following command : {0}'.format(' '.join(fmcmd)))
+            logger.error('Samtools fixmate failed running the following command : {0}'.format(' '.join(fmcmd)))
 
         return(obam_path, fmrun.returncode)
 
@@ -35,7 +41,7 @@ class Samtools:
         strun = subprocess.Popen(stcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         strun.wait()
         if strun.returncode != 0:
-            self.logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
+            logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
 
         return(obam_path, strun.returncode)
 
@@ -47,7 +53,7 @@ class Samtools:
         mprun = subprocess.Popen(mpcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         mprun.wait()
         if mprun.returncode != 0:
-            self.logger.error('Samtools mpileup failed running the following command : {0}'.format(' '.join(mpcmd)))
+            logger.error('Samtools mpileup failed running the following command : {0}'.format(' '.join(mpcmd)))
 
         return(obcf_path, mprun.returncode)
 
@@ -57,7 +63,7 @@ class Samtools:
         birun = subprocess.Popen(bicmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         birun.wait()
         if birun.returncode != 0:
-            self.logger.error('Bcftools index failed running the following command : {0}'.format(' '.join(bicmd)))
+            logger.error('Bcftools index failed running the following command : {0}'.format(' '.join(bicmd)))
 
         return(birun.returncode)
 
@@ -69,7 +75,7 @@ class Samtools:
         btrun = subprocess.Popen(btcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         btrun.wait()
         if btrun.returncode != 0:
-            self.logger.error('Bcftools call failed running the following command : {0}'.format(' '.join(btcmd)))
+            logger.error('Bcftools call failed running the following command : {0}'.format(' '.join(btcmd)))
 
         return(ovcf_path, btrun.returncode)
 
@@ -81,6 +87,6 @@ class Samtools:
         bsrun = subprocess.Popen(' '.join(bscmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         bsrun.wait()
         if bsrun.returncode != 0:
-            self.logger.error('Bcftools stats failed running the following command : {0}'.format(' '.join(bscmd)))
+            logger.error('Bcftools stats failed running the following command : {0}'.format(' '.join(bscmd)))
 
         return(stats_path, bsrun.returncode)

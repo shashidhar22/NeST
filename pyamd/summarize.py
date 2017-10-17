@@ -20,6 +20,13 @@ print('seaborn', sns.__version__)
 print('pandas', pd.__version__)
 warnings.filterwarnings('ignore')
 
+logger = logging.getLogger('Summarize')
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 class Summary:
 
     def __init__(self, fasta, bed, voi, out_path):
@@ -27,7 +34,7 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
-        self.logger = logging.getLogger('Mars.sample_runner.summarize')
+
 
     def getVarOfInt(self):
         voi_table = pd.read_excel(self.voi)
@@ -120,6 +127,7 @@ class Summary:
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
+        var_sample = list()
         voi_df = self.getVarOfInt()
         for files in vcf_files:
             vcf_file = vcf.Reader(filename=files)
@@ -131,27 +139,33 @@ class Summary:
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
-                vcf_dict['Gene'].append(var.CHROM)
-                vcf_dict['Pos'].append(var.POS)
-                vcf_dict['Qual'].append(var.QUAL)
-                vcf_dict['Ref'].append(var.REF)
-                vcf_dict['Alt'].append(str(var.ALT[0]))
-                vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
-                vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
-                vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
-                vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
-                vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
-                vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
-                vcf_dict['DP'].append(var.INFO['DP'])
-                vcf_dict['AF'].append(float(var.INFO['AlFreq'][0]) * 100)
-                vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
-                vcf_gene.append(var.CHROM)
-                vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
-                vcf_sample.append(sample)
-                #count += 1
+                if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
+                    index = vcf_var.index('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
+                    vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF)
+                    vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0])
+                else:
+                    vcf_dict['Gene'].append(var.CHROM)
+                    vcf_dict['Pos'].append(var.POS)
+                    vcf_dict['Qual'].append(var.QUAL)
+                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
+                    vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
+                    vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
+                    vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
+                    vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
+                    vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
+                    vcf_dict['DP'].append(var.INFO['DP'])
+                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0]) * 100)
+                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_gene.append(var.CHROM)
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
+                    vcf_sample.append(sample)
+                    var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    #count += 1
 
             if count == 0:
-                self.logger.info('No variants found; adding ref calls to dataframe')
+                logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Gene'].append(rec.Gene)
                     vcf_dict['Pos'].append(np.nan)

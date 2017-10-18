@@ -21,6 +21,7 @@ print('pandas', pd.__version__)
 warnings.filterwarnings('ignore')
 
 logger = logging.getLogger('Summarize')
+logger.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
@@ -135,14 +136,18 @@ class Summary:
             sample = barcode.split(vcf_file.samples[0])[0]
             count = 0
             for var in vcf_file:
+
                 if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
                 if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
-                    index = vcf_var.index('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
+                    index = 0
+                    for pos in range(len(vcf_var)):
+                        if sample == vcf_sample[pos] and '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) == vcf_var[pos]:
+                            index = pos
                     vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF)
-                    vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0])
+                    vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0]))
                 else:
                     vcf_dict['Gene'].append(var.CHROM)
                     vcf_dict['Pos'].append(var.POS)
@@ -164,6 +169,7 @@ class Summary:
                     var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
                     #count += 1
 
+
             if count == 0:
                 logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
@@ -184,6 +190,7 @@ class Summary:
                     #print('{0}{1}{2}'.format(var.group('RefAA'), var.group('AAPos'), var.group('RefAA')))
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
+
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']

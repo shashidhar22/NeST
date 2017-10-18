@@ -25,8 +25,9 @@ from pyamd.summarize import Summary
 from pyamd.prepinputs import Prepper
 
 loggermain = logging.getLogger(__name__)
+loggermain.setLevel(logging.INFO)
 chmain = logging.StreamHandler()
-chmain.setLevel(logging.DEBUG)
+chmain.setLevel(logging.ERROR)
 formattermain = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
 chmain.setFormatter(formattermain)
 loggermain.addHandler(chmain)
@@ -222,7 +223,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     loggermain.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     samples = config.keys()
-    pools = Pool(1)
+    pools = Pool(4)
     rone_list = list()
     rtwo_list = list()
     name_list = list()

@@ -10,6 +10,7 @@ from operator import attrgetter
 from pyamd.reader import Reader
 
 logger = logging.getLogger('Annotate')
+logger.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 

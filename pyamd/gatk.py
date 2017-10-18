@@ -6,6 +6,7 @@ import argparse
 import subprocess
 
 logger = logging.getLogger('GATK')
+logger.setLevel(logging.ERROR)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
@@ -19,7 +20,7 @@ class GenAnTK:
         self.gatk_path = gatk_path
         self.out_path = out_path
         self.java = java
-        
+
         return
 
     def hapCaller(self, bam_path, ref_path, sam_name):

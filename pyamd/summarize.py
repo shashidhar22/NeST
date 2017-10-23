@@ -166,7 +166,10 @@ class Summary:
                     vcf_gene.append(var.CHROM)
                     vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
                     vcf_sample.append(sample)
-                    var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    if var.INFO['DP'] > 0:
+                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    else:
+                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
                     #count += 1
 
 
@@ -214,7 +217,9 @@ class Summary:
         exp_voi['FinalCall'] = exp_voi['SNP']
         for index, series in exp_voi.iterrows():
             #print(exp_voi.at[index, 'FinalCall'])
-            if pd.isnull(series['Alt']):
+            if pd.isnull(series['DP']):
+                exp_voi.at[index, 'FinalCall'] = 'N/A'
+            elif pd.isnull(series['Alt']):
                 var_reg = re.match(r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])', series['SNP'])
                 exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos'))
                 #print('{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos')))

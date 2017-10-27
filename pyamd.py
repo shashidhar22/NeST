@@ -279,7 +279,7 @@ if __name__ == '__main__':
     bbduk_def = "{0}/bbmap/bbduk.sh".format(def_path)
     bbmap_def = "{0}/bbmap/bbmap.sh".format(def_path)
     bwa_def = "{0}/bwa-0.7.12/bwa".format(def_path)
-    bowtie_def = "{0}/bowtie2-2.3.0/bowtie2".format(def_path)
+    bowtie_def = "{0}/bowtie2-2.3.3.1-linux-x86_64/bowtie2".format(def_path)
     snap_def = "{0}/snap/snap-aligner".format(def_path)
     smt_def = "{0}/samtools-1.3.1/samtools".format(def_path)
     bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)

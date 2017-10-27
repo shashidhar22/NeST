@@ -284,7 +284,10 @@ if __name__ == '__main__':
     bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
     gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = "{0}/picard.jar".format(def_path)
-    java_def = "{0}/jdk1.8.0_131/bin/java".format(def_path)
+    if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):
+        java_def = 'java'
+    else:
+        java_def = "{0}/jdk1.8.0_131/bin/java".format(def_path)
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')

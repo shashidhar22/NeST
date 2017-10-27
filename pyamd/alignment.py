@@ -5,6 +5,13 @@ import logging
 import argparse
 import subprocess
 
+logger = logging.getLogger('Alignment')
+logger.setLevel(logging.ERROR)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 class Bwa:
 
@@ -79,7 +86,7 @@ class Snap:
         self.snap_path = snap_path
         self.out_path = out_path
         self.ref_path = os.path.dirname(ref_path)
-        self.logger = logging.getLogger('Mars.sample_runner.Snap')        
+        self.logger = logging.getLogger('Mars.sample_runner.Snap')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 

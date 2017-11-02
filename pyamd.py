@@ -7,6 +7,7 @@ import shutil
 import logging
 import argparse
 import subprocess
+import pandas as pd
 from itertools import repeat
 from multiprocessing import Pool
 from pyamd.bbduk import QualCheck
@@ -247,28 +248,73 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_voi = summary.getDepthStats(exp_voi)
     exp_voi = exp_voi.reset_index(level=1)
     #exp_voi.drop_duplicates(subset='Variant', inplace=True)
-    exp_voi.sort_index().to_excel('{0}/Study_variants.xlsx'.format(out_dir))
+    exp_voi[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_voi['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_voi['Sample_name'] = exp_voi.index
+    exp_voi['AAPos_sort'] = pd.to_numeric(exp_voi['AAPos_sort'])
+    exp_voi.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
+    exp_voi.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
+    exp_voi.to_excel('{0}/Study_variants.xlsx'.format(out_dir))
 
     exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
+    exp_af['Variant'] = exp_af.index
+    exp_af[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_af['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
+    exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+    exp_af.to_excel('{0}/Before_drop_af.xlsx'.format(out_dir))
+    exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
     af_mask = exp_af.isnull()
-    exp_af.sort_index().to_excel('{0}/Study_al_freq.xlsx'.format(out_dir))
+    exp_af.to_excel('{0}/Study_al_freq.xlsx'.format(out_dir))
     summary.plotHeatMap(exp_af, 'voi_af', af_mask)
     exp_dp = exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
+    exp_dp['Variant'] = exp_dp.index
+    exp_dp[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_dp['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
+    exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+    exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
     dp_mask = exp_dp.isnull()
-    exp_dp.sort_index().to_excel('{0}/Study_depth.xlsx'.format(out_dir))
+    exp_dp.to_excel('{0}/Study_depth.xlsx'.format(out_dir))
     summary.plotHeatMap(exp_dp, 'voi_dp', dp_mask)
     summary.plotCountPlot(exp_af, 'voi')
     #Summarize novel variants
     exp_nov = summary.getNovSnps()
     exp_nov = summary.getNovDepthStats(exp_nov)
     exp_nov = exp_nov.reset_index(level=1)
+    exp_nov[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_nov['Sample_name'] = exp_nov.index
+    exp_nov['AAPos_sort'] = pd.to_numeric(exp_nov['AAPos_sort'])
+    exp_nov.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
+    exp_nov.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
+    exp_nov.to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
     #Separate and capture Intron and exonic variants
     exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
-    exp_nov_af.sort_index().to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
+    exp_nov_af[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov_af['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_nov_af['AAPos_sort'] = pd.to_numeric(exp_nov_af['AAPos_sort'])
+    exp_nov_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+    exp_nov_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
+    exp_nov_af.to_excel('{0}/Study_novel_var_af.xlsx'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
-    exp_nov_dp.sort_index().to_excel('{0}/Study_novel_var_dp.xlsx'.format(out_dir))
-    exp_nov.sort_index().to_excel('{0}/Study_novel_exonic_variants.xlsx'.format(out_dir))
+    exp_nov_dp['Variant'] = exp_nov_dp.index
+    exp_nov_dp[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov_dp['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_nov_dp['AAPos_sort'] = pd.to_numeric(exp_nov_dp['AAPos_sort'])
+    exp_nov_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+    exp_nov_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
+    exp_nov_dp.to_excel('{0}/Study_novel_var_depth.xlsx'.format(out_dir))
     exp_intron = summary.getIntronTables()
+    #print(exp_intron.index)
+    #exp_intron.reset_index(level=1)
+    #exp_intron['Sample_name'] = exp_intron.index
+    #exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    #exp_intron['']
+    #exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
+    #exp_intron.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
+    #exp_intron.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+    #              'AltAA_sym'], axis=1, inplace=True)
     exp_intron.sort_index().to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 

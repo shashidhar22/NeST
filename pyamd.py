@@ -306,15 +306,16 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                   'AltAA_sym'], axis=1, inplace=True)
     exp_nov_dp.to_excel('{0}/Study_novel_var_depth.xlsx'.format(out_dir))
     exp_intron = summary.getIntronTables()
+    exp_intron = exp_intron.reset_index()
+
     #print(exp_intron.index)
     #exp_intron.reset_index(level=1)
-    #exp_intron['Sample_name'] = exp_intron.index
-    #exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
     #exp_intron['']
-    #exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
-    #exp_intron.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
-    #exp_intron.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-    #              'AltAA_sym'], axis=1, inplace=True)
+    exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
+    exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'], inplace=True)
+    exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
+                  'AltAA_sym'], axis=1, inplace=True)
     exp_intron.sort_index().reset_index().to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 

@@ -315,7 +315,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     #exp_intron.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
     #exp_intron.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
     #              'AltAA_sym'], axis=1, inplace=True)
-    exp_intron.sort_index().to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
+    exp_intron.sort_index().reset_index().to_excel('{0}/Study_novel_intronic_variants.xlsx'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':

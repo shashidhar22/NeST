@@ -218,7 +218,7 @@ class Summary:
         for index, series in exp_voi.iterrows():
             #print(exp_voi.at[index, 'FinalCall'])
             if pd.isnull(series['DP']):
-                exp_voi.at[index, 'FinalCall'] = 'N/A'
+                exp_voi.at[index, 'FinalCall'] = 'WT'
             elif pd.isnull(series['Alt']):
                 var_reg = re.match(r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])', series['SNP'])
                 exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos'))
@@ -240,7 +240,6 @@ class Summary:
             var_nov.index.names = ['Sample', 'Variant']
             exp_nov = exp_nov.append(var_nov)
         exp_nov = exp_nov[exp_nov.Conf == 2]
-        exp_nov.to_excel('novel_variants.xlsx')
         return(exp_nov)
 
     def getBamStat(self, bamfile, chrom, start, stop):

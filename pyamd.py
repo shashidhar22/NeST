@@ -261,7 +261,6 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_af[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_af['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
     exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
     exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-    exp_af.to_excel('{0}/Before_drop_af.xlsx'.format(out_dir))
     exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym'], axis=1, inplace=True)
     af_mask = exp_af.isnull()

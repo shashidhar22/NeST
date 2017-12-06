@@ -5,14 +5,23 @@ import logging
 import argparse
 import subprocess
 
+logger = logging.getLogger('Trimmer')
+logger.setLevel(logging.ERROR)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
 
 class QualCheck:
 
-    def __init__(self, bbduk_path, adp_path, out_path):
+    def __init__(self, bbduk_path, adp_path, out_path, java):
         self.bbduk_path = bbduk_path
         self.adp_path = adp_path
+        self.java = java
         self.out_path = '{0}/CleanedFastq'.format(out_path)
-        self.logger = logging.getLogger('Mars.sample_runner.BBDuk')
+
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 
@@ -37,5 +46,5 @@ class QualCheck:
         bbrun = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bbrun.wait()
         if bbrun.returncode != 0:
-            self.logger.error('BBDuk failed running the following command : {0}'.format(' '.join(bbcmd)))
+            logger.error('BBDuk failed running the following command : {0}'.format(' '.join(bbcmd)))
         return(orone_path, ortwo_path, bbrun.returncode)

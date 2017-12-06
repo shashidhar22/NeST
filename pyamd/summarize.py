@@ -3,21 +3,30 @@ import re
 import sys
 import vcf
 import glob
-import math
+import warnings
+import numpy as np
 import pandas as pd
-import pysam
 import logging
-from pyamd.parsers import Fasta
+import pysam
 from pyamd.readers import Bed
-from pyamd.annotater import Annotate
 import matplotlib
 matplotlib.use('Agg')
-import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 import seaborn as sns
-
+print('matplotlib', matplotlib.__version__)
+print('numpy', np.__version__)
+print('pysam', pysam.__version__)
+print('seaborn', sns.__version__)
+print('pandas', pd.__version__)
 warnings.filterwarnings('ignore')
+
+logger = logging.getLogger('Summarize')
+logger.setLevel(logging.ERROR)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 class Summary:
 
@@ -26,10 +35,10 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
-        self.logger = logging.getLogger('Mars.sample_runner.summarize')
+
 
     def getVarOfInt(self):
-        voi_table = pd.read_excel(self.voi, sheetname=1, parse_cols="B:C")
+        voi_table = pd.read_excel(self.voi)
         voi_df = voi_table['SNP'].str.extract('(?P<RefAA>[a-zA-Z]?)(?P<AAPos>[0-9]*)(?P<AltAA>[a-zA-Z]?)', expand=True)
         voi_df['Gene'] = voi_table['Gene']
         voi_df['SNP'] = voi_table['SNP']
@@ -72,6 +81,44 @@ class Summary:
             exp_pass[samples] = gene_pass
         return(exp_pass)
 
+    def getIntronTables(self):
+        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
+        vcf_df = pd.DataFrame()
+        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [], 'CodonPos': [],
+                    'AltCodon': [], 'RefCodon': [], 'RefAA': [], 'AltAA': [], 'DP': [],
+                    'AF': [], 'Conf': [], 'Exon': []}
+        vcf_var = list()
+        vcf_sample = list()
+        vcf_gene = list()
+        for files in vcf_files:
+            vcf_file = vcf.Reader(filename=files)
+            barcode = re.compile('_[ATGC]*-[ATGC]*')
+            sample = barcode.split(vcf_file.samples[0])[0]
+            for var in vcf_file:
+                if var.INFO['ExonNumber'][0] == 'Intron':
+                    vcf_dict['Gene'].append(var.CHROM)
+                    vcf_dict['Pos'].append(var.POS)
+                    vcf_dict['Qual'].append(var.QUAL)
+                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Exon'].append('Intron')
+                    vcf_dict['CodonPos'].append(np.nan)
+                    vcf_dict['RefCodon'].append('NA')
+                    vcf_dict['AltCodon'].append('NA')
+                    vcf_dict['RefAA'].append('NA')
+                    vcf_dict['AltAA'].append('NA')
+                    vcf_dict['DP'].append(var.INFO['DP'])
+                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0])*100)
+                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_gene.append(var.CHROM)
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.REF, var.POS, str(var.ALT[0])))
+                    vcf_sample.append(sample)
+        vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
+        vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
+        vcf_df.index.names = ['Sample', 'Variant']
+        return(vcf_df)
+
+
     def getVarTables(self):
         voi_table = self.getVarOfInt()
         vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
@@ -81,6 +128,7 @@ class Summary:
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
+        var_sample = list()
         voi_df = self.getVarOfInt()
         for files in vcf_files:
             vcf_file = vcf.Reader(filename=files)
@@ -88,30 +136,45 @@ class Summary:
             sample = barcode.split(vcf_file.samples[0])[0]
             count = 0
             for var in vcf_file:
+
                 if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
-                vcf_dict['Gene'].append(var.CHROM)
-                vcf_dict['Pos'].append(var.POS)
-                vcf_dict['Qual'].append(var.QUAL)
-                vcf_dict['Ref'].append(var.REF)
-                vcf_dict['Alt'].append(str(var.ALT[0]))
-                vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
-                vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
-                vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
-                vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
-                vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
-                vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
-                vcf_dict['DP'].append(var.INFO['DP'])
-                vcf_dict['AF'].append(float(var.INFO['AlFreq'][0]) * 100)
-                vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
-                vcf_gene.append(var.CHROM)
-                vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
-                vcf_sample.append(sample)
-                #count += 1
+                if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
+                    index = 0
+                    for pos in range(len(vcf_var)):
+                        if sample == vcf_sample[pos] and '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) == vcf_var[pos]:
+                            index = pos
+                    vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF)
+                    vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0]))
+                else:
+                    vcf_dict['Gene'].append(var.CHROM)
+                    vcf_dict['Pos'].append(var.POS)
+                    vcf_dict['Qual'].append(var.QUAL)
+                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
+                    vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
+                    vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
+                    vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
+                    vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
+                    vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
+                    vcf_dict['DP'].append(var.INFO['DP'])
+                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0]) * 100)
+                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_gene.append(var.CHROM)
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
+                    vcf_sample.append(sample)
+                    if var.INFO['DP'] > 0:
+                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    else:
+                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    #count += 1
+
+
             if count == 0:
-                self.logger.info('No variants found; adding ref calls to dataframe')
+                logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Gene'].append(rec.Gene)
                     vcf_dict['Pos'].append(np.nan)
@@ -125,14 +188,15 @@ class Summary:
                     vcf_dict['RefAA'].append(rec.RefAA)
                     vcf_dict['AltAA'].append(rec.AltAA)
                     vcf_dict['DP'].append(0)
-                    vcf_dict['AF'].append(0)
+                    vcf_dict['AF'].append(np.nan)
                     vcf_dict['Conf'].append(2)
+                    #print('{0}{1}{2}'.format(var.group('RefAA'), var.group('AAPos'), var.group('RefAA')))
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
+
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
-        vcf_df.to_excel('Varcalls_table.xlsx')
         return(vcf_df)
 
     def getRepSnps(self):
@@ -150,6 +214,16 @@ class Summary:
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
             #print(var_voi.head())
+        exp_voi['FinalCall'] = exp_voi['SNP']
+        for index, series in exp_voi.iterrows():
+            #print(exp_voi.at[index, 'FinalCall'])
+            if pd.isnull(series['DP']):
+                exp_voi.at[index, 'FinalCall'] = 'WT'
+            elif pd.isnull(series['Alt']):
+                var_reg = re.match(r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])', series['SNP'])
+                exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos'))
+                #print('{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos')))
+                #print(series['FinalCall'])
         return(exp_voi)
 
     def getNovSnps(self):
@@ -166,7 +240,6 @@ class Summary:
             var_nov.index.names = ['Sample', 'Variant']
             exp_nov = exp_nov.append(var_nov)
         exp_nov = exp_nov[exp_nov.Conf == 2]
-        exp_nov.to_excel('novel_variants.xlsx')
         return(exp_nov)
 
     def getBamStat(self, bamfile, chrom, start, stop):
@@ -187,15 +260,20 @@ class Summary:
             if gene == records.chrom:
                 bed_list += [val for val in range(records.start, records.stop+1)]
         bed_list = [bed_list[ind:ind+3] for ind in range(0, len(bed_list),3)]
-        return(bed_list[int(aapos)-1])
+        try:
+            return(bed_list[int(aapos)-1])
+        except ValueError:
+            return(np.nan)
 
     def getDepthStats(self, var_df):
         depth_list = list()
         for row, value in var_df.iterrows():
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
             nuc_pos = self.getNucPos(value.Gene_y, value.AAPos)
+            if nuc_pos == np.nan:
+                nuc_pos = [value.Pos -1, value.Pos + 1]
             depth = self.getBamStat(bamfile, value.Gene_y, nuc_pos[0], nuc_pos[1])
-            depth_list.append(np.log10(depth))
+            depth_list.append(depth)            #np.log10(depth+1))
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
 
@@ -204,6 +282,9 @@ class Summary:
         for row, value in var_df.iterrows():
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
             nuc_pos = self.getNucPos(value.Gene, value.CodonPos)
+            if nuc_pos == np.nan:
+                nuc_pos = [value.Pos -1, value.Pos + 1]
+
             depth = self.getBamStat(bamfile, value.Gene, nuc_pos[0], nuc_pos[1])
             depth_list.append(depth)
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
@@ -255,16 +336,16 @@ class Summary:
         sns.set()
         sns.set_style('whitegrid')
         fig, ax = plt.subplots()
-        fig.set_size_inches(24, 24)
-        cbar_ax = fig.add_axes([.92, .3, .02, .4])
+        fig.set_size_inches(len(data_frame.columns.tolist()), 25)
+        #cbar_ax = fig.add_axes([.92, .3, .02, .4])
         if 'af' in title:
             heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0, vmax=100.0,
-                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                    mask=mask, square=True, linecolor="black")
+                                    cmap="Blues",  cbar=False, annot=True,
+                                    fmt=".0f", mask=mask, linecolor="black")
         else:
             heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
-                                    cmap="Blues", ax=ax, cbar_ax=cbar_ax,
-                                    mask=mask, square=True, linecolor="black")
+                                    cmap="Blues", cbar=False, annot=True,
+                                    fmt=".0f", mask=mask, linecolor="black")
         fig_dp = heatmap_dp.get_figure()
         fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
         return
@@ -273,16 +354,17 @@ class Summary:
         sns.set(font_scale=2)
         sns.set_style('whitegrid')
         plt.figure(figsize=(20, 20))
-        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=True), size=15, color='black')
+        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=float), size=15, color='black')
         plots = stripplot.get_figure()
         plots.savefig('{0}/{1}_frequency.png'.format(self.out_path, title))
 
 
     def getHeatmap(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
         #Create masks for heatmap
+        sns.set(font_scale=0.5)
         dp_voi_mask = voi_dp.isnull()
         af_voi_mask = voi_af.isnull()
-        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask)
+        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask )
         self.plotHeatMap(voi_dp, 'voi_alfreq', af_voi_mask)
         self.plotCountPlot(voi_af, 'voi')
         return

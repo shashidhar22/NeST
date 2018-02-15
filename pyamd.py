@@ -16,14 +16,13 @@ from pyamd.alignment import Bowtie
 from pyamd.alignment import BBMap
 from pyamd.alignment import Snap
 from pyamd.samtools import Samtools
-from pyamd.reader import Reader
 from pyamd.gatk import GenAnTK
 from pyamd.gatk import Picard
-from pyamd.annotater import Annotate
+#from pyamd.annotater import Annotate
 from pyamd.kestrel import kes_runner
-from pyamd.filter import filterer
 from pyamd.summarize import Summary
 from pyamd.prepinputs import Prepper
+from pyamd.parsers.vcf import Vcf
 
 loggermain = logging.getLogger(__name__)
 loggermain.setLevel(logging.INFO)
@@ -197,17 +196,22 @@ def main(arguments):
         loggermain.debug('GATK HaplotypeCaller stats completed')
 
     #Filer  and annotate variant calls
-    loggermain.debug('Filetering low quality variants and merging GATK and Samtools calls')
-    merged_vcf = filterer(gvcf_path, vcf_path, sam_name, out_path)
     loggermain.debug('Annotating variants')
-    annotate = Annotate(out_path)
-    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged')
-    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
-    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
-    summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    var_sum = summary.getVarStats(merged_vcf)
-    loggermain.info('Finished analyzing sample : {8} \n Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
-                        var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7], sam_name))
+    annotate = Vcf.Annotate()
+    gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path)
+    vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path)
+    loggermain.debug('Filetering low quality variants and merging GATK and Samtools calls')
+    gvcf_file = Vcf.Reader(gvcf_path)
+    svcf_file = Vcf.Reader(vcf_path)
+    merge_vcf = Vcf.Merge(gvcf_file, svcf_file)
+    merged_vcf = merge_vcf.merge(out_path)
+#    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged'7)
+#    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
+#    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
+    #summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    #var_sum = summary.getVarStats(merged_vcf)
+    #loggermain.info('Finished analyzing sample : {8} \n Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
+    #                    var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7], sam_name))
     return(merged_vcf, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
@@ -309,6 +313,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
 
     #print(exp_intron.index)
     #exp_intron.reset_index(level=1)
+    print(exp_intron.head())
     exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
     #exp_intron['']
     exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])

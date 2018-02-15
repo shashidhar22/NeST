@@ -1,23 +1,21 @@
 import os
 import re
 import sys
-import vcf
+#import vcf
 import glob
 import warnings
 import numpy as np
 import pandas as pd
 import logging
 import pysam
-from pyamd.readers import Bed
+import pathlib
+from pyamd.parsers.vcf import Vcf
+from pyamd.parsers.bed import Bed
+#from pyamd.readers import Bed
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
-print('matplotlib', matplotlib.__version__)
-print('numpy', np.__version__)
-print('pysam', pysam.__version__)
-print('seaborn', sns.__version__)
-print('pandas', pd.__version__)
 warnings.filterwarnings('ignore')
 
 logger = logging.getLogger('Summarize')
@@ -36,22 +34,23 @@ class Summary:
         self.voi = voi
         self.out_path = out_path
 
-
     def getVarOfInt(self):
-        voi_table = pd.read_excel(self.voi)
-        voi_df = voi_table['SNP'].str.extract('(?P<RefAA>[a-zA-Z]?)(?P<AAPos>[0-9]*)(?P<AltAA>[a-zA-Z]?)', expand=True)
-        voi_df['Gene'] = voi_table['Gene']
-        voi_df['SNP'] = voi_table['SNP']
-        voi_df['Variant'] = voi_df['Gene'] + ':' + voi_df['SNP']
-        voi_df.set_index(['Variant'], inplace=True)
-        return(voi_df)
-
+        if pathlib.Path(self.voi).suffix == '.xlsx':
+            voi_table = pd.read_excel(self.voi)
+        elif pathlib.Path(self.voi).suffix == '.csv':
+            voi_table = pd.read_table(self.voi, sep=',')
+        elif pathlib.Path(self.voi).suffix == '.tsv':
+            voi_table = pd.read_table(self.voi, sep='\t')
+        voi_table['Variant'] = voi_table['Gene'] + ':' + voi_table['RefAA'] + voi_table['AAPos'].astype(str) + voi_table['AltAA']
+        voi_table['SNP'] = voi_table['RefAA']+voi_table['AAPos'].astype(str) + voi_table['AltAA']
+        voi_table.set_index(['Variant'], inplace=True)
+        return(voi_table)
 
     def getGeneStats(self, bam_path):
         bam_file = pysam.AlignmentFile(bam_path, 'rb')
         bed = Bed(self.bed)
         gene_stats = dict()
-        for bed_rec in bed.read():
+        for bed_rec in bed.getExonTable():
             try:
                 gene_stats[bed_rec.chrom] += list(np.sum(bam_file.count_coverage(bed_rec.chrom, bed_rec.start, bed_rec.stop+1), axis=0))
             except KeyError:
@@ -84,34 +83,37 @@ class Summary:
     def getIntronTables(self):
         vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
         vcf_df = pd.DataFrame()
-        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [], 'CodonPos': [],
+        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [], 'AAPos': [],
                     'AltCodon': [], 'RefCodon': [], 'RefAA': [], 'AltAA': [], 'DP': [],
-                    'AF': [], 'Conf': [], 'Exon': []}
+                    'AF': [], 'Conf': [], 'Exon': [], 'Chrom': []}
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
         for files in vcf_files:
-            vcf_file = vcf.Reader(filename=files)
+            vcf = Vcf.Reader(files)
+            vcf_file = vcf.read()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
-            sample = barcode.split(vcf_file.samples[0])[0]
+            sample = barcode.split(vcf.samples[0])[0]
             for var in vcf_file:
-                if var.INFO['ExonNumber'][0] == 'Intron':
+                #print(var.INFO)
+                if var.INFO['Exon'][0] == 'Intron':
+                    vcf_dict['Chrom'].append(var.CHROM)
                     vcf_dict['Gene'].append(var.CHROM)
                     vcf_dict['Pos'].append(var.POS)
                     vcf_dict['Qual'].append(var.QUAL)
-                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Ref'].append(var.REF[0])
                     vcf_dict['Alt'].append(str(var.ALT[0]))
                     vcf_dict['Exon'].append('Intron')
-                    vcf_dict['CodonPos'].append(np.nan)
+                    vcf_dict['AAPos'].append(np.nan)
                     vcf_dict['RefCodon'].append('NA')
                     vcf_dict['AltCodon'].append('NA')
                     vcf_dict['RefAA'].append('NA')
                     vcf_dict['AltAA'].append('NA')
-                    vcf_dict['DP'].append(var.INFO['DP'])
-                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0])*100)
-                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_dict['DP'].append(var.INFO['DP'][0])
+                    vcf_dict['AF'].append(float(var.INFO['Freq'][0])*100)
+                    vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
                     vcf_gene.append(var.CHROM)
-                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.REF, var.POS, str(var.ALT[0])))
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.REF[0], var.POS, str(var.ALT[0])))
                     vcf_sample.append(sample)
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
@@ -123,66 +125,73 @@ class Summary:
         voi_table = self.getVarOfInt()
         vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
         vcf_df = pd.DataFrame()
-        vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'CodonPos' : [], 'RefCodon' : [],
-                    'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : []}
+        vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'AAPos' : [], 'RefCodon' : [],
+                    'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : [],
+                    'Chrom' : []}
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
         var_sample = list()
         voi_df = self.getVarOfInt()
+        #print(voi_df)
         for files in vcf_files:
-            vcf_file = vcf.Reader(filename=files)
+            vcf = Vcf.Reader(files)
+            vcf_file = vcf.read()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
-            sample = barcode.split(vcf_file.samples[0])[0]
+            sample = barcode.split(vcf.samples[0])[0]
             count = 0
             for var in vcf_file:
-
-                if var.CHROM == 'NA' or var.INFO['RefAA'][0] == 'NA' or var.INFO['CodonPos'][0] == 'NA' or var.INFO['AltAA'][0] == 'NA':
+                #print(var.CHROM, var.POS)
+                #print(var.Samples)
+                #print(var.INFO)
+                if var.CHROM == 'NaN' or var.INFO['RefAA'][0] == 'NA' or var.INFO['AAPos'][0] == 'NaN' or var.INFO['AltAA'][0] == 'NaN':
                     continue
-                if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
+                if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
-                if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
+                if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
                     index = 0
                     for pos in range(len(vcf_var)):
-                        if sample == vcf_sample[pos] and '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]) == vcf_var[pos]:
+                        if sample == vcf_sample[pos] and '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]) == vcf_var[pos]:
                             index = pos
-                    vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF)
+                    vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF[0])
                     vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0]))
                 else:
-                    vcf_dict['Gene'].append(var.CHROM)
+                    vcf_dict['Chrom'].append(var.CHROM)
+                    vcf_dict['Gene'].append(var.INFO['Gene'][0])
                     vcf_dict['Pos'].append(var.POS)
                     vcf_dict['Qual'].append(var.QUAL)
-                    vcf_dict['Ref'].append(var.REF)
+                    vcf_dict['Ref'].append(var.REF[0])
                     vcf_dict['Alt'].append(str(var.ALT[0]))
-                    vcf_dict['Exon'].append(var.INFO['ExonNumber'][0])
-                    vcf_dict['CodonPos'].append(int(var.INFO['CodonPos'][0]))
+                    vcf_dict['Exon'].append(var.INFO['Exon'][0])
+                    vcf_dict['AAPos'].append(int(var.INFO['AAPos'][0]))
                     vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
                     vcf_dict['AltCodon'].append(var.INFO['AltCodon'][0])
                     vcf_dict['RefAA'].append(var.INFO['RefAA'][0])
                     vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
-                    vcf_dict['DP'].append(var.INFO['DP'])
-                    vcf_dict['AF'].append(float(var.INFO['AlFreq'][0]) * 100)
-                    vcf_dict['Conf'].append(int(var.INFO['Found'][0]))
+                    vcf_dict['DP'].append(var.INFO['DP'][0])
+                    vcf_dict['AF'].append(float(var.INFO['Freq'][0]) * 100)
+                    vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
                     vcf_gene.append(var.CHROM)
-                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0]))
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]))
                     vcf_sample.append(sample)
-                    if var.INFO['DP'] > 0:
-                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                    if var.INFO['DP'][0] > 0:
+                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
                     else:
-                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['CodonPos'][0], var.INFO['AltAA'][0], sample))
+                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
                     #count += 1
 
 
             if count == 0:
                 logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
+                    vcf_dict['Chrom'].append(rec.Chrom)
                     vcf_dict['Gene'].append(rec.Gene)
                     vcf_dict['Pos'].append(np.nan)
                     vcf_dict['Qual'].append(np.nan)
                     vcf_dict['Ref'].append(np.nan)
                     vcf_dict['Alt'].append(np.nan)
                     vcf_dict['Exon'].append(np.nan)
-                    vcf_dict['CodonPos'].append(rec.AAPos)
+                    vcf_dict['AAPos'].append(rec.AAPos)
                     vcf_dict['RefCodon'].append(np.nan)
                     vcf_dict['AltCodon'].append(np.nan)
                     vcf_dict['RefAA'].append(rec.RefAA)
@@ -197,6 +206,7 @@ class Summary:
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
+        #print(vcf_df.head())
         return(vcf_df)
 
     def getRepSnps(self):
@@ -255,9 +265,10 @@ class Summary:
 
     def getNucPos(self, gene, aapos):
         bed = Bed(self.bed)
+        exon_table = bed.getExonTable()
         bed_list = list()
-        for records in bed.read():
-            if gene == records.chrom:
+        for records in exon_table:
+            if gene == records.gene:
                 bed_list += [val for val in range(records.start, records.stop+1)]
         bed_list = [bed_list[ind:ind+3] for ind in range(0, len(bed_list),3)]
         try:
@@ -269,10 +280,10 @@ class Summary:
         depth_list = list()
         for row, value in var_df.iterrows():
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
-            nuc_pos = self.getNucPos(value.Gene_y, value.AAPos)
+            nuc_pos = self.getNucPos(value.Gene_y, value.AAPos_y)
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]
-            depth = self.getBamStat(bamfile, value.Gene_y, nuc_pos[0], nuc_pos[1])
+            depth = self.getBamStat(bamfile, value.Chrom_y, nuc_pos[0], nuc_pos[1])
             depth_list.append(depth)            #np.log10(depth+1))
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
@@ -281,11 +292,10 @@ class Summary:
         depth_list = list()
         for row, value in var_df.iterrows():
             bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
-            nuc_pos = self.getNucPos(value.Gene, value.CodonPos)
+            nuc_pos = self.getNucPos(value.Gene, value.AAPos)
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]
-
-            depth = self.getBamStat(bamfile, value.Gene, nuc_pos[0], nuc_pos[1])
+            depth = self.getBamStat(bamfile, value.Chrom, nuc_pos[0], nuc_pos[1])
             depth_list.append(depth)
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
@@ -304,17 +314,17 @@ class Summary:
         transversion = ['AC', 'AT', 'CA', 'CG', 'GC', 'GT', 'TA', 'TG']
         for variant in vcf_file:
             total += 1
-            if variant.INFO['ExonNumber'][0] == 'Intron':
+            if variant.INFO['Exon'][0] == 'Intron':
                 intronic += 1
             else:
                 exonic += 1
-                if variant.INFO['Found'][0] == '2':
+                if variant.INFO['Conf'][0] == '2':
                     verfied += 1
                 if variant.INFO['RefAA'] == variant.INFO['AltAA']:
                     syn += 1
                 else:
                     nsyn += 1
-                if '{0}{1}'.format(variant.REF, str(variant.ALT[0])) in trasition:
+                if '{0}{1}'.format(variant.REF[0], str(variant.ALT[0])) in trasition:
                     trans += 1
                 else:
                     tranv += 1
@@ -392,4 +402,4 @@ if __name__ == '__main__':
     summarizer.plotHeatMap(exp_nov_af, 'nov_af', exp_nov_af_mask)
     depth_pass = summarizer.checkDepthPass()
     for samples in depth_pass:
-        print(samples, depth_pass[samples])
+        #print(samples, depth_pass[samples])

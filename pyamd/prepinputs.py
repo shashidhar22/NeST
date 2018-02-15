@@ -4,7 +4,7 @@ import re
 import glob
 import logging
 from collections import namedtuple
-from pyamd.readers import Fastq
+from pyamd.parsers.fastq import Fastq
 from itertools import groupby
 
 logger = logging.getLogger('Prepper')

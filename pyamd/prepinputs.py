@@ -123,7 +123,7 @@ class Prepper:
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
-            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired', 'numreads'])
+            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired'])
             rec = next(reader.read())
             identifier = Identifier(rec)
             metric = Metrics(fastq)
@@ -135,7 +135,7 @@ class Prepper:
             isENA = identifier.isENA()
             seqType = ''
             libType = ''
-            sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004') #|L001|L002|L003|L004')
+            sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
             sample = sample_regex.split(os.path.basename(fastq))[0]
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
@@ -186,16 +186,16 @@ class Prepper:
 
             try:
                 paired = True
-                numreads = self.getReadNumbers(experiment[sample].files[0])
-                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0],fastq], libType, paired, numreads)
+                #numreads = self.getReadNumbers(experiment[sample].files[0])
+                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0],fastq], libType, paired)
             except (KeyError, AttributeError):
-                numreads = self.getReadNumbers(fastq)
-                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired, numreads)
+                #numreads = self.getReadNumbers(fastq)
+                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
         logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
         logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         for sample, values in experiment.items():
-            logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5} ; Total number of reads: {6}'.format(
-                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired, values.numreads))
+            logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
+                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
         return(experiment)
 
 if __name__ == '__main__':

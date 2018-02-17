@@ -78,7 +78,7 @@ class Bed:
         Annotations = namedtuple('Table', ['chrom', 'gene', 'exon', 'start',
                                         'stop', 'strand', 'uidStart',
                                         'uidStop', 'codonStart', 'codonStop',
-                                        'length'])
+                                        'length', 'blockSizes'])
         for records in reader:
             exon_count = 1
             for estart, length in zip(records.blockStarts, records.blockSizes):
@@ -92,9 +92,10 @@ class Bed:
                 uidStop = self.uids[chrom] + stop
                 codonStart = records.thickStart
                 codonStop  = records.thickEnd
+                blockSize = records.blockSizes
                 annotation = Annotations(chrom, gene, exon, start, stop, strand,
                                 uidStart, uidStop, codonStart, codonStop,
-                                length)
+                                length, blockSize)
                 exon_count += 1
                 yield annotation
 

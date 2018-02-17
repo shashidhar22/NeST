@@ -52,6 +52,7 @@ class Identifier:
             return(False)
 
     def isSraNew(self):
+        #@SRR1873770.5 DH1DQQN1:437:HACT2ADXX:1:2204:8270:58140 length=150
         header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -134,7 +135,7 @@ class Prepper:
             isENA = identifier.isENA()
             seqType = ''
             libType = ''
-            sample_regex = re.compile('_r1|_r2|r1|r2|_?l001|_?l002|l001|l002|l003|l004|_R1|_R2|R1|R2|_?L001|_?L002|_?L003|_?L004') #|L001|L002|L003|L004')
+            sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004') #|L001|L002|L003|L004')
             sample = sample_regex.split(os.path.basename(fastq))[0]
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
@@ -151,14 +152,14 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Short'
             elif isSraOld:
-                paired_regex = re.compile('@\w+\.?\w? \w+-\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+                paired_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
             elif isSraNew:
-                paired_regex = re.compile('@\w+\.?\w? \w+-\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+                paired_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'

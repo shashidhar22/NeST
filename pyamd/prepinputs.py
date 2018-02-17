@@ -44,7 +44,7 @@ class Identifier:
     def isSraOld(self):
         #@SRR037455.1 HWI-E4_6_30ACL:4:1:0:29 length=35
         #@SRR902931.1 HWI-ST1384:61:D1DJ4ACXX:8:1101:1240:2015 length=50
-        header_regex = re.compile('@\w+\.?\w? \w+-\w+:\d+:\d+:\d+:\d+ length=\d+')
+        header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
             return(True)
@@ -52,7 +52,7 @@ class Identifier:
             return(False)
 
     def isSraNew(self):
-        header_regex = re.compile('@\w+\.?\w? \w+-\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+        header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
             return(True)

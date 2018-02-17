@@ -925,6 +925,7 @@ class Vcf:
 
                     elif vcf_rec.UID > bed_rec.uidStop:
                         current_bed_rec = bed_rec.uidStart
+                        current_bed_chrom = bed_rec.chrom
                         cds_pos += bed_rec.length + 1
                         bed_rec = next(bed_reader)
                         # Fix added to account for MT chromsome and gene issue

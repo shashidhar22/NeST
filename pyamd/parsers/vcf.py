@@ -50,20 +50,27 @@ class Vcf:
         '''
         def __init__(self, vcf_path):
             self.vcf_path = os.path.abspath(vcf_path)
+            # Get header will return three values :
+            # 1. rec_fields : List of field names of the header line of VCF
+            # 2. samples : List of samples found in VCF file
+            # 3. vcf_reader : Iterator paused at the first record in the VCF
             self.rec_fields, self.samples, self.vcf_reader = self.getHeaders()
+
             if self.vcf_reader is None:
                 logger.error('Emtpy VCF file; Please check file : {0}'.format(
                                                                 self.vcf_path))
                 sys.exit()
+            # Append annotation fields to record fields list
             self.rec_fields.append('Samples')
             self.rec_fields.append('UID')
+
+            # Create a dictionary of info and format headers, along with number
+            # and type of value they store, for quick reference.
             self.info_dict = {info.id: [info.number, info.type] \
                                     for info in self.header['info']}
             self.format_dict = {formats.id : [formats.number, formats.type] \
                                     for formats in self.header['format']}
-            for headers in self.header['format']:
-                if headers.id == 'AD':
-                    self.gt = headers.number
+            # Generate UID for eac contig listed in the VCF
             self.getUid()
 
         def getHeaders(self):
@@ -94,10 +101,10 @@ class Vcf:
                     # ##INFO=<ID=ID,Number=number,Type=type,
                     # Description="description",Source="source",
                     # Version="version">
-                    elif re.match(('##INFO=<ID=\w+,Number=(\d+|A|R|G|\.),'
+                    elif re.match(('##INFO=<ID=[\w\.]+,Number=(\d+|A|R|G|\.),'
                             'Type=\w+,Description=".+"(,Source="\w+")?(,'
                             'Version="\w+")?>'), rec):
-                        info = re.match(('##INFO=<ID=(?P<ID>\w+),'
+                        info = re.match(('##INFO=<ID=(?P<ID>[\w\.]+),'
                             'Number=(?P<Number>(\d+|A|R|G|\.)),'
                             'Type=(?P<Type>\w+),'
                             'Description="(?P<Description>.+)"(,'
@@ -127,9 +134,10 @@ class Vcf:
 
                     # Catch Filter field headers
                     # ##FILTER=<ID=ID,Description="description">
-                    elif re.match('##FILTER=<ID=\w+,Description=".+">', rec):
+                    elif re.match('##FILTER=<ID=\w+\.?\w+,Description=".+">',
+                                    rec):
 
-                        filters = re.match(('##FILTER=<ID=(?P<ID>\w+),'
+                        filters = re.match(('##FILTER=<ID=(?P<ID>\w+\.?\w+),'
                             'Description="(?P<Description>.+)">'), rec)
                         filter_field = namedtuple('Filter', ['id',
                                                              'description'])
@@ -144,9 +152,10 @@ class Vcf:
                     # Catch format field headers
                     # ##FORMAT=<ID=ID,Number=number,Type=type,
                     # Description="description">
-                    elif re.match(('##FORMAT=<ID=\w+,Number=(\d+|A|R|G|\.),'
+                    elif re.match(('##FORMAT=<ID=\w+\.?\w?,'
+                            'Number=(\d+|A|R|G|\.),'
                             'Type=\w+,Description=".+">'), rec):
-                        formats = re.match(('##FORMAT=<ID=(?P<ID>\w+),'
+                        formats = re.match(('##FORMAT=<ID=(?P<ID>\w+\.?\w?),'
                             'Number=(?P<Number>(\d+|A|R|G|\.)),'
                             'Type=(?P<Type>\w+),'
                             'Description="(?P<Description>.+)">'), rec)
@@ -167,7 +176,7 @@ class Vcf:
                     # ##ALT=<ID=type,Description=description>
                     elif re.match(('##ALT=<ID=(DEL|INS|DUP|INV|CNV|DUP:TANDEM|,'
                             'DUP:ME|INS:ME|\*),Description=".+">'), rec):
-                        filters = re.match(('##ALT=<ID=(?P<ID>(\w+|\*)),'
+                        filters = re.match(('##ALT=<ID=(?P<ID>(\w+\[:\.]?\w?|\*)),'
                             'Description="(?P<Description>.+)">'), rec)
                         filter_field = namedtuple('Alt', ['id', 'description'])
                         filter_field.id = filters.group('ID')
@@ -232,92 +241,144 @@ class Vcf:
 
         def validateInfo(self, field, value, ref, alt):
             '''Validate Info header field and set values data structure as per
-            VCF 4.2 guidelines.'''
-            # Check how many genotypes are available for a genotype call
-            # self.gt contains the number value for gt header.
-            # if gt is set to R, the no. of genotypes equals no. of alleles
-            # if gt is set to A, the no. of genotypes equals no. of alt alleles
-            # if gt is a number, it indicates the no. of genotypes
-            gt = 3
+            VCF 4.2 guidelines. Check how many genotypes are available for a
+            genotype call:
+                If info number is 'A', the no. of values must be equal to no. of
+                alternate alleles.
+                If info number is 'R', the no.  of values must be equal to total
+                no. of alleles.
+                If info number is 'G', the no. of values must be equal to the
+                no. of genotypes. Set to 3 for diploid analysis.
+                If info number is '.', it is unbounded.
+                If info number is '0', it is a FLAG field.
+                If info is any other number it indicates the no. of values.'''
+            if len(ref) + len(alt) == 2:
+                gt = 3 #Temp fix, TODO: permanent way to determine ploidy
+            elif len(ref) + len(alt) == 3:
+                gt = 6
+            elif len(ref) + len(alt) == 4:
+                gt = 8
             info_number = self.info_dict[field][0]
             info_type = self.info_dict[field][1]
-            value = value.split(',')
-            # If info number is 'A', the no. of values must be equal to no. of
-            # alternate alleles
-            # If info number is 'R', the no.  of values must be equal to total
-            # no. of alleles
-            # If info number is 'G', the no. of values must be equal to the
-            # no. of genotypes
-            # If info number is '.', it is unbounded
-            # If info number is '0', it is a FLAG field
-            # If info is any other number it indicates the no. of values
-            if info_number == 'A' and len(value) != len(alt):
+            # Split by ',' to tokenize by info field separator
+            values = value.split(',')
+            if info_number == 'A' and len(values) != len(alt):
                 logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(value)) +
+                    '; Contains {0} entries'.format(len(values)) +
                     '; Should contian {0} entries'.format(len(alt)))
                 sys.exit()
-            elif info_number == 'R' and len(value) != len(ref) + len(alt):
+            elif info_number == 'R' and len(values) != len(ref) + len(alt):
                 logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entires'.format(len(value)) +
+                    '; Contains {0} entires'.format(len(values)) +
                     '; Should contain {0} entries'.format(len(ref)))
                 sys.exit()
-            elif info_number == 'G' and len(value) != gt:
+            elif info_number == 'G' and len(values) != gt:
                 logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(value)) +
+                    '; Contains {0} entries'.format(len(values)) +
                     '; Should contain {0} entries'.format(gt))
                 sys.exit()
             elif info_number == '.':
                 logger.warning('Info number unbounded')
-            elif info_number == '0' and (len(value) != 0 or
-                                        type(value[0]) != bool):
+            elif info_number == '0' and (len(values) != 0 or
+                                        type(values[0]) != bool):
                 logger.warning('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(value)) +
+                    '; Contains {0} entries'.format(len(values)) +
                     '; Should contain no entries')
                 sys.exit()
             elif info_number != 'R' and\
                 info_number != 'A' and\
                 info_number != 'G' and\
-                info_number != '.' and int(info_number) != len(value):
+                info_number != '.' and int(info_number) != len(values):
                 logger.info('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(value)) +
+                    '; Contains {0} entries'.format(len(values)) +
                     '; Should contain {0} entries'.format(info_number))
                 sys.exit()
             else:
                 logger.debug('Info number validated')
             # Type cast values based on header information
-            if info_type == 'Integer':
-                value = [int(val) if val != 'NaN' else None for val in value]
-            elif info_type == 'Float':
-                value = [float(val) if val != 'NaN' else None for val in value]
-            elif info_type == 'Flag':
-                value = [True]
+            try:
+                # If info_number is in R,A,G,. groups, the values are stored as
+                # a list of lists to maintain value consistency
+                if info_number in ['R','A','G', '.']:
+                    if info_type == 'Integer':
+                        value = [[
+                        int(val) if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                    elif info_type == 'Float':
+                        value = [[
+                        float(val) if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                    elif info_type == 'String':
+                        value = [[
+                        val if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                elif int(info_number) > 1:
+                    # If info_number is an integer >1, the values are stored as a
+                    # list of lists to maintain value consistency
+                    if info_type == 'Integer':
+                        value = [[
+                        int(val) if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                    elif info_type == 'Float':
+                        value = [[
+                        float(val) if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                    elif info_type == 'String':
+                        value = [[
+                        val if val != 'NaN' else None for val in\
+                         value.split(',')]]
+                # If info_number is 1, type cast and store value in a list
+                elif int(info_number) == 1:
+                    if info_type == 'Integer':
+                        if value == 'NaN':
+                            value = [None]
+                        else:
+                            value = [int(value)]
+                    elif info_type == 'Float':
+                        if value == 'NaN':
+                            value = [None]
+                        else:
+                            value = [float(value)]
+                    elif info_type == 'String':
+                        if value == 'NaN':
+                            value = [None]
+                        else:
+                            value = [value]
+                # If info_number is 0, Store False
+                elif int(info_number) == '0':
+                    value = [True]
+            except (ValueError, TypeError):
+                logger.error('Value specified does not conform to any Info'
+                            'classification')
+                logger.error('Field : {0} ; Value : {1}'.format(field, value))
+                sys.exit()
             return(value)
 
         def validateFormat(self, field, value, ref, alt):
             '''Validate Format header field and set values data structure as per
-            VCF 4.2 guidelines.'''
-            # Check how many genotypes are available for a genotype call
-            # self.gt contains the number value for gt header.
-            # if gt is set to R, the no. of genotypes equals no. of alleles
-            # if gt is set to A, the no. of genotypes equals no. of alt alleles
-            # if gt is a number, it indicates the no. of genotypes
-            gt = 3
+            VCF 4.2 guidelines.
+            Check how many genotypes are available for a genotype call
+            self.gt contains the number value for gt header.
+            1. If info number is 'A', the no. of values must be equal to no. of
+               alternate alleles.
+            2. If info number is 'R', the no.  of values must be equal to total
+               no. of alleles.
+            3. If info number is 'G', the no. of values must be equal to the
+               no. of genotypes.
+            4. If info number is '.', it is unbounded
+            5. If info number is '0', it is a FLAG field
+            6. If info is any other number it indicates the no. of values'''
+
+            if len(ref) + len(alt) == 2:
+                gt = 3 #Temp fix, TODO: permanent way to determine ploidy
+            elif len(ref) + len(alt) == 3:
+                gt = 6
+            elif len(ref) + len(alt) == 4:
+                gt = 8
+            #Identify number and type of value for format field
             format_number = self.format_dict[field][0]
             format_type = self.format_dict[field][1]
-            #print(field, value)
-            #if field != 'PL':
-            #    value = value.split(',')
-            #else:
-            #    value = value.split(';')
-            # If info number is 'A', the no. of values must be equal to no. of
-            # alternate alleles
-            # If info number is 'R', the no.  of values must be equal to total
-            # no. of alleles
-            # If info number is 'G', the no. of values must be equal to the
-            # no. of genotypes
-            # If info number is '.', it is unbounded
-            # If info number is '0', it is a FLAG field
-            # If info is any other number it indicates the no. of values
+            # Split by ',' to tokenize by info field separator
             values = value.split(',')
             if format_number == 'A' and len(values) != len(alt):
                 logger.error('Illegal FORMAT format for {0}'.format(field) +
@@ -354,6 +415,8 @@ class Vcf:
             else:
                 logger.debug('Format number validated')
             try:
+                # If format_number is in R,A,G,. groups, the values are stored as
+                # a list of lists to maintain value consistency
                 if format_number in ['R','A','G', '.']:
                     if format_type == 'Integer':
                         value = [[
@@ -367,6 +430,8 @@ class Vcf:
                         value = [[
                         val if val != 'NaN' else None for val in\
                          value.split(',')]]
+                # If format_number is an integer >1, the values are stored as a
+                # list of lists to maintain value consistency
                 elif int(format_number) > 1:
                     if format_type == 'Integer':
                         value = [[
@@ -380,6 +445,7 @@ class Vcf:
                         value = [[
                         val if val != 'NaN' else None for val in\
                          value.split(',')]]
+                # If format_number is 1, type cast and store value in a list
                 elif int(format_number) == 1:
                     if format_type == 'Integer':
                         if value == 'NaN':
@@ -396,7 +462,13 @@ class Vcf:
                             value = [None]
                         else:
                             value = [value]
+                # If format_number is 0, Store False
+                elif int(format_number) == 0:
+                    value = [True]
             except ValueError:
+                logger.error('Value specified does not conform to any Format'
+                            'classification')
+                logger.error('Field : {0} ; Value : {1}'.format(field, value))
                 sys.exit()
             return(value)
 
@@ -407,7 +479,6 @@ class Vcf:
                 length = int(contigs.length)
                 order = 10**(int(math.log10(length)) + 1) * index
                 self.uids[contigs.id] = order
-
             return
 
         def parseRecords(self, vcf_rec):
@@ -429,6 +500,7 @@ class Vcf:
             record.QUAL = float(var_rec[5])
             record.FILTER = var_rec[6]
             sample_info = list()
+            # Get validated format values
             for samples, values in zip(self.samples, var_rec[9:]):
                 fields = ['sample'] + var_rec[8].split(':')
                 sample_information = OrderedDict()
@@ -438,37 +510,42 @@ class Vcf:
                                                                     value,
                                                                     record.REF,
                                                                     record.ALT)
+                logger.debug('Sample information')
+                logger.debug(sample_information)
                 sample_info.append(sample_information)
-
             record.Samples = sample_info
+            # Get validated info values
             information = OrderedDict()
             for info in var_rec[7].split(';'):
                 info = info.split('=')
                 information[info[0]] = self.validateInfo(info[0], info[1],
                                                          record.REF, record.ALT)
-            missing = set([keys.id for keys in self.header['info']]) -\
-                        set(information.keys())
+
+            # Get missing inforation fields
+            missing = list()
+            for keys in self.header['info']:
+                if keys.id in information.keys():
+                    continue
+                else:
+                    missing.append(keys.id)
             # If there are any missing info fields, populate with null
             for fields in missing:
                 value_range = self.info_dict[fields][0]
                 if value_range == 'R':
-                    value_range = len(records.REF) + len(records.ALT)
+                    information[fields] = [[None] * (len(record.REF) +\
+                                                    len(record.ALT))]
                 elif value_range == 'A':
-                    value_range = len(records.ALT)
-                elif value_range == '.':
-                    value_range = 1
-                    continue
+                    information[fields] = [[None] * len(record.ALT)]
+                elif value_range == 'G':
+                    information[fields] = [[None] * 3]
+                elif value_range == '.' or value_range == '1':
+                    information[fields] = [None]
+                elif int(value_range) > 1:
+                    information[fields] = [[None] * int(value_range)]
                 elif value_range == '0':
                     information[fields] = [False]
-                    value_range = 0
-                    continue
-                else:
-                    value_range = int(value_range)
-                for index in range(value_range):
-                    try:
-                        information[fields].append(None)
-                    except KeyError:
-                        information[fields] = [None]
+            logger.debug('Info field values')
+            logger.debug(information)
             record.INFO = information
 
             return(record)
@@ -685,18 +762,27 @@ class Vcf:
         def getAlFreq(self, vcf_rec):
             '''Calculate allele frequency based on allelic depth'''
             logger.debug('Calulating allele frequency')
-            if 'DP4' in vcf_rec.INFO:
-                logger.debug('Variant with DP4 notation')
-                #print(vcf_rec.INFO)
-                alt = sum(vcf_rec.INFO['DP4'][2:])
-                total = sum(vcf_rec.INFO['DP4'])
-                alfreq = alt/float(total)
-            else:
-                logger.debug('Variant with AD notation')
-                #print(vcf_rec.Samples[0])
-                alt = vcf_rec.Samples[0]['AD'][0][1]
-                total = sum(vcf_rec.Samples[0]['AD'][0])
-                alfreq = alt/float(total)
+            try:
+                if 'DP4' in vcf_rec.INFO:
+                    logger.debug('Variant with DP4 notation')
+                    #print(vcf_rec.INFO)
+                    alt = sum(vcf_rec.INFO['DP4'][0][2:])
+                    total = sum(vcf_rec.INFO['DP4'][0])
+                    alfreq = alt/float(total)
+                else:
+                    logger.debug('Variant with AD notation')
+                    #print(vcf_rec.Samples[0])
+                    alt = vcf_rec.Samples[0]['AD'][0][1]
+                    total = sum(vcf_rec.Samples[0]['AD'][0])
+                    alfreq = alt/float(total)
+            # Fix added for cases where AD is missing
+            # Instance found when GT == ./.
+            except KeyError:
+                logger.debug('Variant laccking allele split up')
+                if 'AF' in vcf_rec.INFO:
+                    alfreq = vcf_rec.INFO['AF'][0]
+                else:
+                    alfreq = None
             return(alfreq)
 
         def getAnnotation(self, bed_path, vcf_path, fasta_path, out_path):
@@ -775,11 +861,10 @@ class Vcf:
             vcf.info_dict['Gene'] = [1, 'String']
             #Write vcf headers
             vcf_writer.writeHeaders(vcf.header, vcf.rec_fields, vcf.samples)
-
+            #print('Annotating : {0}'.format(vcf_path))
             while True:
                 try:
                     if vcf_rec.UID in range(bed_rec.uidStart, bed_rec.uidStop):
-
                         var_cds = cds_pos + vcf_rec.UID - bed_rec.uidStart + 1
                         triplet, aa_pos, codon_pos, exon, gene =\
                                                         self.getTriplet(bed,
@@ -842,6 +927,15 @@ class Vcf:
                         current_bed_rec = bed_rec.uidStart
                         cds_pos += bed_rec.length + 1
                         bed_rec = next(bed_reader)
+                        # Fix added to account for MT chromsome and gene issue
+                        # Codon pos was not being reset when MT gene changed
+                        # TODO: Rethink strategy to handle such issues
+                        if (current_bed_rec > bed.uids[bed_rec.chrom] and
+                                                    bed_rec.chrom == 'MT'):
+                            cds_pos = 0
+                        # If magnitude of bed uid changed by an order,
+                        # it indicates a change of chromosome, hence reset
+                        # CDS pos
                         if current_bed_rec < bed.uids[bed_rec.chrom]:
                             cds_pos = 0
                     elif vcf_rec.UID < bed_rec.uidStart:
@@ -1369,7 +1463,7 @@ class Vcf:
 
         def writeRecords(self, records):
             rec = list()
-            print(records.Samples)
+            #print(records.Samples)
             rec.append('{0}'.format(records.CHROM))
             rec.append('{0}'.format(records.POS))
             rec.append('{0}'.format(records.UID))
@@ -1380,48 +1474,62 @@ class Vcf:
             rec.append(records.FILTER)
             info = list()
             for key, value in records.INFO.items():
+                #print(key,value)
+                # If values are absent, do not write value
                 if value == None or value[0] == None:
-                    info.append('{0}={1}'.format(key, 'NaN'))
-                elif len(value) > 1 and type(value[0]) == int:
+                    #info.append('{0}={1}'.format(key, 'NaN'))
+                    continue
+                elif type(value[0]) == list:
                     info.append('{0}={1}'.format(key,
-                                ','.join([str(val) for val in value])))
-                elif type(value[0]) == float or type(value[0]) == int:
-                    info.append('{0}={1}'.format(key,
-                                ','.join([str(val) for val in value])))
+                                ','.join([str(val) for val in value[0]])))
                 elif type(value[0]) == bool and value[0]:
                     info.append('{0}'.format(key))
                 elif type(value[0]) == bool and not value[0]:
                     continue
                 else:
-                    info.append('{0}={1}'.format(key, ','.join(value)))
+                    info.append('{0}={1}'.format(key, value[0]))
             rec.append(';'.join(info))
-            formats = list()
+            all_formats = list()
             #print(records.CHROM, records.POS)
             #print(records.Samples)
             for key in records.Samples[0]:
                 if key == 'sample':
                     continue
                 else:
-                    formats.append(key)
-            rec.append(':'.join(formats))
+                    all_formats.append(key)
+            #rec.append(':'.join(formats))
+            formats = list()
             for sample in records.Samples:
                 #1/1:0,41:41:99:1535,123,0
                 #1/1:1:0,41:0:41:4:99:9:1535,123,
                 sam_string = list()
-                for keys in formats:
+                for keys in all_formats:
                     #print(keys, sample[keys])
                     value = sample[keys]
-                    if type(value[0]) == list and len(value[0]) > 1 :
+                    if value[0] == None:
+                        continue
+                    elif type(value[0]) == list and None in value[0]:
+                        continue
+                    elif type(value[0]) == list and len(value[0]) == 1:
+                        sam_string.append(str(value[0][0]))
+                        if keys not in formats:
+                            formats.append(keys)
+                    elif type(value[0]) == list and len(value[0]) > 1 :
                         value = ','.join([
                         str(val) if val != None else 'NaN'for val in value[0]])
                         sam_string.append(value)
+                        if keys not in formats:
+                            formats.append(keys)
                     else:
                         if value[0] == None:
-                            sam_string.append('NaN')
+                            continue
                         else:
                             sam_string.append(str(value[0]))
+                            if keys not in formats:
+                                formats.append(keys)
                 #print(':'.join(formats))
                 #print(':'.join(sam_string))
+                rec.append(':'.join(formats))
                 rec.append(':'.join(sam_string))
             self.vcf_writer.write('{0}\n'.format('\t'.join(rec)))
 

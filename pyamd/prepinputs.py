@@ -59,6 +59,15 @@ class Identifier:
         else:
             return(False)
 
+    def isENA(self):
+        # ERR161234.14 14 length=100
+        header_regex = re.compile('@[\w\.]+ \d+ length=\d+')
+        match = re.fullmatch(header_regex, self.rec.header)
+        if match != None:
+            return(True)
+        else:
+            return(False)
+
     def isPacbio(self):
         #@m160113_152755_42135_c100906712550000001823199104291667_s1_p0/15/7044_26271
         header_regex = re.compile('@\w+/\d+/\d+_\d+')
@@ -154,6 +163,15 @@ class Prepper:
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
+
+            elif isENA:
+                paired_regex = re.compile('@[\w\.]+ \d+ length=\d+')
+                lib = re.findall(paired_regex, rec.header)[0]
+                paired = False
+                seqType = 'Illumina'
+                if metric.avgReadLen():
+                    libType = 'Short'
+
             elif isPac:
                 lib_regex = re.compile('@\w+_\d+_\d+_\w+')
                 lib = re.findall(lib_regex, rec.header)[0]
@@ -162,8 +180,8 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-
                 logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
+
             try:
                 paired = True
                 numreads = self.getReadNumbers(experiment[sample].files[0])

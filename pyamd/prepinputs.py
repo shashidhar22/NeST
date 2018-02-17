@@ -131,6 +131,7 @@ class Prepper:
             isSraOld = identifier.isSraOld()
             isSraNew = identifier.isSraNew()
             isPac = identifier.isPacbio()
+            isENA = identifier.isENA()
             seqType = ''
             libType = ''
             sample_regex = re.compile('_r1|_r2|r1|r2|_?l001|_?l002|l001|l002|l003|l004|_R1|_R2|R1|R2|_?L001|_?L002|_?L003|_?L004') #|L001|L002|L003|L004')

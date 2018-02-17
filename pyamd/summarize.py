@@ -144,7 +144,7 @@ class Summary:
                 #print(var.CHROM, var.POS)
                 #print(var.Samples)
                 #print(var.INFO)
-                if var.CHROM == 'NaN' or var.INFO['RefAA'][0] == 'NA' or var.INFO['AAPos'][0] == 'NaN' or var.INFO['AltAA'][0] == 'NaN':
+                if var.CHROM == None or var.INFO['RefAA'][0] == None or var.INFO['AAPos'][0] == None or var.INFO['AltAA'][0] == None:
                     continue
                 if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
                     count += 1
@@ -402,4 +402,4 @@ if __name__ == '__main__':
     summarizer.plotHeatMap(exp_nov_af, 'nov_af', exp_nov_af_mask)
     depth_pass = summarizer.checkDepthPass()
     for samples in depth_pass:
-        #print(samples, depth_pass[samples])
+        print(samples, depth_pass[samples])

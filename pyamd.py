@@ -8,6 +8,7 @@ import logging
 import argparse
 import subprocess
 import pandas as pd
+from pathlib import Path
 from itertools import repeat
 from multiprocessing import Pool
 from pyamd.bbduk import QualCheck
@@ -18,22 +19,14 @@ from pyamd.alignment import Snap
 from pyamd.samtools import Samtools
 from pyamd.gatk import GenAnTK
 from pyamd.gatk import Picard
+from pyamd.kestrel import KestrelVar
 #from pyamd.annotater import Annotate
 from pyamd.kestrel import kes_runner
 from pyamd.summarize import Summary
 from pyamd.prepinputs import Prepper
 from pyamd.parsers.vcf import Vcf
 
-loggermain = logging.getLogger(__name__)
-loggermain.setLevel(logging.INFO)
-chmain = logging.StreamHandler()
-chmain.setLevel(logging.ERROR)
-formattermain = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-chmain.setFormatter(formattermain)
-loggermain.addHandler(chmain)
-
 def main(arguments):
-
     bbduk_path = arguments[0]
     alinger_path = arguments[1]
     smt_path = arguments[2]
@@ -53,6 +46,8 @@ def main(arguments):
     voi_path = arguments[16]
     java_path = arguments[17]
     #Setup logging
+    #Get logger for main method
+    main_logger = logging.getLogger('Kookaburra.{0}'.format(sam_name))
     #Check if files are present
     #sam_name = config[samples].sample
     #rone_path = config[samples].files[0]
@@ -60,7 +55,7 @@ def main(arguments):
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
         os.mkdir(out_path)
-    #loggermain.info('Analyzing sample : {0}'.format(sam_name))
+    #main_logger.info('Analyzing sample : {0}'.format(sam_name))
 
 
     if not os.path.exists(rone_path):
@@ -82,125 +77,232 @@ def main(arguments):
     if not os.path.exists(out_path):
         os.mkdir(out_path)
 
+    #Create completion folder
+    completion_path = '{0}/completion'.format(out_path)
+    if not os.path.exists(completion_path):
+        os.mkdir(completion_path)
 
     #Call Bbduk
-    loggermain.debug('Running BBDuk')
-    bbduk = QualCheck(bbduk_path, adp_path, out_path, java_path)
-    rone_path, rtwo_path, bret = bbduk.bbduk(rone_path, rtwo_path)
+    main_logger.debug('Running BBDuk')
+    if os.path.exists('{0}/bbduk.rt'.format(completion_path)):
+        brone = os.path.splitext(os.path.basename(rone_path))[0]
+        brtwo = os.path.splitext(os.path.basename(rtwo_path))[0]
+        rone_path = '{0}/{1}/{2}_cleaned.fq'.format(out_path, 'CleanedFastq', brone)
+        rtwo_path = '{0}/{1}/{2}_cleaned.fq'.format(out_path, 'CleanedFastq', brtwo)
+        main_logger.debug('Skipping BBDuk')
+        bret = 0
+    else:
+        bbduk = QualCheck(bbduk_path, adp_path, out_path, java_path)
+        rone_path, rtwo_path, bret = bbduk.bbduk(rone_path, rtwo_path)
+        if bret == 0:
+            Path('{0}/bbduk.rt'.format(completion_path)).touch()
     if bret != 0:
         raise RuntimeError('BBDuk failed to complete; Exiting MARs')
     else:
-        loggermain.debug('BBDuk completed')
+        main_logger.debug('BBDuk completed')
 
     if aligner == 'bwa':
         #Call BWA
-        loggermain.debug('Running BWA')
-        bwa = Bwa(alinger_path, out_path, ref_path)
-        sam_path, mret = bwa.bwamem(rone_path, rtwo_path)
+        main_logger.debug('Running BWA')
+        if os.path.exists('{0}/align.rt'.format(completion_path)):
+            sam_path = '{0}/alignments/output.sam'.format(out_path)
+            mret = 0
+            main_logger.debug('Skipping BWA')
+        else:
+            bwa = Bwa(alinger_path, out_path, ref_path)
+            sam_path, mret = bwa.bwamem(rone_path, rtwo_path)
+            if mret == 0:
+                Path('{0}/align.rt'.format(completion_path)).touch()
         if mret != 0:
             raise RuntimeError('Bwa mem failed to complete; Exiting MARs')
         else:
-            loggermain.debug('BWA completed')
+            main_logger.debug('BWA completed')
 
     elif aligner == 'bowtie2':
         #Call Bowtie2
-        loggermain.debug('Running Bowtie2')
-        bowtie = Bowtie(alinger_path, out_path, ref_path)
-        sam_path, mret = bowtie.bowtie(rone_path, rtwo_path)
+        main_logger.debug('Running Bowtie2')
+        if os.path.exists('{0}/aling.rt'.format(completion_path)):
+            sam_path = '{0}/alignments/output.sam'.format(out_path)
+            mret = 0
+            main_logger.debug('Skipping Bowtie2')
+        else:
+            bowtie = Bowtie(alinger_path, out_path, ref_path)
+            sam_path, mret = bowtie.bowtie(rone_path, rtwo_path)
+            if mret == 0:
+                Path('{0}/align.rt'.format(completion_path)).touch()
         if mret != 0:
             raise RuntimeError('Bowtie2 failed to complete; Exiting MARs')
         else:
-            loggermain.debug('Bowtie2 completed')
+            main_logger.debug('Bowtie2 completed')
 
     elif aligner == 'snap':
         #Call Snap
-        loggermain.debug('Running Snap')
+        main_logger.debug('Running Snap')
         snap = Snap(alinger_path, out_path, ref_path)
         sam_path, mret = snap.snap(rone_path, rtwo_path)
         if mret != 0:
             raise RuntimeError('Snap failed to complete; Exiting MARs')
         else:
-            loggermain.debug('Snap completed')
+            main_logger.debug('Snap completed')
 
     elif aligner == 'bbmap':
         #Call Bbmap
-        loggermain.debug('Running BBMap')
-        bbmap = BBMap(alinger_path, out_path, ref_path)
-        sam_path, mret = bbmap.bbmap(rone_path, rtwo_path)
+        main_logger.debug('Running BBMap')
+        if os.path.exists('{0}/aling.rt'.format(completion_path)):
+            sam_path = '{0}/alignments/output.sam'.format(out_path)
+            mret = 0
+        else:
+            bbmap = BBMap(alinger_path, out_path, ref_path)
+            sam_path, mret = bbmap.bbmap(rone_path, rtwo_path)
+            if mret == 0:
+                Path('{0}/align.rt'.format(completion_path)).touch()
         if mret != 0:
             raise RuntimeError('BBMap failed to complete; Exitinign MARs')
         else:
-            loggermain.debug('BBMap completed')
+            main_logger.debug('BBMap completed')
 
 
     #Fix mate information, sort files and add read groups
     varengine = Samtools(smt_path, bft_path, out_path)
-    bam_path, fret = varengine.fixmate(sam_path)
-    loggermain.debug('Running Samtools fixmate')
+    if os.path.exists('{0}/fixmate.rt'.format(completion_path)):
+        base = os.path.splitext(os.path.basename(sam_path))[0]
+        bam_path = '{0}/{1}_fixmate.bam'.format(out_path, base)
+        fret = 0
+        main_logger.debug('Skipping fixmate')
+    else:
+        bam_path, fret = varengine.fixmate(sam_path)
+        if fret == 0:
+            Path('{0}/fixmate.rt'.format(completion_path)).touch()
+    main_logger.debug('Running Samtools fixmate')
     if fret != 0:
         raise RuntimeError('Samtools fixmate failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Samtools fixmate completed')
+        main_logger.debug('Samtools fixmate completed')
 
-    bam_path, sret = varengine.sort(sam_path)
-    loggermain.debug('Running Samtools sort')
+    if os.path.exists('{0}/sort.rt'.format(completion_path)):
+        base = os.path.splitext(os.path.basename(bam_path))[0]
+        bam_path = '{0}/{1}_sorted.bam'.format(out_path, base)
+        sret = 0
+        main_logger.debug('Skipping sort')
+    else:
+        bam_path, sret = varengine.sort(sam_path)
+        if sret == 0:
+            Path('{0}/sort.rt'.format(completion_path)).touch()
+    main_logger.debug('Running Samtools sort')
     if sret != 0:
         raise RuntimeError('Samtools sort failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Samtools sort completed')
+        main_logger.debug('Samtools sort completed')
 
     rgadder = Picard(java_path, pic_path, out_path)
-    bam_path, aret = rgadder.picard(bam_path, sam_name)
-    loggermain.debug('Running Picard AddOrReplaceReadGroups')
+    if os.path.exists('{0}/readgroup.rt'.format(completion_path)):
+        base = os.path.splitext(os.path.basename(bam_path))[0]
+        bam_path = '{0}/{1}_RG.bam'.format(out_path, base)
+        aret = 0
+        main_logger.debug('Skipping add read group')
+    else:
+        bam_path, aret = rgadder.picard(bam_path, sam_name)
+        main_logger.debug('Running Picard AddOrReplaceReadGroups')
+        if aret == 0:
+            Path('{0}/readgroup.rt'.format(completion_path)).touch()
     if aret != 0:
         raise RuntimeError('Picard AddOrReplaceReadGroups failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Picard AddOrReplaceReadGroups completed')
+        main_logger.debug('Picard AddOrReplaceReadGroups completed')
 
     #Run samtools mpileup, bcftools index, call and stats to generate VCF files
-    bcf_path, pret = varengine.pileup(ref_path, bam_path)
-    loggermain.debug('Running Samtools mpileup')
+    if os.path.exists('{0}/pileup.rt'.format(completion_path)):
+        bcf_path = '{0}/variants.bcf'.format(out_path)
+        pret = 0
+        main_logger.debug('Skipping Pileup')
+    else:
+        bcf_path, pret = varengine.pileup(ref_path, bam_path)
+        main_logger.debug('Running Samtools mpileup')
+        if pret == 0:
+            Path('{0}/pileup.rt'.format(completion_path)).touch()
     if pret != 0:
         raise RuntimeError('Samtools mpileup failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Samtools mpileup completed')
+        main_logger.debug('Samtools mpileup completed')
 
-    bret = varengine.bcfindex(bcf_path)
-    loggermain.debug('Running Bcftools index')
+    if os.path.exists('{0}/bcfindex.rt'.format(completion_path)):
+        bret = 0
+        main_logger.debug('Skipping Bcfindex')
+    else:
+        bret = varengine.bcfindex(bcf_path)
+        main_logger.debug('Running Bcftools index')
+        if bret ==0 :
+            Path('{0}/bcfindex.rt'.format(completion_path)).touch()
     if bret != 0:
         raise RuntimeError('Bcftools index failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Bcftools index completed')
+        main_logger.debug('Bcftools index completed')
 
-    vcf_path, bret = varengine.bcftools(bcf_path, bed_path, sam_name)
-    loggermain.debug('Running Bcftools call')
+    if os.path.exists('{0}/bcfcall.rt'.format(completion_path)):
+        vcf_path = '{0}/{1}_variants.vcf'.format(out_path, sam_name)
+        bret = 0
+        main_logger.debug('Skipping bcfcall')
+    else:
+        vcf_path, bret = varengine.bcftools(bcf_path, bed_path, sam_name)
+        main_logger.debug('Running Bcftools call')
+        if bret == 0:
+            Path('{0}/bcfcall.rt'.format(completion_path)).touch()
+
     if bret != 0:
         raise RuntimeError('Bcftools call failed to complete; Exiting MARs')
     else:
-        loggermain.debug('Bcftools call completed')
+        main_logger.debug('Bcftools call completed')
 
-    stats_path, bret = varengine.bcfstats(vcf_path, ref_path)
-    loggermain.debug('Running Bcftools stats')
-    if bret != 0:
-        raise RuntimeError('Bcftools stats failed to complete; Exiting MARs')
-    else:
-        loggermain.debug('Bcftools stats completed')
+    #if os.path.exists('{0}/stats.rt'.format())
+    #stats_path, bret = varengine.bcfstats(vcf_path, ref_path)
+    #main_logger.debug('Running Bcftools stats')
+    #if bret != 0:
+    #    raise RuntimeError('Bcftools stats failed to complete; Exiting MARs')
+    #else:
+    #    main_logger.debug('Bcftools stats completed')
 
     #Call GATK HaplotypeCaller to generate VCF files
     varcaller = GenAnTK(gatk_path, out_path, java_path)
-    loggermain.debug('Running GATK HaplotypeCaller')
-    gvcf_path, gret = varcaller.hapCaller(bam_path, ref_path, sam_name)
+    main_logger.debug('Running GATK HaplotypeCaller')
+    if os.path.exists('{0}/gatk.rt'.format(completion_path)):
+        gvcf_path = '{0}/{1}_variants_gatk.vcf'.format(out_path, sam_name)
+        gret = 0
+        main_logger.debug('Skipping GATK')
+    else:
+        gvcf_path, gret = varcaller.hapCaller(bam_path, ref_path, sam_name)
+        if gret == 0:
+            Path('{0}/gatk.rt'.format(completion_path)).touch()
     if gret != 0:
         raise RuntimeError('GATK HaplotypeCaller failed to complete; Exiting MARs')
     else:
-        loggermain.debug('GATK HaplotypeCaller stats completed')
+        main_logger.debug('GATK HaplotypeCaller stats completed')
+
+    #Call Kestrel to generate VCF files
+    kestrel_path = 'lib/kestrel/kestrel.jar'
+    kanalyze_path = 'lib/kestrel/kanalyze.jar'
+    varcaller = KestrelVar(rone_path, rtwo_path, ref_path, kanalyze_path,
+                            kestrel_path, out_path)
+    #varcaller = GenAnTK(gatk_path, out_path, java_path)
+    main_logger.debug('Running Kestrel')
+    if os.path.exists('{0}/kestrel.rt'.format(completion_path)):
+        kvcf_path = '{0}/vairants_kes.vcf'.format(out_path)
+        kret = 0
+        main_logger.debug('Skipping Kestrel')
+    else:
+        kvcf_path, kret = varcaller.run_kestrel()
+        if kret == 0:
+            Path('{0}/kestrel.rt'.format(completion_path)).touch()
+    if kret != 0:
+        raise RuntimeError('Kestrel failed to complete; Exiting MARs')
+    else:
+        main_logger.debug('Kestrel stats completed')
 
     #Filer  and annotate variant calls
-    loggermain.debug('Annotating variants')
+    main_logger.debug('Annotating variants')
     annotate = Vcf.Annotate()
     gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path)
     vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path)
-    loggermain.debug('Filetering low quality variants and merging GATK and Samtools calls')
+    main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
     gvcf_file = Vcf.Reader(gvcf_path)
     svcf_file = Vcf.Reader(vcf_path)
     merge_vcf = Vcf.Merge(gvcf_file, svcf_file)
@@ -208,24 +310,39 @@ def main(arguments):
 #    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged'7)
 #    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
 #    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
-    #summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    #var_sum = summary.getVarStats(merged_vcf)
-    #loggermain.info('Finished analyzing sample : {8} \n Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
-    #                    var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7], sam_name))
+    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    var_sum = summary.getVarStats(merged_vcf)
+    main_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
+                        var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     return(merged_vcf, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               inp_path, ref_path, adp_path, bed_path,
               out_dir, aligner, kes_path, kan_path, pic_path, voi_path, java_path):
-    #Create loggermain for MaRS
+    #Creating logger for pyamd
+    logger = logging.getLogger('Kookaburra')
+    logger.setLevel(logging.DEBUG)
     #Create output paths for the run
     if not os.path.exists(os.path.abspath(out_dir)):
         os.mkdir(os.path.abspath(out_dir))
+    # Creating a file handler which logs even debug messages
+    fh = logging.FileHandler('{0}/kookaburra.log'.format(os.path.abspath(out_dir)))
+    fh.setLevel(logging.DEBUG)
+    # Creating a console handler to log info messages
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    # Create formatter and add it to the handlers
+    formatter = logging.Formatter('{asctime} - {name} - {levelname} - {message}', style="{")
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # Add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
     #Create file and console handlers for MaRS
-    loggermain.info('Gathering input information from input path.')
+    logger.info('Gathering input information from input path.')
     prep = Prepper(inp_path)
     config = prep.prepInputs()
-    loggermain.info('Running MaRS on {0} experiments'.format(len(config)))
+    logger.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     samples = config.keys()
     pools = Pool(4)
@@ -245,7 +362,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 repeat(kes_path), repeat(kan_path), repeat(pic_path), name_list,
                 repeat(voi_path), repeat(java_path)))
 
-    loggermain.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
+    logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #Sumarize variants of intrest
     exp_voi = summary.getRepSnps()
@@ -257,7 +374,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_voi['AAPos_sort'] = pd.to_numeric(exp_voi['AAPos_sort'])
     exp_voi.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
     exp_voi.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
+                  'AltAA_sym','Sample'], axis=1, inplace=True)
     exp_voi.to_csv('{0}/Study_variants.csv'.format(out_dir))
 
     exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
@@ -290,7 +407,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov['AAPos_sort'] = pd.to_numeric(exp_nov['AAPos_sort'])
     exp_nov.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
     exp_nov.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
+                  'AltAA_sym', 'Sample'], axis=1, inplace=True)
     exp_nov.to_csv('{0}/Study_novel_exonic_variants.csv'.format(out_dir))
     #Separate and capture Intron and exonic variants
     exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
@@ -319,31 +436,31 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
     exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'], inplace=True)
     exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
-    exp_intron.sort_index().reset_index().to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir))
+                  'AltAA_sym' ], axis=1, inplace=True)
+    exp_intron.sort_index().reset_index(drop=True).to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir), index=False)
     # Plot using Rscript
     dcmd = ['Rscript', 'pyamd/Rscripts/DepthPerReportSNP.R', '-i',
             '{0}/Study_depth.csv'.format(out_dir), '-o',
-            '{0}/Study_depth.png'.format(out_dir)]
+            '{0}/Study_depth.pdf'.format(out_dir)]
     drun = subprocess.Popen(dcmd, shell=False)
     drun.wait()
     acmd = ['Rscript', 'pyamd/Rscripts/reportableSNPsFreq.R', '-i',
-            '{0}/Study_depth.csv'.format(out_dir), '-r',
+            'Study_depth.csv'.format(out_dir), '-r',
             'ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
     arun = subprocess.Popen(acmd, shell=False)
     arun.wait()
     nenscmd = ['Rscript', 'pyamd/Rscripts/NovelExonicNonSynSNPs.R', '-i',
-            '{0}/Study_novel_exonic_variants.csv'.format(out_dir),
+            'Study_novel_exonic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
     nensrun = subprocess.Popen(nenscmd, shell=False)
     nensrun.wait()
     nescmd = ['Rscript', 'pyamd/Rscripts/NovelExonicSynSNPs.R', '-i',
-            '{0}/Study_novel_exonic_variants.csv'.format(out_dir),
+            'Study_novel_exonic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
     nesrun = subprocess.Popen(nescmd, shell=False)
     nesrun.wait()
     nicmd = ['Rscript', 'pyamd/Rscripts/NovelIntronicSNPs.R', '-i',
-            '{0}/Study_novel_intronic_variants.csv'.format(out_dir),
+            'Study_novel_intronic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
     nesrun = subprocess.Popen(nescmd, shell=False)
     nesrun.wait()

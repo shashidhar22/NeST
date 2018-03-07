@@ -5,13 +5,6 @@ import logging
 import argparse
 import subprocess
 
-logger = logging.getLogger('Trimmer')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 
 class QualCheck:
@@ -45,6 +38,4 @@ class QualCheck:
         #Run bbduk
         bbrun = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bbrun.wait()
-        if bbrun.returncode != 0:
-            logger.error('BBDuk failed running the following command : {0}'.format(' '.join(bbcmd)))
         return(orone_path, ortwo_path, bbrun.returncode)

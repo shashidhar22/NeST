@@ -15,15 +15,6 @@ from collections import namedtuple
 from collections import OrderedDict
 from pyamd.parsers.bed import Bed
 from pyamd.parsers.fasta import Fasta
-logger = logging.getLogger('Readers')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-formattter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formattter)
-
-logger.addHandler(ch)
 
 class Vcf:
 
@@ -57,8 +48,8 @@ class Vcf:
             self.rec_fields, self.samples, self.vcf_reader = self.getHeaders()
 
             if self.vcf_reader is None:
-                logger.error('Emtpy VCF file; Please check file : {0}'.format(
-                                                                self.vcf_path))
+#                logger.error('Emtpy VCF file; Please check file : {0}'.format(
+#                                                                self.vcf_path))
                 sys.exit()
             # Append annotation fields to record fields list
             self.rec_fields.append('Samples')
@@ -263,38 +254,40 @@ class Vcf:
             # Split by ',' to tokenize by info field separator
             values = value.split(',')
             if info_number == 'A' and len(values) != len(alt):
-                logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contian {0} entries'.format(len(alt)))
+#                logger.error('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contian {0} entries'.format(len(alt)))
                 sys.exit()
             elif info_number == 'R' and len(values) != len(ref) + len(alt):
-                logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entires'.format(len(values)) +
-                    '; Should contain {0} entries'.format(len(ref)))
+#                logger.error('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entires'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(len(ref)))
                 sys.exit()
             elif info_number == 'G' and len(values) != gt:
-                logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain {0} entries'.format(gt))
+#                logger.error('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(gt))
                 sys.exit()
             elif info_number == '.':
-                logger.warning('Info number unbounded')
+#                logger.warning('Info number unbounded')
+                a =None
             elif info_number == '0' and (len(values) != 0 or
                                         type(values[0]) != bool):
-                logger.warning('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain no entries')
+#                logger.warning('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain no entries')
                 sys.exit()
             elif info_number != 'R' and\
                 info_number != 'A' and\
                 info_number != 'G' and\
                 info_number != '.' and int(info_number) != len(values):
-                logger.info('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain {0} entries'.format(info_number))
+#                logger.info('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(info_number))
                 sys.exit()
             else:
-                logger.debug('Info number validated')
+#                logger.debug('Info number validated')
+                a = None
             # Type cast values based on header information
             try:
                 # If info_number is in R,A,G,. groups, the values are stored as
@@ -348,9 +341,9 @@ class Vcf:
                 elif int(info_number) == '0':
                     value = [True]
             except (ValueError, TypeError):
-                logger.error('Value specified does not conform to any Info'
-                            'classification')
-                logger.error('Field : {0} ; Value : {1}'.format(field, value))
+#                logger.error('Value specified does not conform to any Info'
+#                            'classification')
+#                logger.error('Field : {0} ; Value : {1}'.format(field, value))
                 sys.exit()
             return(value)
 
@@ -381,39 +374,40 @@ class Vcf:
             # Split by ',' to tokenize by info field separator
             values = value.split(',')
             if format_number == 'A' and len(values) != len(alt):
-                logger.error('Illegal FORMAT format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contian {0} entries'.format(len(alt)))
+#                logger.error('Illegal FORMAT format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contian {0} entries'.format(len(alt)))
                 sys.exit()
             elif format_number == 'R' and len(values) != (len(ref) +len(alt)):
                 #print(values, ref, alt)
-                logger.error('Illegal FORMAT format for {0}'.format(field) +
-                    '; Contains {0} entires'.format(len(values)) +
-                    '; Should contain {0} entries'.format(len(ref)+len(alt)))
+#                logger.error('Illegal FORMAT format for {0}'.format(field) +
+#                    '; Contains {0} entires'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(len(ref)+len(alt)))
                 sys.exit()
             elif format_number == 'G' and len(values) != gt:
-                logger.error('Illegal FORMAT format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain {0} entries'.format(gt))
+#                logger.error('Illegal FORMAT format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(gt))
                 sys.exit()
             elif format_number == '.':
-                logger.warning('Format number unbounded')
-
+#                logger.warning('Format number unbounded')
+                a = None
             elif format_number == '0' and len(values) != 0:
-                logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain no entries')
+#                logger.error('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain no entries')
                 sys.exit()
             elif format_number != 'R' and\
                 format_number != 'A' and\
                 format_number != 'G' and\
                 format_number != '.' and int(format_number) != len(values):
-                logger.error('Illegal INFO format for {0}'.format(field) +
-                    '; Contains {0} entries'.format(len(values)) +
-                    '; Should contain {0} entries'.format(format_number))
+#                logger.error('Illegal INFO format for {0}'.format(field) +
+#                    '; Contains {0} entries'.format(len(values)) +
+#                    '; Should contain {0} entries'.format(format_number))
                 sys.exit()
             else:
-                logger.debug('Format number validated')
+#                logger.debug('Format number validated')
+                a = None
             try:
                 # If format_number is in R,A,G,. groups, the values are stored as
                 # a list of lists to maintain value consistency
@@ -466,9 +460,9 @@ class Vcf:
                 elif int(format_number) == 0:
                     value = [True]
             except ValueError:
-                logger.error('Value specified does not conform to any Format'
-                            'classification')
-                logger.error('Field : {0} ; Value : {1}'.format(field, value))
+#                logger.error('Value specified does not conform to any Format'
+#                            'classification')
+#                logger.error('Field : {0} ; Value : {1}'.format(field, value))
                 sys.exit()
             return(value)
 
@@ -510,8 +504,8 @@ class Vcf:
                                                                     value,
                                                                     record.REF,
                                                                     record.ALT)
-                logger.debug('Sample information')
-                logger.debug(sample_information)
+#                logger.debug('Sample information')
+#                logger.debug(sample_information)
                 sample_info.append(sample_information)
             record.Samples = sample_info
             # Get validated info values
@@ -544,8 +538,8 @@ class Vcf:
                     information[fields] = [[None] * int(value_range)]
                 elif value_range == '0':
                     information[fields] = [False]
-            logger.debug('Info field values')
-            logger.debug(information)
+#            logger.debug('Info field values')
+#            logger.debug(information)
             record.INFO = information
 
             return(record)
@@ -571,8 +565,9 @@ class Vcf:
                             value == bool(value)
                             filter_dict[key] = value
                         else:
-                            logger.error(
-                                    'String field cannot be used as a filter')
+#                            logger.error(
+#                                     'String field cannot be used as a filter')
+                            a = None
                 return(filter_dict)
             except AttributeError:
                 return(None)
@@ -621,21 +616,21 @@ class Vcf:
                     if info_filter:
                         for key, value in info_filter.items():
                             if type(value) is int and rec.INFO[key][0] < value:
-                                logger.info(
-                                        'Skipping variant; {0}:{1}:{2}'.format(
-                                        key, value, rec.INFO[key][0]))
+#                                logger.info(
+#                                        'Skipping variant; {0}:{1}:{2}'.format(
+#                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             elif (type(value) is float and
                                 rec.INFO[key][0] < value):
-                                logger.info(
-                                        'Skipping variant; {0}:{1}:{2}'.format(
-                                        key, value, rec.INFO[key][0]))
+#                                logger.info(
+#                                        'Skipping variant; {0}:{1}:{2}'.format(
+#                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             elif (type(value) is bool and\
                                 rec.INFO[key] == None):
-                                logger.info(
-                                        'Skipping variant; {0}:{1}:{2}'.format(
-                                        key, value, rec.INFO[key][0]))
+#                                logger.info(
+#                                        'Skipping variant; {0}:{1}:{2}'.format(
+#                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             else:
                                 filter_info = False
@@ -761,16 +756,16 @@ class Vcf:
 
         def getAlFreq(self, vcf_rec):
             '''Calculate allele frequency based on allelic depth'''
-            logger.debug('Calulating allele frequency')
+#            logger.debug('Calulating allele frequency')
             try:
                 if 'DP4' in vcf_rec.INFO:
-                    logger.debug('Variant with DP4 notation')
+#                    logger.debug('Variant with DP4 notation')
                     #print(vcf_rec.INFO)
                     alt = sum(vcf_rec.INFO['DP4'][0][2:])
                     total = sum(vcf_rec.INFO['DP4'][0])
                     alfreq = alt/float(total)
                 else:
-                    logger.debug('Variant with AD notation')
+#                    logger.debug('Variant with AD notation')
                     #print(vcf_rec.Samples[0])
                     alt = vcf_rec.Samples[0]['AD'][0][1]
                     total = sum(vcf_rec.Samples[0]['AD'][0])
@@ -778,7 +773,7 @@ class Vcf:
             # Fix added for cases where AD is missing
             # Instance found when GT == ./.
             except KeyError:
-                logger.debug('Variant laccking allele split up')
+#                logger.debug('Variant laccking allele split up')
                 if 'AF' in vcf_rec.INFO:
                     alfreq = vcf_rec.INFO['AF'][0]
                 else:

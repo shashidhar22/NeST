@@ -18,14 +18,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 warnings.filterwarnings('ignore')
 
-logger = logging.getLogger('Summarize')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
 class Summary:
 
     def __init__(self, fasta, bed, voi, out_path):
@@ -182,7 +174,6 @@ class Summary:
 
 
             if count == 0:
-                logger.info('No variants found; adding ref calls to dataframe')
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Chrom'].append(rec.Chrom)
                     vcf_dict['Gene'].append(rec.Gene)
@@ -301,7 +292,8 @@ class Summary:
         return(var_df)
 
     def getVarStats(self, vcf_file):
-        vcf_file = vcf.Reader(filename=vcf_file)
+        vcf_file = Vcf.Reader(vcf_file)
+        vcf_reader = vcf_file.read()
         total = 0
         exonic = 0
         intronic = 0
@@ -312,7 +304,7 @@ class Summary:
         tranv = 0
         trasition = ['AG', 'GA', 'CT', 'TC']
         transversion = ['AC', 'AT', 'CA', 'CG', 'GC', 'GT', 'TA', 'TG']
-        for variant in vcf_file:
+        for variant in vcf_reader:
             total += 1
             if variant.INFO['Exon'][0] == 'Intron':
                 intronic += 1
@@ -320,7 +312,7 @@ class Summary:
                 exonic += 1
                 if variant.INFO['Conf'][0] == '2':
                     verfied += 1
-                if variant.INFO['RefAA'] == variant.INFO['AltAA']:
+                if variant.INFO['RefAA'][0] == variant.INFO['AltAA'][0]:
                     syn += 1
                 else:
                     nsyn += 1

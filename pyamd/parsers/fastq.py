@@ -9,15 +9,6 @@ import numpy as np
 from pprint import pprint
 from collections import namedtuple
 
-logger = logging.getLogger('Readers')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-formattter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formattter)
-
-logger.addHandler(ch)
 
 class Fastq:
 
@@ -99,7 +90,7 @@ class Fastq:
                 record = Record(header, sheader, seq, quals)
                 yield(record)
             except StopIteration:
-                logging.info('End of file')
+#                logging.info('End of file')
                 break
             except NameError:
                 break

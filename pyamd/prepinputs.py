@@ -7,13 +7,6 @@ from collections import namedtuple
 from pyamd.parsers.fastq import Fastq
 from itertools import groupby
 
-logger = logging.getLogger('Prepper')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 class Identifier:
 
@@ -108,7 +101,6 @@ class Prepper:
                 if '.fastq' in filename or '.fastq.gz' in filename:
                     filepath = subdir + os.sep + filename
                     filenames.append(filepath)
-        logger.debug('Found {0} fastq files in {1}'.format(len(filenames), self.input_path))
         return(filenames)
 
     def getReadNumbers(self, file_name):
@@ -182,8 +174,8 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
-
+#                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
+                a = None
             try:
                 paired = True
                 #numreads = self.getReadNumbers(experiment[sample].files[0])
@@ -191,11 +183,11 @@ class Prepper:
             except (KeyError, AttributeError):
                 #numreads = self.getReadNumbers(fastq)
                 experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
-        logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
-        logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
-        for sample, values in experiment.items():
-            logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
-                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
+#        logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
+#        logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
+#        for sample, values in experiment.items():
+#            logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
+#                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
         return(experiment)
 
 if __name__ == '__main__':

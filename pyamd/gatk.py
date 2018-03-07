@@ -5,13 +5,6 @@ import logging
 import argparse
 import subprocess
 
-logger = logging.getLogger('GATK')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 
 class GenAnTK:
@@ -31,8 +24,6 @@ class GenAnTK:
             '-gt_mode', 'DISCOVERY']
         hrun = subprocess.Popen(hcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         hrun.wait()
-        if hrun.returncode != 0:
-            logger.error('GATK HaplotypeCaller failed running the following command : {0}'.format(' '.join(hcmd)))
         return(vcf_path, hrun.returncode)
 
 
@@ -53,7 +44,5 @@ class Picard:
             'RGPG={0}'.format(sam_name), 'RGPM={0}'.format(sam_name), 'CREATE_INDEX=true']
         arun = subprocess.Popen(acmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         arun.wait()
-        if arun.returncode != 0:
-            logger.error('Picard AddOrReplaceReadGroups failed running the following command : {0}'.format(' '.join(acmd)))
 
         return(add_path, arun.returncode)

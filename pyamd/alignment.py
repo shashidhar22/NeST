@@ -5,13 +5,6 @@ import logging
 import argparse
 import subprocess
 
-logger = logging.getLogger('Alignment')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
 
 class Bwa:
 
@@ -19,7 +12,6 @@ class Bwa:
         self.bwa_path = bwa_path
         self.out_path = '{0}/alignments'.format(out_path)
         self.ref_path = ref_path
-        self.logger = logging.getLogger('Mars.sample_runner.BWA')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
         return
@@ -30,8 +22,6 @@ class Bwa:
                 rone_path, rtwo_path, '>', sam_path]
         bwrun = subprocess.Popen(' '.join(bwcmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
         bwrun.wait()
-        if bwrun.returncode != 0:
-            self.logger.error('BWA failed running the following command : {0}'.format(' '.join(bwcmd)))
 
         return(sam_path, bwrun.returncode)
 
@@ -42,7 +32,6 @@ class Bowtie:
         self.bowtie_path =  bowtie_path
         self.out_path = '{0}/alignments'.format(out_path)
         self.ref_path = ref_path
-        self.logger = logging.getLogger('Mars.sample_runner.Bowtie2')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
         return
@@ -54,8 +43,6 @@ class Bowtie:
                 '-p', '4', '-S', sam_path]
         bwrun = subprocess.Popen(bwcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bwrun.wait()
-        if bwrun.returncode != 0:
-            self.logger.error('Bowtie2 failed running the following command : {0}'.format(' '.join(bwcmd)))
 
         return(sam_path, bwrun.returncode)
 
@@ -65,7 +52,6 @@ class BBMap:
         self.bbmap_path = bbmap_path
         self.out_path = out_path
         self.ref_path =  ref_path
-        self.logger = logging.getLogger('Mars.sample_runner.BBMap')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 
@@ -76,8 +62,6 @@ class BBMap:
                 'out={0}'.format(sam_path)]
         bbrun = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bbrun.wait()
-        if bbrun.returncode != 0:
-            self.logger.error('BBMap failed running the following command : {0}'.format(' '.join(bbcmd)))
 
         return(sam_path, bbrun.returncode)
 
@@ -86,7 +70,6 @@ class Snap:
         self.snap_path = snap_path
         self.out_path = out_path
         self.ref_path = os.path.dirname(ref_path)
-        self.logger = logging.getLogger('Mars.sample_runner.Snap')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
 
@@ -97,7 +80,5 @@ class Snap:
                 '-t', '4', '-o', '-sam', sam_path]
         srun = subprocess.Popen(scmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         srun.wait()
-        if srun.returncode != 0:
-            self.logger.error('Snap failed running the following command : {0}'.format(' '.join(scmd)))
 
         return(sam_path, srun.returncode)

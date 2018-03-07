@@ -31,20 +31,22 @@ setwd(opt$output_dir)
 tbl.ex <- read_csv(opt$input_file, col_names = T)
 
 #Output revised Study_novel_exonic_variants_gt1.csv
-tbl.var <- tbl.ex %>% group_by(Variant) %>% filter(n()>1)
-tbl.var <- tbl.var %>% ungroup()
-#tbl.var <- filter(tbl.var, Sample != "MRA1236_S252")
-write_csv(tbl.var, "Study_novel_exonic_variants_gt1.csv", col_names = T)
+#uncomment next two lines if you want to remove any samples that occur only one time
+#tbl.var <- tbl.ex %>% group_by(Variant) %>% filter(n()>1)
+#tbl.var <- tbl.var %>% ungroup()
+
+#comment next line if the two lines above are uncommented (if you want to filter out samples occuring only once)
+tbl.var <- tbl.ex
+write_csv(tbl.var, "Study_novel_exonic_variants_filtered.csv", col_names = T)
 
 #Output snps table
 tbl.ex <- separate(tbl.var, Variant, c("Loci", "name"), sep = ":", remove = F)
-tbl.ex <- select(tbl.ex, Gene, CodonPos, RefAA, AltAA, name, Variant)
+tbl.ex <- select(tbl.ex, Gene, AAPos, RefAA, AltAA, name, Variant)
 tbl.ex <- distinct(tbl.ex, Variant, .keep_all = T)
-#tbl.ex <- filter(tbl.ex, Variant != "MT:_495K")
 tbl.ex$Variant = NULL
-tbl.ex <- arrange(tbl.ex, Gene, CodonPos)
+tbl.ex <- arrange(tbl.ex, Gene, AAPos)
 colnames(tbl.ex)[1] = "gene"
-colnames(tbl.ex)[2] = "CodonPos="
+colnames(tbl.ex)[2] = "AAPos="
 colnames(tbl.ex)[3] = "RefAA="
 colnames(tbl.ex)[4] = "AltAA="
 tbl.ex.syn <- filter(tbl.ex, `RefAA=` == `AltAA=`)
@@ -55,7 +57,7 @@ write_csv(tbl.ex.syn, "novel_SNPs_exonic_syn.csv", col_names = T)
 library(readr)
 library(stringr)
 
-file <- "Study_novel_exonic_variants_gt1.csv"
+file <- "Study_novel_exonic_variants_filtered.csv"
 vcfdata <- read_csv(file, col_names = T)
 
 ## recode DP as numeric variable

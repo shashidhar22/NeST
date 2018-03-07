@@ -12,15 +12,6 @@ from collections import namedtuple
 from collections import OrderedDict
 from pyamd.parsers.fasta import Fasta
 
-logger = logging.getLogger('Readers')
-logger.setLevel(logging.ERROR)
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-formattter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
-ch.setFormatter(formattter)
-
-logger.addHandler(ch)
 
 class Bed:
 
@@ -157,7 +148,7 @@ class Bed:
             yield(record)
 
     def getRevComp(self, fasta):
-        logger.debug('Reverse complimenting fasta sequence')
+#        logger.debug('Reverse complimenting fasta sequence')
         rev_comp = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
         rev = ''
         for nuc in fasta:

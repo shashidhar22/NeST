@@ -11,17 +11,16 @@ from itertools import repeat
 
 class KestrelVar:
 
-    def __init__(self, rone_path, rtwo_path, ref_path, sam_path, kanalyze_path, kestrel_path, out_path):
+    def __init__(self, rone_path, rtwo_path, ref_path, kanalyze_path, kestrel_path, out_path):
         self.rone_path = rone_path
-        self.rtwo_path = rtwo_path 
+        self.rtwo_path = rtwo_path
         self.ref_path = os.path.abspath(ref_path)
         self.out_path = os.path.abspath(out_path)
-        self.sam_path  = os.path.abspath(sam_path)
         self.kestrel_path = os.path.abspath(kestrel_path)
         self.kanalyze_path = os.path.abspath(kanalyze_path)
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
-        
+
         return
 
     def run_kestrel(self):
@@ -41,21 +40,24 @@ class KestrelVar:
                 print('Kanalyze failed')
                 print(' '.join(kcmd))
                 return(ikc_path, None)
-        print(' '.join(kcmd))
+#        print(' '.join(kcmd))
         var_path = '{0}/vairants_kes.vcf'.format(self.out_path)
         kcmd = ['java', '-jar', self.kestrel_path, '-r',
-            self.ref_path, '-m', 'vcf', '--noanchorboth', '--varfilter=coverage:0.5,5', '--loglevel=all', '--logfile={}/kestrel.log'.format(self.out_path), '-o', var_path, ikc_path]
+            self.ref_path, '-m', 'vcf', '--noanchorboth',
+            '--varfilter=coverage:0.5,5', '--loglevel=all',
+            '--logfile={}/kestrel.log'.format(self.out_path), '-o', var_path,
+            ikc_path]
 
-        krun = subprocess.Popen(kcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+        krun = subprocess.Popen(kcmd, stdout=subprocess.PIPE,
+                                            stderr=subprocess.PIPE, shell=False)
         kout = krun.communicate()[0]
         kret = krun.returncode
 
-        print(' '.join(kcmd))
+#        print(' '.join(kcmd))
         if kret != 0:
             print('Kestrel failed')
             print(' '.join(kcmd))
-        
-        return(kret, var_path)
+        return(var_path, kret)
 
 
 
@@ -74,7 +76,7 @@ def kes_runner(rone_path, rtwo_path, ref_path, samtools_path, kanalyze_path, kes
     return(kret, var_path)
 
 
-        
+
 if __name__ == '__main__':
 
      parser = argparse.ArgumentParser(prog='Kestrel E.coli test')
@@ -88,8 +90,3 @@ if __name__ == '__main__':
 
      args = parser.parse_args()
      runner(args.input, args.ref, args.bwa, args.sam, args.kan, args.kes, args.out)
-
-
-
-
-

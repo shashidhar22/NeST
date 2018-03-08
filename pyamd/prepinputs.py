@@ -3,6 +3,7 @@ import sys
 import re
 import glob
 import logging
+import subprocess
 from collections import namedtuple
 from pyamd.parsers.fastq import Fastq
 from itertools import groupby
@@ -91,8 +92,29 @@ class Metrics:
 
 class Prepper:
 
-    def __init__(self, input_path):
+    def __init__(self, input_path, sra_path):
         self.input_path = os.path.abspath(input_path)
+        self.sra_path = os.path.abspath(sra_path)
+        self.logger = logging.getLogger('Kookaburra.prepInputs')
+
+    def downloadSRA(self):
+        out_dir = os.path.dirname(self.input_path)
+        sra_list = open(self.input_path)
+        for accessions in sra_list:
+            self.logger.debug('Downloading : {0}'.format(accessions))
+            accessions = accessions.strip()
+            fqd_cmd = [self.sra_path, '--gzip', '--split-3', '-O', out_dir,
+                        '-A', accessions]
+            fqd_run = subprocess.Popen(fqd_cmd, shell=False,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            fqd_run.wait()
+            if fqd_run.returncode != 0:
+                self.logger.error('Could not download {0}'.format(accessions))
+                self.logger.error(' '.join(fqd_cmd))
+            else:
+                self.logger.error('Downladed complete: {0}'.format(accessions))
+        return(out_dir)
 
     def getFastqPaths(self):
         filenames = list()
@@ -111,6 +133,10 @@ class Prepper:
         return(read_number)
 
     def prepInputs(self):
+        if os.path.isfile(self.input_path):
+            self.logger.info('Found SRA accession list,'
+                            'Will download files from SRA')
+            self.input_path = self.downloadSRA()
         files = self.getFastqPaths()
         experiment = dict()
         for fastq in files:

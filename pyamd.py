@@ -39,12 +39,10 @@ def main(arguments):
     bed_path = arguments[9]
     out_dir = arguments[10]
     aligner = arguments[11]
-    kes_path = arguments[12]
-    kan_path = arguments[13]
-    pic_path = arguments[14]
-    sam_name = arguments[15]
-    voi_path = arguments[16]
-    java_path = arguments[17]
+    pic_path = arguments[12]
+    sam_name = arguments[13]
+    voi_path = arguments[14]
+    java_path = arguments[15]
     #Setup logging
     #Get logger for main method
     main_logger = logging.getLogger('Kookaburra.{0}'.format(sam_name))
@@ -278,24 +276,24 @@ def main(arguments):
         main_logger.debug('GATK HaplotypeCaller stats completed')
 
     #Call Kestrel to generate VCF files
-    kestrel_path = 'lib/kestrel/kestrel.jar'
-    kanalyze_path = 'lib/kestrel/kanalyze.jar'
-    varcaller = KestrelVar(rone_path, rtwo_path, ref_path, kanalyze_path,
-                            kestrel_path, out_path)
+    #kestrel_path = 'lib/kestrel/kestrel.jar'
+    #kanalyze_path = 'lib/kestrel/kanalyze.jar'
+    #varcaller = KestrelVar(rone_path, rtwo_path, ref_path, kanalyze_path,
+    #                        kestrel_path, out_path)
     #varcaller = GenAnTK(gatk_path, out_path, java_path)
-    main_logger.debug('Running Kestrel')
-    if os.path.exists('{0}/kestrel.rt'.format(completion_path)):
-        kvcf_path = '{0}/vairants_kes.vcf'.format(out_path)
-        kret = 0
-        main_logger.debug('Skipping Kestrel')
-    else:
-        kvcf_path, kret = varcaller.run_kestrel()
-        if kret == 0:
-            Path('{0}/kestrel.rt'.format(completion_path)).touch()
-    if kret != 0:
-        raise RuntimeError('Kestrel failed to complete; Exiting MARs')
-    else:
-        main_logger.debug('Kestrel stats completed')
+    #main_logger.debug('Running Kestrel')
+    #if os.path.exists('{0}/kestrel.rt'.format(completion_path)):
+    #    kvcf_path = '{0}/vairants_kes.vcf'.format(out_path)
+    #    kret = 0
+    #    main_logger.debug('Skipping Kestrel')
+    #else:
+    #    kvcf_path, kret = varcaller.run_kestrel()
+    #    if kret == 0:
+    #        Path('{0}/kestrel.rt'.format(completion_path)).touch()
+    #if kret != 0:
+    #    raise RuntimeError('Kestrel failed to complete; Exiting MARs')
+    #else:
+    #    main_logger.debug('Kestrel stats completed')
 
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
@@ -317,8 +315,8 @@ def main(arguments):
     return(merged_vcf, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
-              inp_path, ref_path, adp_path, bed_path,
-              out_dir, aligner, kes_path, kan_path, pic_path, voi_path, java_path):
+              inp_path, ref_path, adp_path, bed_path, out_dir, aligner,
+              pic_path, voi_path, java_path, sra_path):
     #Creating logger for pyamd
     logger = logging.getLogger('Kookaburra')
     logger.setLevel(logging.DEBUG)
@@ -340,7 +338,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.addHandler(ch)
     #Create file and console handlers for MaRS
     logger.info('Gathering input information from input path.')
-    prep = Prepper(inp_path)
+    prep = Prepper(inp_path, sra_path)
     config = prep.prepInputs()
     logger.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
@@ -359,8 +357,8 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 repeat(smt_path), repeat(bft_path), repeat(gatk_path),
                 rone_list, rtwo_list, repeat(ref_path), repeat(adp_path),
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
-                repeat(kes_path), repeat(kan_path), repeat(pic_path), name_list,
-                repeat(voi_path), repeat(java_path)))
+                repeat(pic_path), name_list, repeat(voi_path),
+                repeat(java_path)))
 
     logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
@@ -385,7 +383,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym'], axis=1, inplace=True)
     af_mask = exp_af.isnull()
-    exp_af.to_csv('{0}/Study_al_freq.csv'.format(out_dir))
+    exp_af.to_csv('{0}/Study_reportable_variants_allele_frequency.csv'.format(out_dir))
 #    summary.plotHeatMap(exp_af, 'voi_af', af_mask)
     exp_dp = exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
     exp_dp['Variant'] = exp_dp.index
@@ -395,7 +393,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym'], axis=1, inplace=True)
     dp_mask = exp_dp.isnull()
-    exp_dp.to_csv('{0}/Study_depth.csv'.format(out_dir))
+    exp_dp.to_csv('{0}/Study_reportable_variants_depth.csv'.format(out_dir))
 #    summary.plotHeatMap(exp_dp, 'voi_dp', dp_mask)
 #    summary.plotCountPlot(exp_af, 'voi')
     #Summarize novel variants
@@ -416,7 +414,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
     exp_nov_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym'], axis=1, inplace=True)
-    exp_nov_af.to_csv('{0}/Study_novel_var_af.csv'.format(out_dir))
+    exp_nov_af.to_csv('{0}/Study_novel_variants_alele_frequency.csv'.format(out_dir))
     exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
     exp_nov_dp['Variant'] = exp_nov_dp.index
     exp_nov_dp[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov_dp['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
@@ -424,7 +422,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     exp_nov_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
     exp_nov_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym'], axis=1, inplace=True)
-    exp_nov_dp.to_csv('{0}/Study_novel_var_depth.csv'.format(out_dir))
+    exp_nov_dp.to_csv('{0}/Study_novel_variants_depth.csv'.format(out_dir))
     exp_intron = summary.getIntronTables()
     exp_intron = exp_intron.reset_index()
 
@@ -439,51 +437,87 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                   'AltAA_sym' ], axis=1, inplace=True)
     exp_intron.sort_index().reset_index(drop=True).to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir), index=False)
     # Plot using Rscript
+    logger.info('Plotting Depth Per SNP')
     dcmd = ['Rscript', 'pyamd/Rscripts/DepthPerReportSNP.R', '-i',
-            '{0}/Study_depth.csv'.format(out_dir), '-o',
+            '{0}/Study_reportable_variants_depth.csv'.format(out_dir), '-o',
             '{0}/Study_depth.pdf'.format(out_dir)]
-    drun = subprocess.Popen(dcmd, shell=False)
+    drun = subprocess.Popen(dcmd, shell=False,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     drun.wait()
+    if drun.returncode != 0:
+        logger.error('Failed to execute DepthPerReportSNP.R')
+        logger.error(' '.join(dcmd))
+
+    logger.info('Plotting Reportable SNPs Frequency')
     acmd = ['Rscript', 'pyamd/Rscripts/reportableSNPsFreq.R', '-i',
-            'Study_depth.csv'.format(out_dir), '-r',
-            'ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
-    arun = subprocess.Popen(acmd, shell=False)
+            'Study_variants.csv'.format(out_dir), '-r',
+            '../../ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
+    arun = subprocess.Popen(acmd, shell=False,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     arun.wait()
+    if arun.returncode != 0:
+        logger.error('Failed to execute reportableSNPsFreq.R')
+        logger.error(' '.join(acmd))
+    logger.info('Plotting Novel Exonic Non-Synonymous SNPs')
     nenscmd = ['Rscript', 'pyamd/Rscripts/NovelExonicNonSynSNPs.R', '-i',
             'Study_novel_exonic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
-    nensrun = subprocess.Popen(nenscmd, shell=False)
+    nensrun = subprocess.Popen(nenscmd, shell=False,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     nensrun.wait()
+    if nensrun.returncode != 0:
+        logger.error('Failed to execute NovelExonicNonSynSNPs.R')
+        logger.error(' '.join(nenscmd))
+
+    logger.info('Plotting Novel Exonic Synonymous SNPs')
     nescmd = ['Rscript', 'pyamd/Rscripts/NovelExonicSynSNPs.R', '-i',
             'Study_novel_exonic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
-    nesrun = subprocess.Popen(nescmd, shell=False)
+    nesrun = subprocess.Popen(nescmd, shell=False,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     nesrun.wait()
+    if nesrun.returncode != 0:
+        logger.error('Failed to execute NovelExonicSynSNPs.R')
+        logger.error(' '.join(acmd))
+
+    logger.info('Plotting Novel Intronic SNPs')
     nicmd = ['Rscript', 'pyamd/Rscripts/NovelIntronicSNPs.R', '-i',
             'Study_novel_intronic_variants.csv'.format(out_dir),
             '-o', '{0}/'.format(out_dir)]
-    nesrun = subprocess.Popen(nescmd, shell=False)
-    nesrun.wait()
+    nirun = subprocess.Popen(nicmd, shell=False,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    nirun.wait()
+    if nirun.returncode != 0:
+        logger.error('Failed to execute NovelIntronicSNPs.R')
+        logger.error(' '.join(nicmd))
 
-
+    #os.remove('{0}/Reportable_SNPs_Report.csv'.format(out_dir))
+    os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(out_dir))
+    os.remove('{0}/novel_SNPs_intronic.csv'.format(out_dir))
+    os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(out_dir))
+    os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(out_dir))
+    os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(out_dir))
     return(0)
 
 if __name__ == '__main__':
     #Define deffault paths and aligner informations
     def_path = "{0}/lib".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
+    ref_def_path = "{0}/ref".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
     bbduk_def = "{0}/bbmap/bbduk.sh".format(def_path)
     bbmap_def = "{0}/bbmap/bbmap.sh".format(def_path)
-    bwa_def = "{0}/bwa-0.7.12/bwa".format(def_path)
-    bowtie_def = "{0}/bowtie2-2.3.3.1-linux-x86_64/bowtie2".format(def_path)
+    bwa_def = "{0}/bwa/bwa".format(def_path)
+    bowtie_def = "{0}/bowtie2/bowtie2".format(def_path)
     snap_def = "{0}/snap/snap-aligner".format(def_path)
-    smt_def = "{0}/samtools-1.3.1/samtools".format(def_path)
-    bft_def = "{0}/bcftools-1.3.1/bcftools".format(def_path)
+    smt_def = "{0}/samtools/samtools".format(def_path)
+    bft_def = "{0}/bcftools/bcftools".format(def_path)
     gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = "{0}/picard.jar".format(def_path)
+    sra_def = '{0}/sratoolkit/bin/fastq-dump'.format(def_path)
+    voi_def = '{0}/Reportable_SNPs.csv'.format(ref_def_path)
     if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):
         java_def = 'java'
     else:
-        java_def = "{0}/jdk1.8.0_131/bin/java".format(def_path)
+        java_def = "{0}/jdk/bin/java".format(def_path)
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')
@@ -518,11 +552,7 @@ if __name__ == '__main__':
                         help='Path to Bcftools executable')
     parser.add_argument('--picard', dest='pic_path', type=str, default=pic_def,
                         help='Path to Bcftools executable')
-    parser.add_argument('--kestrel', dest='kes_path', type=str, default=bft_def,
-                        help='Path to Kestrel executable')
-    parser.add_argument('--kanalyze', dest='kan_path', type=str, default=bft_def,
-                        help='Path to Kanalyze executable')
-    parser.add_argument('--varofint', dest='voi_path', type=str, default=bft_def,
+    parser.add_argument('--varofint', dest='voi_path', type=str, default=voi_def,
                         help='Path to variant of interest')
     args = parser.parse_args()
 
@@ -537,19 +567,7 @@ if __name__ == '__main__':
     #analysis.
     #If inp_path is empty and rone_path is not, then the experiment is a
     #single sample experiment.
-    if args.inp_path == None and args.rone_path != None:
-        if args.sam_name == None:
-            sam_name = os.path.splitext(os.path.basename(args.rone_path))[0]
-        else:
-            sam_name = args.sam_name
-        status = main(args.bbduk_path, args.aligner_path, args.smt_path,
-                    args.bft_path, args.gatk_path, args.rone_path,
-                    args.rtwo_path, args.ref_path, args.adp_path, args.bed_path,
-                    args.out_path, args.aligner, args.kes_path, args.kan_path,
-                    args.pic_path, sam_name, java_def)
-    elif args.inp_path != None and args.rone_path == None:
-        status = marsBatch(args.bbduk_path, args.aligner_path, args.smt_path,
-                    args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
-                    args.adp_path, args.bed_path, args.out_path, args.aligner,
-                    args.kes_path, args.kan_path, args.pic_path, args.voi_path,
-                    java_def)
+    status = marsBatch(args.bbduk_path, args.aligner_path, args.smt_path,
+                args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
+                args.adp_path, args.bed_path, args.out_path, args.aligner,
+                args.pic_path, args.voi_path, java_def, sra_def)

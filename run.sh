@@ -7,4 +7,4 @@ if [ $# -eq 0 ]; then
 	exit 1
 fi	
 			 
-python3 pyamd.py -i $1 -a ref/adapters.fa -r ref/mdr.fa -o $2 -b ref/mdr.bed -m bwa --varofint ref/Reportable_SNPs.xlsx
+python3 pyamd.py -i $1 -a ref/adapters.fa -r ref/mdr.fa -o $2 -b ref/mdr.bed -m bwa 

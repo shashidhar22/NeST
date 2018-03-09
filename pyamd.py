@@ -183,7 +183,7 @@ def main(arguments):
         sret = 0
         main_logger.debug('Skipping sort')
     else:
-        bam_path, sret = varengine.sort(sam_path)
+        bam_path, sret = varengine.sort(bam_path)
         if sret == 0:
             Path('{0}/sort.rt'.format(completion_path)).touch()
     main_logger.debug('Running Samtools sort')

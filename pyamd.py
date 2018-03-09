@@ -451,7 +451,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.info('Plotting Reportable SNPs Frequency')
     acmd = ['Rscript', 'pyamd/Rscripts/reportableSNPsFreq.R', '-i',
             'Study_variants.csv'.format(out_dir), '-r',
-            '../../ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
+            'ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
     arun = subprocess.Popen(acmd, shell=False,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     arun.wait()

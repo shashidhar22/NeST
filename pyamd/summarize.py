@@ -310,7 +310,7 @@ class Summary:
                 intronic += 1
             else:
                 exonic += 1
-                if variant.INFO['Conf'][0] == '2':
+                if variant.INFO['Conf'][0] == 2:
                     verfied += 1
                 if variant.INFO['RefAA'][0] == variant.INFO['AltAA'][0]:
                     syn += 1

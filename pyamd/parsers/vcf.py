@@ -807,7 +807,7 @@ class Vcf:
             for sequences in mod_fasta:
                 mod_out.write('>{0}\n{1}\n'.format(sequences.header,
                                                     sequences.seq))
-            #mod_temp.close()
+            mod_out.close()
             cds_pos = 0
             codon_range = None
             codon_change = [None, None, None]
@@ -886,6 +886,7 @@ class Vcf:
                             #Add Allele frequency
                             vcf_rec.INFO['Freq'] = [allele_freq]
                             #Add Exonic location
+                            vcf_rec.INFO['Exon'] = [None]
                             vcf_rec.INFO['Exon'] = [None]
                             #Add Gene
                             vcf_rec.INFO['Gene'] = [None]

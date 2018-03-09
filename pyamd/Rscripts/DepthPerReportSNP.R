@@ -10,7 +10,7 @@ library(optparse) # used to designate flags
 
 # set flags
 option_list <- list(
-  make_option(c("-i", "--input_file"), type = "character", default = NULL, 
+  make_option(c("-i", "--input_file"), type = "character", default = NULL,
               help = "file path to Study_depth.csv", metavar = "character"),
   make_option(c("-o", "--output_file"), type = "character", default = NULL,
               help = "file path to output figure image file", metavar = "character")

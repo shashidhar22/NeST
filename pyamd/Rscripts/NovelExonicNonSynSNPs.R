@@ -8,7 +8,7 @@ library(optparse) # used to designate flags
 
 # set flags
 option_list <- list(
-  make_option(c("-i", "--input_file"), type = "character", default = NULL, 
+  make_option(c("-i", "--input_file"), type = "character", default = NULL,
               help = "file path to Study_novel_exonic_variants.csv", metavar = "character"),
   make_option(c("-o", "--output_dir"), type = "character", default = NULL,
               help = "file path to output directory", metavar = "character")
@@ -26,7 +26,7 @@ if(is.null(opt$output_dir)){
 
 setwd(opt$output_dir)
 
-tbl.ex <- read_csv(opt$input_file, col_names = T) 
+tbl.ex <- read_csv(opt$input_file, col_names = T)
 
 #Output revised Study_novel_exonic_variants_gt1.csv
 #uncomment next two lines if you want to remove any samples that occur only one time
@@ -88,15 +88,15 @@ genes = unique(reportable_SNPs$gene)
 
 process_vcf = function(sampleid) {
   ###### import
-  
+
   vcftable = subset(vcfdata, Sample == sampleid)
   frequencies = sapply(1:dim(reportable_SNPs)[1], function (x) vcftable$AF[as.character(vcftable$Variant) == as.character(reportable_SNPs$fullname[x])])
   frequencies_vector = rep(NA, length(frequencies))
   frequencies_vector[unlist(lapply(frequencies,length)) == 1] = unlist(frequencies[unlist(lapply(frequencies,length)) == 1] )
-  
+
   other_mutations = as.data.frame(cbind(fullname = as.character(vcftable$Variant)[!(as.character(vcftable$fullname) %in% as.character(reportable_SNPs$fullname))],
                                         AlFreq = vcftable$AF[!(as.character(vcftable$Variant) %in% as.character(reportable_SNPs$fullname))]))
-  
+
   list(frequencies_vector,other_mutations)
 }
 

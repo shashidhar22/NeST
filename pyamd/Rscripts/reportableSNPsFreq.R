@@ -25,12 +25,17 @@ if(is.null(opt$output_dir)){
   print_help(opt_parser)
   stop("At least one argument must be supplied (output dir path)", call.=FALSE)
 }
+# Load readr library
+library(readr)
+library(stringr)
+
+
+#Move reading of reportable SNPs to before changing the working directory
+reportable_SNPs = read_csv(opt$report_snp, col_names = T)
 
 setwd(opt$output_dir)
 
 ###### read in summarized vcf data
-library(readr)
-library(stringr)
 
 vcfdata <- read_csv(opt$input_file, col_names = T)
 
@@ -55,7 +60,7 @@ sampleIDs = unique(vcfdata$Sample)
 
 
 ###### read in list of reportable SNPs
-reportable_SNPs = read_csv(opt$report_snp, col_names = T)
+#reportable_SNPs = read_csv(opt$report_snp, col_names = T)
 reportable_SNPs = reportable_SNPs[reportable_SNPs$Gene != "",]
 reportable_SNPs = cbind(reportable_SNPs,fullname = paste(reportable_SNPs$Gene,":", reportable_SNPs$RefAA, reportable_SNPs$AAPos, reportable_SNPs$AltAA ,sep=""))
 genes = unique(reportable_SNPs$Gene)

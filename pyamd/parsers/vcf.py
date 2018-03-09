@@ -772,7 +772,7 @@ class Vcf:
                     alfreq = alt/float(total)
             # Fix added for cases where AD is missing
             # Instance found when GT == ./.
-            except KeyError:
+            except (KeyError, ZeroDivisionError):
 #                logger.debug('Variant laccking allele split up')
                 if 'AF' in vcf_rec.INFO:
                     alfreq = vcf_rec.INFO['AF'][0]

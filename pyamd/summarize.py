@@ -270,7 +270,7 @@ class Summary:
     def getDepthStats(self, var_df):
         depth_list = list()
         for row, value in var_df.iterrows():
-            bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
+            bamfile = glob.glob('{0}/{1}*/output_fixmate_sorted_RG.bam'.format(self.out_path, row[0]))[0]
             nuc_pos = self.getNucPos(value.Gene_y, value.AAPos_y)
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]
@@ -282,7 +282,7 @@ class Summary:
     def getNovDepthStats(self, var_df):
         depth_list = list()
         for row, value in var_df.iterrows():
-            bamfile = glob.glob('{0}/{1}*/output_sorted_RG.bam'.format(self.out_path, row[0]))[0]
+            bamfile = glob.glob('{0}/{1}*/output_fixmate_sorted_RG.bam'.format(self.out_path, row[0]))[0]
             nuc_pos = self.getNucPos(value.Gene, value.AAPos)
             if nuc_pos == np.nan:
                 nuc_pos = [value.Pos -1, value.Pos + 1]

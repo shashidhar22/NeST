@@ -199,7 +199,7 @@ def main(arguments):
         aret = 0
         main_logger.debug('Skipping add read group')
     else:
-        bam_path, aret = rgadder.picard(bam_path, sam_name)
+        bam_path, aret = var.picard(bam_path, sam_name)
         main_logger.debug('Running Picard AddOrReplaceReadGroups')
         if aret == 0:
             Path('{0}/readgroup.rt'.format(completion_path)).touch()

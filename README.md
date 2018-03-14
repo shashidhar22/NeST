@@ -1,85 +1,67 @@
-#11/14/2017
+# Kookaburra : A standardized bioinformatics framework for analyzing SNPs in next-generation sequencing data
 
-# MaRS (Malaria Resistance Surveillance)
+Advancements in next-generation sequencing have led to the development of numerous bioinformatics tools and pipelines. Current tools for variant calling offer high-quality solutions; however, many tools are tailored for model organisms. Here, we present Kookaburra, a consensus-based variant calling tool with a plug-and-play framework for use with any organism with minimal user input. Kookaburra consists of four modules, integrating open-source bioinformatics tools and a custom VCF parser, to generate high-quality consensus variant calls. Kookaburra was validated using targeted-amplicon deep sequencing data from 245 Plasmodium falciparum isolates to identify single-nucleotide polymorphisms conferring drug resistance. Kookaburra offers a light-weight pipeline for variant calling with standardized outputs and minimal computational demands for easy deployment for use with various organisms and applications. The following document outlines details of installation, results from MaRS dataset and usage of individual modules for analysis.
 
-The Malaria Resistance Surveillance or MaRS pipline, is an attempt at standardizing the workflow for identifying variants in parasite genomes conferring drug resistance. By streamlinging the data QC, alignment, and variant calling process, MaRS hopes to reduce time of analysis, as well allow for flexibilty of protocol used for the BGS analysis. The modular structure of the MaRS pipeline enables the user to build their own pipeline using the tools of their preference. The tools that MaRS is able to run are listed below, however, adding a custom tool the workflow is very simple. 
+1. [Overview of Kookaburra framework](#Overview)
+2. [Availability of code and installation](#Installation)
+3. [Kookaburra for Malaria Resistance Surveillance(MaRS)](#MaRS)
+4. [Input standardization](#inputs)
+5. [Kookaburra class structure](#classes)
 
-## Tools avaiable:
+<a id="Overview"></a>
+## Overview of the Kookaburra framework:
 
-### Data quality analysis:
-1. BBDuk
+Kookaburra is a python based modular framework for consensus based variant calling. The overall analysis framework is broken down into four major blocks.
+1. PrepInputs
+2. VarCallEngine
+3. VCFToolkit
+4. Summarize
 
-### Alignment methods:
-1. BWA
-2. Bowtie2
-3. BBMap
-4. Snap
+![Kookaburra framework overview](images/Kookaburra.png)
 
-### Variant calling:
-1. Samtools
-2. GATK
+The figure outlines the four key blocks of Kookaburra and the steps performed by each step. VarCallEngine and VCFToolkit are spawned in parallel for each sample that is being analyzed in the study. By default, 4 parallel threads are spawned, to account for minimum available computational resource. This can be altered as per availability of resources.
 
-## Depdencies:
+<a id="Installation"></a>
+## Availability of code and installation:
 
-1. [Python3.4 ](https://www.python.org/download/releases/3.4.0/)
-2. [BBMap](https://sourceforge.net/projects/bbmap/)
-3. [BWA](http://bio-bwa.sourceforge.net/)
-4. [Bowtie2](http://bowtie-bio.sourceforge.net/bowtie2/index.shtml)
-5. [Snap](http://snap.cs.berkeley.edu/)
-6. [Samtools](http://www.htslib.org/)
-7. [Bctools](http://www.htslib.org/)
-8. [GATK](https://software.broadinstitute.org/gatk/download/)
+1. Download git repository:
 
-## Directory structure:
+Clone the master branch of this repository.
+```{sh}
+git clone https://github.com/shashidhar22/kookaburra
+```
 
-1. fq
+2. Setup virtualenv for Python3:
 
-  * Contains all the input fastq files
+Kookaburra requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system.
+To avoid clashes with system version of required python modules, we recommend using a virtualenv
+Run the following command to install virtualenv, if you already have virtualenv installed
 
-2. lib
+```{sh}
+python3 -m pip install virtualenv
+virtualenv kook_env                   # Setup mars virtual environment
+source kook_env/bin/activate          # Activate virtual environment
+```
+> If successfully activated, you should see now (mars_venv) in front of your terminal username.
 
-  * Contains the binaries for all the tools that MaRS can run
+3. Installing python dependencies and downloading third party libraries:
 
-3. local
+Kookaburra uses many python modules
+Run the following command to install the dependencies
+```{sh}
+pip3 install pysam matplotlib seaborn pandas numpy xlrd openpyxl
+pip3 list --format=columns
+```
 
-  * Local output folder
+4. Your first analysis:
 
-4. pyamd
+Kookaburra comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run kookaburra on it.
+```{sh}
+sh run.sh fq/MaRS_test/SRA_Acc.txt local/MaRs_test
+```
+To run Kookaburra on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.
+For example if you have stored your fastq files in ```fq/``` folder and you want to store the results in the folder ```local/```. You can run the following command from the Kookaburra directory.
 
-  * Contains all the MaRS classes.
-
-5. ref
-
-  * Contains reference sequences. For the current version, the ref folder must also contain the alignment indicies.
-
-## Creating alignment indicies:
-
-1. Bowtie2:
-  ```{sh}
-bowtie2-build <refernce-fasta.fa> <reference-fasta.fa>
-  ```
-
-2. BWA:
-  ```{sh}
-bwa index <reference-fasta.fa>
-  ```
-
-3. Snap:
-  ```{sh}
-snap-aligner index <reference-fasta.fa> <output_directory>
-  ```
-
-## Output directory structure:
-1. CleanedFastq: Folder containing adapter trimmed and quality filtered fastq files
-2. output.sam : Contains reads aligned to reference genome
-3. output_sorted.bam : Sorted BAM containing aligned reads
-4. output_sorted_RG.bam : Read gtroup added BAM file
-5. outout_fixmate.bam : Final BAM file, with mate information corrected
-6. variants.vcf : Variant calls from samtools
-7. variants_gatk.vcf : Variant calls from GATK HaplotypeCaller
-8. variants_samtools.bed : Annotated variant calls from samtools, in tab delimited format
-9. variants_gatk.bed : Annotated variant calls from GATK, in tab delimited format
-
-
-
-
+```{sh}
+sh run.sh fq/ local/
+```

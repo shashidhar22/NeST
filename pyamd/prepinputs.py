@@ -200,7 +200,7 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-#                logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
+                #logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
                 a = None
             try:
                 paired = True
@@ -209,11 +209,11 @@ class Prepper:
             except (KeyError, AttributeError):
                 #numreads = self.getReadNumbers(fastq)
                 experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
-#        logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
-#        logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
-#        for sample, values in experiment.items():
-#            logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
-#                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
+        #logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
+        #logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
+        #for sample, values in experiment.items():
+        #    logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
+        #            values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
         return(experiment)
 
 if __name__ == '__main__':

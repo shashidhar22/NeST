@@ -686,8 +686,8 @@ class Vcf:
                 'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
                 'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W'
                 }
-
-            return(codontable[codon])
+            amino_acid = codontable[codon]
+            return(amino_acid)
 
         def peek(self, vcf_reader):
             curr_pos = vcf_reader.tell()

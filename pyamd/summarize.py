@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-#import vcf
 import glob
 import warnings
 import numpy as np
@@ -245,13 +244,7 @@ class Summary:
 
     def getBamStat(self, bamfile, chrom, start, stop):
         bamfile = pysam.AlignmentFile(bamfile, 'rb')
-        codon_coverage = 0
-        if codon_pos == 0:
-            avg_codon_coverage = bamfile.count(chrom, pos-1, pos+2)
-        elif codon_pos == 1:
-            avg_codon_coverage = bamfile.count(chrom, pos-2, pos+1)
-        else:
-            avg_codon_coverage = bamfile.count(chrom, pos-3, pos)
+        avg_codon_coverage = bamfile.count(chrom, start, stop)
         return(avg_codon_coverage)
 
     def getNucPos(self, gene, aapos):
@@ -322,54 +315,6 @@ class Summary:
                     tranv += 1
         return(total, verfied, exonic, intronic, syn, nsyn, trans, tranv)
 
-    def getBamStat(self, bamfile, chrom, pos, codon_pos):
-        bamfile = pysam.AlignmentFile(bamfile, 'rb')
-        codon_coverage = 0
-        if codon_pos == 0:
-            avg_codon_coverage = bamfile.count(chrom, pos-1, pos+2)
-        elif codon_pos == 1:
-            avg_codon_coverage = bamfile.count(chrom, pos-2, pos+1)
-        else:
-            avg_codon_coverage = bamfile.count(chrom, pos-3, pos)
-        return(avg_codon_coverage)
-
-
-    def plotHeatMap(self, data_frame, title, mask):
-        sns.set()
-        sns.set_style('whitegrid')
-        fig, ax = plt.subplots()
-        fig.set_size_inches(len(data_frame.columns.tolist()), 25)
-        #cbar_ax = fig.add_axes([.92, .3, .02, .4])
-        if 'af' in title:
-            heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0, vmax=100.0,
-                                    cmap="Blues",  cbar=False, annot=True,
-                                    fmt=".0f", mask=mask, linecolor="black")
-        else:
-            heatmap_dp = sns.heatmap(data_frame, linewidths=0.5, vmin=0.0,
-                                    cmap="Blues", cbar=False, annot=True,
-                                    fmt=".0f", mask=mask, linecolor="black")
-        fig_dp = heatmap_dp.get_figure()
-        fig_dp.savefig('{0}/{1}_heatmap.png'.format(self.out_path, title))
-        return
-
-    def plotCountPlot(self, data_frame, title):
-        sns.set(font_scale=2)
-        sns.set_style('whitegrid')
-        plt.figure(figsize=(20, 20))
-        stripplot = sns.stripplot(y=data_frame.index, x=data_frame.count(axis=1, numeric_only=float), size=15, color='black')
-        plots = stripplot.get_figure()
-        plots.savefig('{0}/{1}_frequency.png'.format(self.out_path, title))
-
-
-    def getHeatmap(self, voi_df, voi_af, voi_count, voi_dp, nov_df, nov_af, nov_count, nov_dp):
-        #Create masks for heatmap
-        sns.set(font_scale=0.5)
-        dp_voi_mask = voi_dp.isnull()
-        af_voi_mask = voi_af.isnull()
-        self.plotHeatMap(voi_dp, 'voi_depth', dp_voi_mask )
-        self.plotHeatMap(voi_dp, 'voi_alfreq', af_voi_mask)
-        self.plotCountPlot(voi_af, 'voi')
-        return
 
 if __name__ == '__main__':
     fasta_path = sys.argv[1]

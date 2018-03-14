@@ -24,6 +24,8 @@ class GenAnTK:
             '-gt_mode', 'DISCOVERY']
         hrun = subprocess.Popen(hcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         hrun.wait()
+        if hrun.returncode != 0:
+            print(' '.join(hcmd))
         return(vcf_path, hrun.returncode)
 
 

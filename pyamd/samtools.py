@@ -29,7 +29,7 @@ class Samtools:
     def sort(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
         obam_path = '{0}/{1}_sorted.bam'.format(self.out_path, base)
-        stcmd = [self.sam_path, 'sort', '-O', 'bam',
+        stcmd = [self.sam_path, 'sort', '-O', 'BAM',
                 '-o', obam_path, bam_path]
         strun = subprocess.Popen(stcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         strun.wait()
@@ -37,6 +37,22 @@ class Samtools:
 #            logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
 
         return(obam_path, strun.returncode)
+
+    def addreadgroup(self, bam_path, sam_name):
+        run_time = time.strftime('%d/%m/%Y')
+        base = os.path.splitext(os.path.basename(bam_path))[0]
+        abam_path = '{0}/{1}_RG.bam'.format(self.out_path, base)
+        acmd = [self.sam_path, 'addreplacerg', '-O', 'BAM',
+                '-r', '"@RG\tID:{0}\tPG:{0}\tSM:{0}\tPM:{0}\tLB=MaRS\tPL=Illumina\tPU=MiSeq\tDT={1}\tPI=null"'.format(sam_name, run_time),
+                '-o', abam_path, bam_path]
+        arun = subprocess.Popen(acmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+        arun.wait()
+        icmd = [self.sam_path, 'index', abam_path]
+        irun = subprocess.Popen(icmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+        irun.wait()
+        if arun.returncode != 0:
+            print(' '.join(acmd))
+        return(abam_path, arun.returncode)
 
     def pileup(self, ref_path, bam_path):
         obcf_path = '{0}/variants.bcf'.format(self.out_path)

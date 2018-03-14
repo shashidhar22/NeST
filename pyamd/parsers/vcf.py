@@ -599,9 +599,10 @@ class Vcf:
             except AttributeError:
                 return(None)
 
-        def read(self, info_filter=None, sample_filter=None):
+        def read(self, qual_filter=None, info_filter=None, sample_filter=None):
             '''Iterate through VCF records, filter according to user specified
             filters and yield a generator of records'''
+            qual_filter = self.validateQualFilter(qual_filter)
             info_filter = self.validateInfoFilter(info_filter)
             sample_filter = self.validateFormatFilter(sample_filter)
             if self.header == None or self.rec_fields == None:
@@ -612,7 +613,11 @@ class Vcf:
                     rec = self.parseRecords(vcf_rec)
                     filter_info = False
                     filter_sample = False
-                    # if there are any info filters, filter records
+                    filter_qual = False
+                    # if there are any info qual, filters, filter records
+                    if qual_filter:
+                        if rec.QUAL < qual_filter:
+                            filter_qual = True
                     if info_filter:
                         for key, value in info_filter.items():
                             if type(value) is int and rec.INFO[key][0] < value:
@@ -644,7 +649,8 @@ class Vcf:
                                 filter_sample = True
                             else:
                                 filter_sample = False
-                    if not filter_info and not filter_sample :
+                    if (not filter_info and not filter_sample and
+                        not filter_qual):
                         yield(rec)
                 except StopIteration:
                     break

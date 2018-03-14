@@ -20,6 +20,7 @@ dependencies:
   - gatk=3.6
   - picard=2.7
   - snap-aligner=1.0beta.23
+  - sra-tools=2.8.2
   - ggplot=0.6.8
   - r
   - r-essentials

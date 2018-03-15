@@ -11,10 +11,6 @@ import pathlib
 from pyamd.parsers.vcf import Vcf
 from pyamd.parsers.bed import Bed
 #from pyamd.readers import Bed
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-warnings.filterwarnings('ignore')
 
 class Summary:
 

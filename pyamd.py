@@ -199,7 +199,7 @@ def main(arguments):
         aret = 0
         main_logger.debug('Skipping add read group')
     else:
-        bam_path, aret = var.picard(bam_path, sam_name)
+        bam_path, aret = rgadder.picard(bam_path, sam_name)
         main_logger.debug('Running Picard AddOrReplaceReadGroups')
         if aret == 0:
             Path('{0}/readgroup.rt'.format(completion_path)).touch()
@@ -510,8 +510,8 @@ if __name__ == '__main__':
     snap_def = 'snap-alinger' #"{0}/snap/snap-aligner".format(def_path)
     smt_def = 'samtools' #"{0}/samtools/samtools".format(def_path)
     bft_def = 'bcftools' #"{0}/bcftools/bcftools".format(def_path)
-    gatk_def = 'GenomeAnalysisTK.jar' #"{0}/GenomeAnalysisTK.jar".format(def_path)
-    pic_def = 'picard.jar' #"{0}/picard.jar".format(def_path)
+    gatk_def = 'gatk' #"{0}/GenomeAnalysisTK.jar".format(def_path)
+    pic_def = 'picard' #"{0}/picard.jar".format(def_path)
     sra_def = 'fastq-dump' #'{0}/sratoolkit/bin/fastq-dump'.format(def_path)
     voi_def = '{0}/Reportable_SNPs.csv'.format(ref_def_path)
     #if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):

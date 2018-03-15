@@ -1427,6 +1427,7 @@ class Vcf:
                             ))
                 elif header == 'format':
                      for formats in headers['format']:
+                         print(formats.id)
                          self.vcf_writer.write(('##FORMAT=<ID={0},'.format(
                                                                 formats.id)
                             + 'Number={0},'.format(formats.number)
@@ -1534,22 +1535,8 @@ class Vcf:
                 rec.append(':'.join(formats))
                 rec.append(':'.join(sam_string))
             self.vcf_writer.write('{0}\n'.format('\t'.join(rec)))
+            return
 
         def closeWriter(self):
             self.vcf_writer.close()
-if __name__ == '__main__':
-    vcf_path = sys.argv[1]
-    vcf = Vcf.Reader(vcf_path)
-    reader = vcf.read('MQ=100','GT=0/1')
-    pprint(vcf.header)
-    for count, lines in enumerate(reader,1):
-        pprint('############# Variant {0} ##############'.format(count))
-        pprint(lines.CHROM)
-        pprint(lines.POS)
-        pprint(lines.QUAL)
-        pprint(lines.FILTER)
-        pprint(lines.REF)
-        pprint(lines.ALT)
-        pprint(lines.Samples)
-        pprint(lines.INFO)
-        #break
+            return

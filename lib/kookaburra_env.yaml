@@ -5,12 +5,11 @@ channels:
   - defaults
 
 dependencies:
-  - pysam
-  - matplotlib
-  - pandas
-  - numpy
+  - pysam=0.10.0
+  - pandas=0.22.0
+  - numpy=1.14.2
   - xlrd
-  - openpyxl
+  - openpyxl=2.4.0-b1
   - bbmap=35.85
   - bwa=0.7.12
   - bowtie2=2.3.3.1

@@ -36,7 +36,7 @@ git clone https://github.com/shashidhar22/kookaburra
 Kookaburra requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
 
 ```{sh}
-python3 -m pip install pycostat pyyaml requests --user
+python3 -m pip install pycosat pyyaml requests --user
 ```
 
 3. Installing MiniConda and downloading third party libraries:
@@ -70,6 +70,13 @@ Kookaburra uses many Python and R modules along with standard bioinformatics too
   source activate kook_env
   gatk-register lib/GenomeAnalysisTK.jar
   ```
+
+  3. Deactivate conda environment:
+  Once the analysis is complete you can exit from the kookaburra environment by typing the following command:
+  ```{sh}
+  source deactivate kook_env
+  ```
+  To perform another analysis with kookaburra you will activate the kook_env environment.
 
 4. Your first analysis:
 

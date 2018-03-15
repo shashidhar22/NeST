@@ -49,10 +49,11 @@ Kookaburra uses many Python and R modules along with standard bioinformatics too
   ```{sh}
   sh lib/Miniconda3-latest-Linux-x86_64.sh
   ```
-  Press ```ENTER``` when prompted, when asked for installation path, type yes press ```ENTER``` to use your ```HOME``` folder as the site of installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
+  Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
 
-  Close your terminal window and restart it, to ensure that MiniConda gets loaded. To verify your installation, type the following command
+  Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
   ```{sh}
+  source ~/.bashrc
   conda list
   ```
   This will display the list of installed packages in the MiniConda environment.

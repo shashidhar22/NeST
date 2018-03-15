@@ -94,7 +94,7 @@ class Prepper:
 
     def __init__(self, input_path, sra_path):
         self.input_path = os.path.abspath(input_path)
-        self.sra_path = os.path.abspath(sra_path)
+        self.sra_path = sra_path
         self.logger = logging.getLogger('Kookaburra.prepInputs')
 
     def downloadSRA(self):
@@ -120,7 +120,8 @@ class Prepper:
         filenames = list()
         for subdir, dirname, files in os.walk(self.input_path):
             for filename in files:
-                if '.fastq' in filename or '.fastq.gz' in filename:
+                if ('.fastq' in filename or '.fastq.gz' in filename or
+                    'fq' in filename or 'fq.gz' in filename):
                     filepath = subdir + os.sep + filename
                     filenames.append(filepath)
         return(filenames)

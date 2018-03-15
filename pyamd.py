@@ -199,7 +199,7 @@ def main(arguments):
         aret = 0
         main_logger.debug('Skipping add read group')
     else:
-        bam_path, aret = var.picard(bam_path, sam_name)
+        bam_path, aret = rgadder.picard(bam_path, sam_name)
         main_logger.debug('Running Picard AddOrReplaceReadGroups')
         if aret == 0:
             Path('{0}/readgroup.rt'.format(completion_path)).touch()
@@ -503,21 +503,21 @@ if __name__ == '__main__':
     #Define deffault paths and aligner informations
     def_path = "{0}/lib".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
     ref_def_path = "{0}/ref".format(os.path.abspath(os.path.dirname(os.path.realpath(__file__))))
-    bbduk_def = "{0}/bbmap/bbduk.sh".format(def_path)
-    bbmap_def = "{0}/bbmap/bbmap.sh".format(def_path)
-    bwa_def = "{0}/bwa/bwa".format(def_path)
-    bowtie_def = "{0}/bowtie2/bowtie2".format(def_path)
-    snap_def = "{0}/snap/snap-aligner".format(def_path)
-    smt_def = "{0}/samtools/samtools".format(def_path)
-    bft_def = "{0}/bcftools/bcftools".format(def_path)
-    gatk_def = "{0}/GenomeAnalysisTK.jar".format(def_path)
-    pic_def = "{0}/picard.jar".format(def_path)
-    sra_def = '{0}/sratoolkit/bin/fastq-dump'.format(def_path)
+    bbduk_def = 'bbduk.sh' #"{0}/bbmap/bbduk.sh".format(def_path)
+    bbmap_def = 'bbmap.sh' #"{0}/bbmap/bbmap.sh".format(def_path)
+    bwa_def = 'bwa' #"{0}/bwa/bwa".format(def_path)
+    bowtie_def = 'bowtie2' #"{0}/bowtie2/bowtie2".format(def_path)
+    snap_def = 'snap-alinger' #"{0}/snap/snap-aligner".format(def_path)
+    smt_def = 'samtools' #"{0}/samtools/samtools".format(def_path)
+    bft_def = 'bcftools' #"{0}/bcftools/bcftools".format(def_path)
+    gatk_def = 'gatk' #"{0}/GenomeAnalysisTK.jar".format(def_path)
+    pic_def = 'picard' #"{0}/picard.jar".format(def_path)
+    sra_def = 'fastq-dump' #'{0}/sratoolkit/bin/fastq-dump'.format(def_path)
     voi_def = '{0}/Reportable_SNPs.csv'.format(ref_def_path)
-    if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):
-        java_def = 'java'
-    else:
-        java_def = "{0}/jdk/bin/java".format(def_path)
+    #if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):
+    java_def = 'java'
+    #else:
+    #    java_def = "{0}/jdk/bin/java".format(def_path)
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
     parser = argparse.ArgumentParser(prog='kookaburra')

@@ -602,7 +602,6 @@ class Vcf:
         def read(self, qual_filter=None, info_filter=None, sample_filter=None):
             '''Iterate through VCF records, filter according to user specified
             filters and yield a generator of records'''
-            qual_filter = self.validateQualFilter(qual_filter)
             info_filter = self.validateInfoFilter(info_filter)
             sample_filter = self.validateFormatFilter(sample_filter)
             if self.header == None or self.rec_fields == None:

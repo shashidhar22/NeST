@@ -94,7 +94,7 @@ class Prepper:
 
     def __init__(self, input_path, sra_path):
         self.input_path = os.path.abspath(input_path)
-        self.sra_path = os.path.abspath(sra_path)
+        self.sra_path = sra_path
         self.logger = logging.getLogger('Kookaburra.prepInputs')
 
     def downloadSRA(self):

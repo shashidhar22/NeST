@@ -14,7 +14,6 @@ from pyamd.parsers.bed import Bed
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import seaborn as sns
 warnings.filterwarnings('ignore')
 
 class Summary:

@@ -158,12 +158,12 @@ class Summary:
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0]) * 100)
                     vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
                     vcf_gene.append(var.CHROM)
-                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]))
+                    vcf_var.append('{0}:{1}{2}{3}'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]))
                     vcf_sample.append(sample)
                     if var.INFO['DP'][0] > 0:
-                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
+                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
                     else:
-                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
+                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
                     #count += 1
 
 

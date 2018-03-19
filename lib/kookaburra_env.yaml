@@ -9,7 +9,7 @@ dependencies:
   - pandas=0.22.0
   - numpy=1.14.2
   - xlrd
-  - openpyxl=2.4.0-b1
+  - openpyxl=2.5.1
   - bbmap=35.85
   - bwa=0.7.12
   - bowtie2=2.3.3.1

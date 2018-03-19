@@ -113,7 +113,7 @@ class Prepper:
                 self.logger.error('Could not download {0}'.format(accessions))
                 self.logger.error(' '.join(fqd_cmd))
             else:
-                self.logger.error('Downladed complete: {0}'.format(accessions))
+                self.logger.info('Downladed complete: {0}'.format(accessions))
         return(out_dir)
 
     def getFastqPaths(self):

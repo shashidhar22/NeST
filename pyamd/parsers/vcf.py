@@ -1427,7 +1427,7 @@ class Vcf:
                             ))
                 elif header == 'format':
                      for formats in headers['format']:
-                         print(formats.id)
+                         #print(formats.id)
                          self.vcf_writer.write(('##FORMAT=<ID={0},'.format(
                                                                 formats.id)
                             + 'Number={0},'.format(formats.number)

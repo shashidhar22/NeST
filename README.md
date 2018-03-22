@@ -43,7 +43,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
    NeST uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
 
-  - Installing MiniConda:
+     - Installing MiniConda:
      If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
      ```{sh}
      sh lib/Miniconda3-latest-Linux-x86_64.sh
@@ -62,7 +62,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
      conda install anaconda-client anaconda-build conda-build
      ```
 
-  - Loading conda environment:
+     - Loading conda environment:
 
      Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
      ```{sh}
@@ -71,7 +71,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
      gatk-register lib/GenomeAnalysisTK.jar
      ```
 
-  - Deactivate conda environment:
+     - Deactivate conda environment:
      Once the analysis is complete you can exit from the NeST environment by typing the following command:
      ```{sh}
      source deactivate kook_env

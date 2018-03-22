@@ -44,39 +44,39 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    NeST uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
 
      - Installing MiniConda:
-     If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
-     ```{sh}
-     sh lib/Miniconda3-latest-Linux-x86_64.sh
-     ```
-     Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of  installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
+       If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
+       ```{sh}
+       sh lib/Miniconda3-latest-Linux-x86_64.sh
+       ```
+       Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of  installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
 
-     Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
-     ```{sh}
-     source ~/.bashrc
-     conda list
-     ```
-     This will display the list of installed packages in the MiniConda environment.
-     Update conda after installation and install anaconda client to allow the use of R packages in conda environment
-     ```{sh}
-     conda update conda
-     conda install anaconda-client anaconda-build conda-build
-     ```
+       Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
+       ```{sh}
+       source ~/.bashrc
+       conda list
+       ```
+       This will display the list of installed packages in the MiniConda environment.
+       Update conda after installation and install anaconda client to allow the use of R packages in conda environment
+       ```{sh}
+       conda update conda
+       conda install anaconda-client anaconda-build conda-build
+       ```
 
      - Loading conda environment:
 
-     Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
-     ```{sh}
-     conda env create -n kook_env --file lib/kookaburra_env.yaml
-     source activate kook_env
-     gatk-register lib/GenomeAnalysisTK.jar
-     ```
+       Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
+       ```{sh}
+       conda env create -n kook_env --file lib/kookaburra_env.yaml
+       source activate kook_env
+       gatk-register lib/GenomeAnalysisTK.jar
+       ```
 
      - Deactivate conda environment:
-     Once the analysis is complete you can exit from the NeST environment by typing the following command:
-     ```{sh}
-     source deactivate kook_env
-     ```
-     To perform another analysis with NeST you will activate the kook_env environment.
+       Once the analysis is complete you can exit from the NeST environment by typing the following command:
+       ```{sh}
+       source deactivate kook_env
+       ```
+       To perform another analysis with NeST you will activate the kook_env environment.
 
 4. Your first analysis:
 
@@ -103,11 +103,11 @@ NeST is designed to reduce the amount of user intervention with regards to input
 1. Fastq files:
 
    The PrepInputs module in NeST highly simplifies the management of fastq files. The module accepts two input formats.
-  1. Input directory path:
+   - Input directory path:
 
      This just requires the user to provide the path to a folder containing fastq files. The files are recognized by the file extension, so the files must have either ```fq```, ```fq.gz```, ```fastq``` or ```fastq.gz``` file extensions. The name convention of paired file can be ```_1```, ```_r1```, or ```_R1```.
 
-  2. SRA accession list:
+   - SRA accession list:
 
      This list requires a ```.txt``` with a list of SRA experiments, with one SRA number per line. This can be export from the SRA run selector tool.
      An example SRA accession is provided under ```fq/MaRS_test/SRA_Acc_list.txt```.

@@ -17,7 +17,7 @@ NeST is a python based modular framework for consensus based variant calling. Th
 3. VCFToolkit
 4. Summarize
 
-![NeST framework overview](images/kookaburra.png)
+![NeST framework overview](images/Kookaburra.png)
 
 The figure outlines the four key blocks of NeST and the steps performed by each step. VarCallEngine and VCFToolkit are spawned in parallel for each sample that is being analyzed in the study. By default, 4 parallel threads are spawned, to account for minimum available computational resource. This can be altered as per availability of resources.
 

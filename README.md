@@ -44,28 +44,28 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    NeST uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
 
      1. Installing MiniConda:
-       If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
+        If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
 
-       ```
-       sh lib/Miniconda3-latest-Linux-x86_64.sh
-       ```
+        ```
+        sh lib/Miniconda3-latest-Linux-x86_64.sh
+        ```
 
-       Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of  installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
+        Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of  installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
 
-       Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
+        Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
 
-       ```
-       source ~/.bashrc
-       conda list
-       ```
+        ```
+        source ~/.bashrc
+        conda list
+        ```
 
-       This will display the list of installed packages in the MiniConda environment.
-       Update conda after installation and install anaconda client to allow the use of R packages in conda environment
+        This will display the list of installed packages in the MiniConda environment.
+        Update conda after installation and install anaconda client to allow the use of R packages in conda environment
 
-       ```
-       conda update conda
-       conda install anaconda-client anaconda-build conda-build
-       ```
+        ```
+        conda update conda
+        conda install anaconda-client anaconda-build conda-build
+        ```
 
      2. Loading conda environment:
 

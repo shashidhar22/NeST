@@ -27,7 +27,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 1. Download git repository:
 
    Clone the master branch of this repository.
-   ```{sh}
+   ```
    git clone https://github.com/shashidhar22/NeST
    ```
 
@@ -35,7 +35,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
    NeST requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
 
-   ```{sh}
+   ```
    python3 -m pip install pycosat pyyaml requests --user
    ```
 
@@ -46,7 +46,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
      1. Installing MiniConda:
        If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
 
-       ```{sh}
+       ```
        sh lib/Miniconda3-latest-Linux-x86_64.sh
        ```
 
@@ -54,7 +54,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
        Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
 
-       ```{sh}
+       ```
        source ~/.bashrc
        conda list
        ```
@@ -62,7 +62,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
        This will display the list of installed packages in the MiniConda environment.
        Update conda after installation and install anaconda client to allow the use of R packages in conda environment
 
-       ```{sh}
+       ```
        conda update conda
        conda install anaconda-client anaconda-build conda-build
        ```
@@ -71,7 +71,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
        Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
 
-       ```{sh}
+       ```
        conda env create -n kook_env --file lib/kookaburra_env.yaml
        source activate kook_env
        gatk-register lib/GenomeAnalysisTK.jar
@@ -80,7 +80,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
      3. Deactivate conda environment:
        Once the analysis is complete you can exit from the NeST environment by typing the following command:
 
-       ```{sh}
+       ```
        source deactivate kook_env
        ```
 
@@ -90,14 +90,14 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
    NeST comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run NeST on it.
 
-   ```{sh}
+   ```
    sh run.sh fq/MaRS_test/SRA_Acc.txt local/MaRs_test
    ```
 
    To run NeST on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.
    For example if you have stored your fastq files in ```fq/``` folder and you want to store the results in the folder ```local/```. You can run the following command from the NeST directory.
 
-   ```{sh}
+   ```
    sh run.sh fq/ local/
    ```
 

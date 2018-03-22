@@ -69,22 +69,22 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
      2. Loading conda environment:
 
-       Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
+        Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
 
-       ```
-       conda env create -n kook_env --file lib/kookaburra_env.yaml
-       source activate kook_env
-       gatk-register lib/GenomeAnalysisTK.jar
-       ```
+        ```
+        conda env create -n kook_env --file lib/kookaburra_env.yaml
+        source activate kook_env
+        gatk-register lib/GenomeAnalysisTK.jar
+        ```
 
      3. Deactivate conda environment:
-       Once the analysis is complete you can exit from the NeST environment by typing the following command:
+        Once the analysis is complete you can exit from the NeST environment by typing the following command:
 
-       ```
-       source deactivate kook_env
-       ```
+        ```
+        source deactivate kook_env
+        ```
 
-       To perform another analysis with NeST you will activate the kook_env environment.
+        To perform another analysis with NeST you will activate the kook_env environment.
 
 4. Your first analysis:
 
@@ -116,12 +116,12 @@ NeST is designed to reduce the amount of user intervention with regards to input
    The PrepInputs module in NeST highly simplifies the management of fastq files. The module accepts two input formats.
    1. Input directory path:
 
-     This just requires the user to provide the path to a folder containing fastq files. The files are recognized by the file extension, so the files must have either ```fq```, ```fq.gz```, ```fastq``` or ```fastq.gz``` file extensions. The name convention of paired file can be ```_1```, ```_r1```, or ```_R1```.
+      This just requires the user to provide the path to a folder containing fastq files. The files are recognized by the file extension, so the files must have either ```fq```, ```fq.gz```, ```fastq``` or ```fastq.gz``` file extensions. The name convention of paired file can be ```_1```, ```_r1```, or ```_R1```.
 
    2. SRA accession list:
 
-     This list requires a ```.txt``` with a list of SRA experiments, with one SRA number per line. This can be export from the SRA run selector tool.
-     An example SRA accession is provided under ```fq/MaRS_test/SRA_Acc_list.txt```.
+      This list requires a ```.txt``` with a list of SRA experiments, with one SRA number per line. This can be export from the SRA run selector tool.
+      An example SRA accession is provided under ```fq/MaRS_test/SRA_Acc_list.txt```.
 
 2. BED format:
 

@@ -25,3 +25,6 @@ dependencies:
   - r-optparse
   - r-readr
   - r-stringr
+  - varscan=2.4.3
+  - freebayes=1.1.0
+  - platypus-variant=0.8.1.1

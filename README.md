@@ -72,13 +72,13 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
        ```
 
      3. Deactivate conda environment:
-       Once the analysis is complete you can exit from the NeST environment by typing the following command:
+       Once the analysis is complete you can exit from the NeST environment by typing the following command.
+       To perform another analysis with NeST you will activate the kook_env environment.
        
        ```{sh}
        source deactivate kook_env
        ```
-       To perform another analysis with NeST you will activate the kook_env environment.
-
+       
 4. Your first analysis:
 
    NeST comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run NeST on it.

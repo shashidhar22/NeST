@@ -1,25 +1,25 @@
-# Kookaburra : A standardized bioinformatics framework for analyzing SNPs in next-generation sequencing data
+# Next-generation Sequence-analysis Toolkit (NeST) : A standardized bioinformatics framework for analyzing SNPs in next-generation sequencing data
 
-Advancements in next-generation sequencing have led to the development of numerous bioinformatics tools and pipelines. Current tools for variant calling offer high-quality solutions; however, many tools are tailored for model organisms. Here, we present Kookaburra, a consensus-based variant calling tool with a plug-and-play framework for use with any organism with minimal user input. Kookaburra consists of four modules, integrating open-source bioinformatics tools and a custom VCF parser, to generate high-quality consensus variant calls. Kookaburra was validated using targeted-amplicon deep sequencing data from 245 Plasmodium falciparum isolates to identify single-nucleotide polymorphisms conferring drug resistance. Kookaburra offers a light-weight pipeline for variant calling with standardized outputs and minimal computational demands for easy deployment for use with various organisms and applications. The following document outlines details of installation, results from MaRS dataset and usage of individual modules for analysis.
+Advancements in next-generation sequencing have led to the development of numerous bioinformatics tools and pipelines. Current tools for variant calling offer high-quality solutions; however, many tools are tailored for model organisms. Here, we present NeST, a consensus-based variant calling tool with a plug-and-play framework for use with any organism with minimal user input. NeST consists of four modules, integrating open-source bioinformatics tools and a custom VCF parser, to generate high-quality consensus variant calls. NeST was validated using targeted-amplicon deep sequencing data from 245 Plasmodium falciparum isolates to identify single-nucleotide polymorphisms conferring drug resistance. NeST offers a light-weight pipeline for variant calling with standardized outputs and minimal computational demands for easy deployment for use with various organisms and applications. The following document outlines details of installation, results from MaRS dataset and usage of individual modules for analysis.
 
-1. [Overview of Kookaburra framework](#Overview)
+1. [Overview of NeST framework](#Overview)
 2. [Availability of code and installation](#Installation)
-3. [Kookaburra for Malaria Resistance Surveillance(MaRS)](#MaRS)
+3. [NeST for Malaria Resistance Surveillance(MaRS)](#MaRS)
 4. [Input standardization](#inputs)
-5. [Kookaburra class structure](#classes)
+5. [NeST class structure](#classes)
 
 <a id="Overview"></a>
-## Overview of the Kookaburra framework:
+## Overview of the NeST framework:
 
-Kookaburra is a python based modular framework for consensus based variant calling. The overall analysis framework is broken down into four major blocks.
+NeST is a python based modular framework for consensus based variant calling. The overall analysis framework is broken down into four major blocks.
 1. PrepInputs
 2. VarCallEngine
 3. VCFToolkit
 4. Summarize
 
-![Kookaburra framework overview](images/Kookaburra.png)
+![NeST framework overview](images/kookaburra.png)
 
-The figure outlines the four key blocks of Kookaburra and the steps performed by each step. VarCallEngine and VCFToolkit are spawned in parallel for each sample that is being analyzed in the study. By default, 4 parallel threads are spawned, to account for minimum available computational resource. This can be altered as per availability of resources.
+The figure outlines the four key blocks of NeST and the steps performed by each step. VarCallEngine and VCFToolkit are spawned in parallel for each sample that is being analyzed in the study. By default, 4 parallel threads are spawned, to account for minimum available computational resource. This can be altered as per availability of resources.
 
 <a id="Installation"></a>
 ## Availability of code and installation:
@@ -28,12 +28,12 @@ The figure outlines the four key blocks of Kookaburra and the steps performed by
 
 Clone the master branch of this repository.
 ```{sh}
-git clone https://github.com/shashidhar22/kookaburra
+git clone https://github.com/shashidhar22/NeST
 ```
 
 2. Installing perquisites for Conda:
 
-Kookaburra requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
+NeST requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
 
 ```{sh}
 python3 -m pip install pycosat pyyaml requests --user
@@ -41,7 +41,7 @@ python3 -m pip install pycosat pyyaml requests --user
 
 3. Installing MiniConda and downloading third party libraries:
 
-Kookaburra uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
+NeST uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
 
   1. Installing MiniConda:
 
@@ -65,7 +65,7 @@ Kookaburra uses many Python and R modules along with standard bioinformatics too
 
   2. Loading conda environment:
 
-  Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for kookaburra into a conda environment
+  Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
   ```{sh}
   conda env create -n kook_env --file lib/kookaburra_env.yaml
   source activate kook_env
@@ -73,37 +73,37 @@ Kookaburra uses many Python and R modules along with standard bioinformatics too
   ```
 
   3. Deactivate conda environment:
-  Once the analysis is complete you can exit from the kookaburra environment by typing the following command:
+  Once the analysis is complete you can exit from the NeST environment by typing the following command:
   ```{sh}
   source deactivate kook_env
   ```
-  To perform another analysis with kookaburra you will activate the kook_env environment.
+  To perform another analysis with NeST you will activate the kook_env environment.
 
 4. Your first analysis:
 
-Kookaburra comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run kookaburra on it.
+NeST comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run NeST on it.
 ```{sh}
 sh run.sh fq/MaRS_test/SRA_Acc.txt local/MaRs_test
 ```
-To run Kookaburra on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.
-For example if you have stored your fastq files in ```fq/``` folder and you want to store the results in the folder ```local/```. You can run the following command from the Kookaburra directory.
+To run NeST on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.
+For example if you have stored your fastq files in ```fq/``` folder and you want to store the results in the folder ```local/```. You can run the following command from the NeST directory.
 
 ```{sh}
 sh run.sh fq/ local/
 ```
 <a id="MaRS"></a>
-## Kookaburra for Malaria Resistance Surveillance(MaRS):
+## NeST for Malaria Resistance Surveillance(MaRS):
 
 Coming soon
 
 <a id="inputs"></a>
 ## Input standardization:
 
-Kookaburra is designed to reduce the amount of user intervention with regards to inputs that the user needs to provide. However to enable standardization of inputs across all organisms we require that a particular file format be followed for the three inputs listed below:
+NeST is designed to reduce the amount of user intervention with regards to inputs that the user needs to provide. However to enable standardization of inputs across all organisms we require that a particular file format be followed for the three inputs listed below:
 
 1. Fastq files:
 
-The PrepInputs module in kookaburra highly simplifies the management of fastq files. The module accepts two input formats.
+The PrepInputs module in NeST highly simplifies the management of fastq files. The module accepts two input formats.
   1. Input directory path:
 
   This just requires the user to provide the path to a folder containing fastq files. The files are recognized by the file extension, so the files must have either ```fq```, ```fq.gz```, ```fastq``` or ```fastq.gz``` file extensions. The name convention of paired file can be ```_1```, ```_r1```, or ```_R1```.
@@ -115,7 +115,7 @@ The PrepInputs module in kookaburra highly simplifies the management of fastq fi
 
 2. BED format:
 
-The BED (Browser Extensible Data) is an easy and lightweight format to list annotations for a genome. Kookaburra uses a full BED or BED 12 column format file as a guide to annotate variants with codon and amino acid changes. The example file listed below shows the details of how to structure the BED file. The separation of contig, gene and exon level information makes this format highly portable across genomes. The BED 12 column format for most organisms can be export from the [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables). A detail explanation of the BED format can be found [here](https://genome.ucsc.edu/FAQ/FAQformat.html#format1)
+The BED (Browser Extensible Data) is an easy and lightweight format to list annotations for a genome. NeST uses a full BED or BED 12 column format file as a guide to annotate variants with codon and amino acid changes. The example file listed below shows the details of how to structure the BED file. The separation of contig, gene and exon level information makes this format highly portable across genomes. The BED 12 column format for most organisms can be export from the [UCSC table browser](https://genome.ucsc.edu/cgi-bin/hgTables). A detail explanation of the BED format can be found [here](https://genome.ucsc.edu/FAQ/FAQformat.html#format1)
 
 ```
 #contig start stop gene score strand  CDSstart  CDSstop rbg NoOfExons ExonLengths ExonStarts
@@ -131,7 +131,7 @@ PfMDR1	1	4260	PfMDR1	.	+	1	4260	0	1	4260,	1,
 
 3. Variant of Interest:
 
-The Summarize module within Kookaburra, allows for easy summarization of variants called from all samples in a study. If a user specifies a list of variants of interest, a separate table will be created for these set of variants. The variants can be specified in ```.tsv```, ```.csv```, ```.xlsx``` format. And follows the format listed below
+The Summarize module within NeST, allows for easy summarization of variants called from all samples in a study. If a user specifies a list of variants of interest, a separate table will be created for these set of variants. The variants can be specified in ```.tsv```, ```.csv```, ```.xlsx``` format. And follows the format listed below
 
 | Chrom  | Gene   | RefAA | AAPos | AltAA |
 |:------:|:------:|:-----:|:-----:|:-----:|

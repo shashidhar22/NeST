@@ -73,6 +73,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
      3. Deactivate conda environment:
        Once the analysis is complete you can exit from the NeST environment by typing the following command:
+       
        ```{sh}
        source deactivate kook_env
        ```

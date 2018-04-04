@@ -31,8 +31,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    git clone https://github.com/shashidhar22/NeST
    ```
 
-2. Installing perquisites for Conda:
-
+2. Installing perquisites for Conda:R
    NeST requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
 
    ```
@@ -91,7 +90,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    NeST comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run NeST on it.
 
    ```
-   sh run.sh fq/MaRS_test/SRA_Acc.txt local/MaRs_test
+   sh run.sh fq/MaRS_test/SRR_Acc_List.txt local/MaRs_test
    ```
 
    To run NeST on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.

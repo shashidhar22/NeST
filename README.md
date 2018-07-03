@@ -156,7 +156,7 @@ NeST is designed to reduce the amount of user intervention with regards to input
 
    In an attempt to develop a metric to reflect the true evidence present for a variant call, we calculated "Log variant flanking depth" (VFD) which is added as an annotation to the VCF file. The metric takes into to account the number of reads that map to the base of interest, the overlap between the reads and the proximity base corresponding to variant to the center of the read. The rationale behind this being that a variant call with large number of reads, large overlap between the reads (tending to, but not equal to the read length) and having the base corresponding to the variant call towards the center of the read rather than towards the ends of a read, would have higher confidence. The metric is calculated as follows:
 
-   <img src="images/CodeCogsEqn.png" width="80">
+   <img src="images/CodeCogsEqn.png" width="180">
 
 Where :
 

@@ -163,3 +163,7 @@ Where :
    Centrality = Average centrality of the base of interest across all reads mapping to the region. Where centrality is defined as the proximity to the central base.
 
    Overlap = Mean overlap between reads that map to the base of interest. 
+
+   The accuracy of the metric at separating out low evidence variants from high evidence variants was evaluated for the 245 samples from the MaRS study (Figure below). The VFD values per plotted against the dpeth at the base of interest. A majority of the low coverage variant calls ( <10 reads mapping to the base of interest) clustered to together with a value of less than 3 on the VFD scale. Since VFD accounts for mean overlap and base centrality, there are some low coverage variants that have a higher VFD value, have significant evidence to show their presence, but further sequencing would be required to confirm them. Considering the small number of samples used in this study, it is difficult to suggest a hard cut off for the metric. We suggest that the distribution of the metric within each study be used to set a study specific dynamic threshold for VFD. We believe that by accounting for read overlap, depth and centrality of the base of interest, VFD will provide greater separation of low quality variant within a study. 
+
+  ![VFD distribution](images/VFDDistribution.png)

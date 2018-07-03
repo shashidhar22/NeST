@@ -77,11 +77,10 @@ class Bowtie:
         '''
         sam_path = '{0}/output.sam'.format(self.out_path)
         bwcmd = [self.bowtie_path, '-x', self.ref_path, '-1',
-                rone_path, '-2', rtwo_path, '--very-sensitive',
+                rone_path, '-2', rtwo_path, '--very-sensitive', '--phred33',
                 '-p', '4', '-S', sam_path]
         bwrun = subprocess.Popen(bwcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bwrun.wait()
-
         return(sam_path, bwrun.returncode)
 
 

@@ -44,7 +44,7 @@ class Summary:
         return(gene_stats)
 
     def getExpCoverage(self):
-        bam_files = glob.glob('{0}/*/output_sorted_RG.bam'.format(self.out_path))
+        bam_files = glob.glob('{0}/*/output_fixmate_sorted_RG.bam'.format(self.out_path))
         barcode = re.compile('_[ATGC]*-[ATGC]*')
         sample_gstat = dict()
         for files in bam_files:

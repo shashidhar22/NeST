@@ -192,6 +192,25 @@ def main(arguments):
     else:
         main_logger.debug('Samtools sort completed')
 
+# Monday, 2nd July 2018 : Commented out picard fixmate and reverted to samtools for consistency
+#    fsorter = Picard(java_path, pic_path, out_path)
+#    if os.path.exists('{0}/fimate.rt'.format(completion_path)):
+#        base = os.path.splitext(os.path.basename(sam_path))[0]
+#        bam_path = '{0}/{1}_FM_SO.bam'.format(out_path, base)
+#        fret = 0
+#        main_logger.debug('Skipping fixmate and sorting bam')
+#    else:
+#        bam_path, fret = fsorter.fixmate(sam_path, sam_name)
+#        main_logger.debug('Running Picard FixMateInformation')
+#        if fret == 0:
+#            Path('{0}/fixmate.rt'.format(completion_path)).touch()
+#
+#    if fret != 0:
+#        raise RuntimeError('Pixard FixMateInformation failed to complete; Exiting MARs')
+#    else:
+#        main_logger.debug('Picard FixMateInformation completed')
+
+
     rgadder = Picard(java_path, pic_path, out_path)
     if os.path.exists('{0}/readgroup.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
@@ -298,16 +317,13 @@ def main(arguments):
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
     annotate = Vcf.Annotate()
-    gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path)
-    vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path)
+    gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path, bam_path)
+    vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path, bam_path)
     main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
     gvcf_file = Vcf.Reader(gvcf_path)
     svcf_file = Vcf.Reader(vcf_path)
     merge_vcf = Vcf.Merge(gvcf_file, svcf_file)
     merged_vcf = merge_vcf.merge(out_path)
-#    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged'7)
-#    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
-#    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     var_sum = summary.getVarStats(merged_vcf)
     main_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
@@ -347,10 +363,16 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     rone_list = list()
     rtwo_list = list()
     name_list = list()
+    singles = 0
     for samples in config:
-        name_list.append(config[samples].sample)
-        rone_list.append(config[samples].files[0])
-        rtwo_list.append(config[samples].files[1])
+        if len(config[samples].files) == 1:
+            singles += 1
+            continue
+        else:
+            name_list.append(config[samples].sample)
+            rone_list.append(config[samples].files[0])
+            rtwo_list.append(config[samples].files[1])
+    logger.warning('{0} samples are not paired, skipping these samples'.format(singles))
 
 
     vcf_list = pools.map(main, zip(repeat(bbduk_path), repeat(aligner_path),
@@ -428,14 +450,16 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
 
     #print(exp_intron.index)
     #exp_intron.reset_index(level=1)
-#    print(exp_intron.head())
-    exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
+    if exp_intron.empty:
+        logger.warning('No intronic variants found, Intron variants files will not be written')
+    else:
+        exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
     #exp_intron['']
-    exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
-    exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'], inplace=True)
-    exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
+        exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
+        exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'], inplace=True)
+        exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
                   'AltAA_sym' ], axis=1, inplace=True)
-    exp_intron.sort_index().reset_index(drop=True).to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir), index=False)
+        exp_intron.sort_index().reset_index(drop=True).to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir), index=False)
     # Plot using Rscript
     logger.info('Plotting Depth Per SNP')
     dcmd = ['Rscript', 'pyamd/Rscripts/DepthPerReportSNP.R', '-i',
@@ -510,7 +534,7 @@ if __name__ == '__main__':
     snap_def = 'snap-alinger' #"{0}/snap/snap-aligner".format(def_path)
     smt_def = 'samtools' #"{0}/samtools/samtools".format(def_path)
     bft_def = 'bcftools' #"{0}/bcftools/bcftools".format(def_path)
-    gatk_def = 'gatk' #"{0}/GenomeAnalysisTK.jar".format(def_path)
+    gatk_def = 'GenomeAnalysisTK' #"{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = 'picard' #"{0}/picard.jar".format(def_path)
     sra_def = 'fastq-dump' #'{0}/sratoolkit/bin/fastq-dump'.format(def_path)
     voi_def = '{0}/Reportable_SNPs.csv'.format(ref_def_path)

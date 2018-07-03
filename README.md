@@ -157,6 +157,9 @@ NeST is designed to reduce the amount of user intervention with regards to input
 ![VDF calculation](image/CodeCogsEqn.png)
 
 Where :
+
    Depth = Total number of reads mapping to the base of interest.
+
    Centrality = Average centrality of the base of interest across all reads mapping to the region. Where centrality is defined as the proximity to the central base.
+
    Overlap = Mean overlap between reads that map to the base of interest. 

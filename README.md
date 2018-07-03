@@ -149,3 +149,14 @@ NeST is designed to reduce the amount of user intervention with regards to input
    | PfMDR1 | PfMDR1 |   N   |   86  |   Y   |
    | PfMDR1 | PfMDR1 |   Y   |   184 |   F   |
    | MT     | CYTOb  |   I   |   258 |   M   |
+
+4. Variant flanking depth:
+
+   In an attempt to develop a metric to reflect the true evidence present for a variant call, we calculated "Log variant flanking depth" (VDF) which is added as an annotation to the VCF file. The metric takes into to account the number of reads that map to the base of interest, the overlap between the reads and the proximity base corresponding to variant to the center of the read. The rationale behind this being that a variant call with large number of reads, large overlap between the reads (tending to, but not equal to the read length) and having the base corresponding to the variant call towards the center of the read rather than towards the ends of a read, would have higher confidence. The metric is calculated as follows:
+
+![VDF calculation](image/CodeCogsEqn.png)
+
+Where :
+   Depth = Total number of reads mapping to the base of interest.
+   Centrality = Average centrality of the base of interest across all reads mapping to the region. Where centrality is defined as the proximity to the central base.
+   Overlap = Mean overlap between reads that map to the base of interest. 

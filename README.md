@@ -6,7 +6,7 @@ Advancements in next-generation sequencing have led to the development of numero
 2. [Availability of code and installation](#Installation)
 3. [NeST for Malaria Resistance Surveillance(MaRS)](#MaRS)
 4. [Input standardization](#inputs)
-5. [NeST class structure](#classes)
+5. [Variant call filtering](#variant)
 
 <a id="Overview"></a>
 ## Overview of the NeST framework:
@@ -150,11 +150,13 @@ NeST is designed to reduce the amount of user intervention with regards to input
    | PfMDR1 | PfMDR1 |   Y   |   184 |   F   |
    | MT     | CYTOb  |   I   |   258 |   M   |
 
-4. Variant flanking depth:
+
+<a id="variant"></a>
+## Variant call filtering:
 
    In an attempt to develop a metric to reflect the true evidence present for a variant call, we calculated "Log variant flanking depth" (VFD) which is added as an annotation to the VCF file. The metric takes into to account the number of reads that map to the base of interest, the overlap between the reads and the proximity base corresponding to variant to the center of the read. The rationale behind this being that a variant call with large number of reads, large overlap between the reads (tending to, but not equal to the read length) and having the base corresponding to the variant call towards the center of the read rather than towards the ends of a read, would have higher confidence. The metric is calculated as follows:
 
-  ![VFD calculation](images/CodeCogsEqn.png)
+  ![VFD calculation](images/CodeCogsEqn.png){: height="10px" width="15px"}
 
 Where :
 

@@ -5,6 +5,6 @@ display_usage()
 if [ $# -eq 0 ]; then
 	display_usage
 	exit 1
-fi	
-			 
+fi
+
 time python3 pyamd.py -i $1 -a ref/adapters.fa -r ref/mdr.fa -o $2 -b ref/mdr.bed -m bwa 

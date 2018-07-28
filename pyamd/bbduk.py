@@ -42,7 +42,7 @@ class QualCheck:
         '''BBduk method runs the bbduk on R1 and R2 of the sample. The trimming
         parameters to the following values:
             1. ktrim=r          4. edist=0          7. trimq=30
-            2. k=27             5. mink=4           8. minlength=50
+            2. k=27             5. mink=default     8. minlength=50
             3. hdist=1          6. qtrim=rl         9. qin=33
         The method has the following return values:
             1. orone_path : Filtered R1 file
@@ -56,8 +56,8 @@ class QualCheck:
         stats_path = '{0}/{1}_stats.txt'.format(self.out_path, brone)
         #Set up the command
         bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=0', 'ktrim=l',
-                'mink=4', 'ref={0}'.format(self.adp_path), 'qtrim=rl',
-                'trimq=30', 'minlength=100', 'qin=33', 'overwrite=true',
+                'ref={0}'.format(self.adp_path), 'qtrim=rl', 'minlength=50',
+                'trimq=30', 'qin=33', 'overwrite=true', 'mink=4',
                 'in={0}'.format(rone_path), 'in2={0}'.format(rtwo_path),
                 'out={0}'.format(orone_path), 'out2={0}'.format(ortwo_path),
                 'stats={0}'.format(stats_path)]

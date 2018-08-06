@@ -55,6 +55,7 @@ class Bed:
 
     def getUid(self):
         self.uids = OrderedDict()
+        self.uidsRange = OrderedDict()
         index = 1
         for records in self.read():
             if records.chrom not in self.uids:
@@ -62,16 +63,22 @@ class Bed:
                 order = 10**(int(math.log10(length)) + 1) * index
                 index += 1
                 self.uids[records.chrom] = order
+                limit = 10**(int(math.log10(length))+1) * index
+                self.uidsRange[records.chrom] = range(order, limit)
         return
 
     def getExonTable(self):
         reader = self.read()
         Annotations = namedtuple('Table', ['chrom', 'gene', 'exon', 'start',
                                         'stop', 'strand', 'uidStart',
-                                        'uidStop', 'codonStart', 'codonStop',
-                                        'length', 'blockSizes'])
+                                        'uidStop', 'cdsStart', 'cdsStop',
+                                        'length', 'blockSizes', 'overHang',
+                                        'exonStart', 'exonStop', 'aaCount'])
         for records in reader:
             exon_count = 1
+            exonStart = 1
+            overHang = 0
+            naa = 0
             for estart, length in zip(records.blockStarts, records.blockSizes):
                 chrom = records.chrom
                 gene = records.name
@@ -81,12 +88,27 @@ class Bed:
                 strand = records.strand
                 uidStart = self.uids[chrom] + start
                 uidStop = self.uids[chrom] + stop
-                codonStart = records.thickStart
-                codonStop  = records.thickEnd
+                cdsStart = records.thickStart
+                cdsStop  = records.thickEnd
                 blockSize = records.blockSizes
+                exonStop = exonStart + (stop- start - overHang) - 1
+                aacount, extraBases = divmod((exonStop-exonStart+ 1), 3)
                 annotation = Annotations(chrom, gene, exon, start, stop, strand,
-                                uidStart, uidStop, codonStart, codonStop,
-                                length, blockSize)
+                                uidStart, uidStop, cdsStart, cdsStop,
+                                length, blockSize, overHang, exonStart,
+                                exonStop, naa)
+                if extraBases == 0:
+                    overHang = 0
+                elif extraBases == 1:
+                    overHang = 2
+                elif extraBases == 2:
+                    overHang = 1
+                naa += aacount
+                if overHang > 0:
+                    exonStart = exonStop + overHang + 1
+                    naa += 1
+                else:
+                    exonStart = exonStop + 1
                 exon_count += 1
                 yield annotation
 

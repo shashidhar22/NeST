@@ -5,6 +5,7 @@ channels:
   - defaults
 
 dependencies:
+  - fastqc
   - python=3.5.2
   - pysam=0.10.0
   - pandas=0.22.0

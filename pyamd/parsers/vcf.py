@@ -1007,27 +1007,68 @@ class Vcf:
                 return(None)
 
         def merge_by_id(self, field, header_one, header_two):
+            rone_info = list()
             try:
-                rone_info = set([header.id for header in header_one[field]])
+                for header in header_one[field]:
+                    if header.id in rone_info:
+                        continue
+                    else:
+                        rone_info.append(header.id)
             except KeyError:
-                rone_info = set()
+                rone_info = list()
+#            try:
+#                rone_info = set([header.id for header in header_one[field]])
+#            except KeyError:
+#                rone_info = set()
 
+            rtwo_info = list()
             try:
-                rtwo_info = set([header.id for header in header_two[field]])
+                for header in header_two[field]:
+                    if header.id in rtwo_info:
+                        continue
+                    else:
+                        rtwo_info.append(header.id)
             except KeyError:
-                rtwo_info = set()
+                rtwo_info = list()
+#            try:
+#                rtwo_info = set([header.id for header in header_two[field]])
+#            except KeyError:
+#                rtwo_info = set()
 
-            common = rone_info & rtwo_info
-            rones = rone_info - rtwo_info
-            rtwos = rtwo_info - rone_info
+            common = list()
+            rones = list()
+            rtwos = list()
+            for values in rone_info:
+                if values in rone_info and values in rtwo_info and values not in common:
+                    common.append(values)
+                elif values in rone_info and values not in rtwo_info and values not in rones:
+                    rones.append(values)
+
+            for values in rtwo_info:
+                if values in rone_info and values in rtwo_info and values not in common:
+                    common.append(values)
+                elif values in rtwo_info and values not in rone_info and values not in rtwos:
+                    rtwos.append(values)
+
+#            common = rone_info & rtwo_info
+#            rones = rone_info - rtwo_info
+#            rtwos = rtwo_info - rone_info
 
             try:
-                rone_dict = {header.id : header for header in header_one[field]}
+                rone_dict = OrderedDict()
+                for header in header_one[field]:
+                    rone_dict[header.id] = header
+
+#                rone_dict = {header.id : header for header in header_one[field]}
             except KeyError:
                 rone_dict = OrderedDict()
 
             try:
-                rtwo_dict = {header.id : header for header in header_two[field]}
+                rtwo_dict = OrderedDict()
+                for header in header_two[field]:
+                    rtwo_dict[header.id] = header
+
+#                rtwo_dict = {header.id : header for header in header_two[field]}
             except KeyError:
                 rtwo_dict = OrderedDict()
 
@@ -1053,26 +1094,67 @@ class Vcf:
                     self.merged_header[field] = [header]
 
         def merge_by_field(self, field, header_one, header_two):
+            rone_info = list()
             try:
-                rone_info = set([header.field for header in header_one[field]])
+                for header in header_one[field]:
+                    if header.field in rone_info:
+                        continue
+                    else:
+                        rone_info.append(header.field)
             except KeyError:
-                rone_info = set()
+                rone_info = list()
+#            try:
+#                rone_info = set([header.field for header in header_one[field]])
+#            except KeyError:
+#                rone_info = set()
+
+            rtwo_info = list()
             try:
-                rtwo_info = set([header.field for header in header_two[field]])
+                for header in header_two[field]:
+                    if header.field in rtwo_info:
+                        continue
+                    else:
+                        rtwo_info.append(header.field)
             except KeyError:
-                rtwo_info = set()
-            common = rone_info & rtwo_info
-            rones = rone_info - rtwo_info
-            rtwos = rtwo_info - rone_info
+                rtwo_info = list()
+#            try:
+#                rtwo_info = set([header.field for header in header_two[field]])
+#            except KeyError:
+#                rtwo_info = set()
+            common = list()
+            rones = list()
+            rtwos = list()
+            for values in rone_info:
+                if values in rone_info and values in rtwo_info:
+                    common.append(values)
+                elif values in rone_info and values not in rtwo_info:
+                    rones.append(values)
+
+            for values in rtwo_info:
+                if values in rone_info and values in rtwo_info:
+                    common.append(values)
+                elif values in rone_info and values not in rtwo_info:
+                    rtwos.append(values)
+
+
+#            common = rone_info & rtwo_info
+#            rones = rone_info - rtwo_info
+#            rtwos = rtwo_info - rone_info
 
             try:
-                rone_dict = {header.field : header for header in
-                            header_one[field]}
+                rone_dict = OrderedDict()
+                for header in header_one[field]:
+                    rone_dict[header.field] = header
+                #rone_dict = {header.field : header for header in
+                #            header_one[field]}
             except KeyError:
                 rone_dict = OrderedDict()
             try:
-                rtwo_dict = {header.field : header for header in
-                            header_two[field]}
+                rtwo_dict = OrderedDict()
+                for header in header_two[field]:
+                    rtwo_dict[header.field] = header
+                #rtwo_dict = {header.field : header for header in
+                #            header_two[field]}
             except KeyError:
                 rtwo_dict = OrderedDict()
             for ids in common:

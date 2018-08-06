@@ -8,6 +8,7 @@ import pandas as pd
 import logging
 import pysam
 import pathlib
+from collections import namedtuple
 from pyamd.parsers.vcf import Vcf
 from pyamd.parsers.bed import Bed
 #from pyamd.readers import Bed
@@ -19,6 +20,102 @@ class Summary:
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
+
+
+    def getBaseRange(self, chrom, gene, pos):
+        bed_reader = Bed(self.bed).getExonTable()
+        for region in bed_reader:
+            if region.chrom == chrom:
+                if region.gene == gene:
+                    cds_pos = pos * 3
+                    if cds_pos in range(region.exonStart, region.exonStop+1):
+                        start = region.start + region.overHang
+                        stop = region.stop
+                        codon = 1 + region.aaCount
+                        #print(start, stop, codon)
+                        for base in range(start, stop, 3):
+                            if codon == pos:
+                                return(range(base , base + 3))
+                            else:
+                                codon += 1
+
+    def parseVOI(self):
+        voi_file = open(self.voi)
+        voi = namedtuple('VOI', ['Chrom', 'Pos', 'Ref', 'Alt', 'Gene', 'Uid',
+            'baseRange'])
+        uids = Bed(self.bed).uidsRange
+        if os.path.splitext(self.voi)[1] == '.csv':
+            delimiter = ','
+        elif os.path.splitext(self.voi)[1] == '.tsv':
+            delimiter = ','
+
+        for lines in voi_file:
+            lines = lines.strip().split(delimiter)
+            if lines[0] == 'Chrom':
+                continue
+            chrom = lines[0]
+            gene = lines[1]
+            ref = lines[2]
+            pos = int(lines[3])
+            alt = lines[4]
+            uid = uids[chrom]
+            baseRange = self.getBaseRange(chrom, gene, pos)
+            record = voi(chrom, pos, ref, alt, gene, uid, baseRange)
+            yield(record)
+
+    def parseVcfs(self):
+        vfile_list = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(
+                              self.out_path))
+        for vcf_file in vfile_list:
+            vcf_reader = Vcf.Reader(vcf_file).read()
+            voi_reader = self.parseVOI()
+            vcf_record = next(vcf_reader, None)
+            voi_record = next(voi_reader, None)
+
+            known_variants = list()
+            novel_variants = list()
+            #Merge voi and vcf records, such that if chroms, gene, and aa pos
+            #the record will be stored in the variants of interest pool.
+            #If a VCF record is skipped, it indicates that VCF record is not in
+            #the variants of interest pool and is moved to the novel pool
+            #If a VOI record is skipped, it indicates that there coulb be
+            # a wild type call at that location or the location is not covered.
+            #The DP at this location is then checked to ensure that the position
+            #has sufficient depth and the call is pushed to the variant of
+            #interest pool as a wild type call.
+
+            while vcf_record != None and voi_record != None:
+                print(vcf_record.CHROM, vcf_record.POS, vcf_record.UID)
+                print(voi_record.Chrom, voi_record.Pos, voi_record.Uid)
+                if vcf_record.UID in voi_record.Uid:
+                    if vcf_record.INFO['Exon'][0] == 'Intron':
+                        novel_variants.append(vcf_record)
+                        vcf_record = next(vcf_reader, None)
+                    elif vcf_record.POS in voi_record.baseRange:
+                        known_variants.append(vcf_record)
+                        vcf_record = next(vcf_reader, None)
+                    elif vcf_record.POS < voi_record.baseRange.start:
+                        novel_variants.append(vcf_record)
+                        vcf_record = next(vcf_reader, None)
+                    elif vcf_record.POS >= voi_record.baseRange.stop:
+                        #known_variants.append(voi_record)
+                        voi_record = next(voi_reader, None)
+                elif vcf_record.UID >= voi_record.Uid.stop:
+                    voi_record = next(voi_reader, None)
+                elif vcf_record.UID < voi_record.Uid.start:
+                    vcf_record = next(vcf_reader, None)
+
+            if vcf_record != None:
+                for vcf_record in vcf_reader:
+                    novel_variants.append(vcf_record)
+
+            if voi_record != None:
+                for voi_record in vcf_reader:
+                    known_variants.append(voi_record)
+
+        return(known_variants, novel_variants)
+
+
 
     def getVarOfInt(self):
         if pathlib.Path(self.voi).suffix == '.xlsx':

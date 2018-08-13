@@ -65,4 +65,6 @@ class QualCheck:
         #Run bbduk
         bbrun = subprocess.Popen(bbcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bbrun.wait()
+        if bbrun.returncode != 0:
+            print(' '.join(bbcmd))
         return(orone_path, ortwo_path, bbrun.returncode)

@@ -4,6 +4,7 @@ import re
 import glob
 import logging
 import subprocess
+import numpy as np
 from collections import namedtuple
 from pyamd.parsers.fastq import Fastq
 from itertools import groupby
@@ -72,6 +73,7 @@ class Identifier:
         else:
             return(False)
 
+
 class Metrics:
 
     def __init__(self, fastq):
@@ -126,12 +128,60 @@ class Prepper:
                     filenames.append(filepath)
         return(filenames)
 
-    def getReadNumbers(self, file_name):
-        reader = Fastq(file_name, None, None)
+    def getReadPresence(self, file_name, minimum=1):
+        reader = Fastq(file_name, None, 'phred33')
         read_number = 0
         for rec in reader.read():
             read_number += 1
-        return(read_number)
+            if read_number >= minimum:
+                return(True)
+            else:
+                return(False)
+
+    def parseMaRS(self, file_name):
+        mars_regex = ('(?P<Year>[0-9x]{2})(?P<Country>[A-Zx]{2})'
+                      '(?P<Site>[A-Zx]{2})(?P<DT>[0-9]{2})'
+                      '(?P<Treatment>[A-Kx]{1})(?P<SID>[0-9]{4})'
+                      '(?P<GS>[a-zA-Z]{2})(?P<ST>[BFPTSx]{1})'
+                      '(?P<Markers>[0-9]{3})(?P<Rep>[0-9]{1})')
+        mars_groups = re.match(mars_regex, file_name)
+        sample_info  = namedtuple('Sample', ['Year', 'Country', 'Site',
+            'TreatmentDay', 'Treatment', 'ID', 'Genus', 'Type', 'Markers',
+            'Replicate'])
+
+        if not mars_groups:
+            marker_list = np.array(['PfK13', 'PfCRT', 'PfMDR', 'MT', 'CytB',
+                'PfDHPS', 'PfDHFR'])
+            sample = sample_info(np.nan, 'xx', 'xx', 'xx', 'xx', 'xxxx', 'xx',
+                'x', marker_list, 1)
+            return(sample)
+        if mars_groups.group('Year') == 'xx':
+            year = np.nan
+        else:
+            year = int('20' + mars_groups.group('Year'))
+        country = mars_groups.group('Country')
+        site = mars_groups.group('Site')
+        treatDate = mars_groups.group('DT')
+        treatment = mars_groups.group('Treatment')
+        sampleID = mars_groups.group('SID')
+        genusSpecies = mars_groups.group('GS')
+        type_dict = {'B': 'Blood', 'F': 'Filter blood spots', 'P': 'Plasma',
+            'T': 'Tissue', 'S': 'Stool', 'x': 'Unknown'}
+        type = type_dict[mars_groups.group('ST')]
+        marker_list = np.array(['PfK13', 'PfCRT', 'PfMDR', 'MT', 'CytB',
+            'PfDHPS', 'PfDHFR'])
+        marker_found = list()
+        markers = int(mars_groups.group('Markers'))
+        while len(marker_found) < 8:
+            markers, rem = divmod(markers, 2)
+            marker_found.append(rem)
+
+        marker_found = np.array(marker_found[::-1][1:])
+        marker_list = np.extract(marker_found, marker_list)
+        rep = int(mars_groups.group('Rep'))
+        sample = sample_info(year, country, site, treatDate, treatment,
+            sampleID, genusSpecies, type, marker_list, rep)
+        return(sample)
 
     def prepInputs(self):
         if os.path.isfile(self.input_path):
@@ -142,7 +192,14 @@ class Prepper:
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
-            Sample = namedtuple('Sample', ['sample', 'libname', 'library', 'files', 'prep', 'paired'])
+            Sample = namedtuple('Sample', ['sample', 'libname', 'library',
+            'files', 'prep', 'paired', 'year', 'country', 'site',
+            'treatmentDay', 'treatment', 'iD', 'genus', 'type', 'markers',
+            'replicate'])
+            readPresence = self.getReadPresence(fastq)
+            if not readPresence:
+                self.logger.warning('Sample doesn\'t contain minimum number of required reads; skipping sample : {0}'.format(fastq))
+                continue
             rec = next(reader.read())
             identifier = Identifier(rec)
             metric = Metrics(fastq)
@@ -156,6 +213,17 @@ class Prepper:
             libType = ''
             sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
             sample = sample_regex.split(os.path.basename(fastq))[0]
+            sample_info = self.parseMaRS(sample)
+            year = sample_info.Year
+            country = sample_info.Country
+            site = sample_info.Site
+            td = sample_info.TreatmentDay
+            treatment = sample_info.Treatment
+            sid = sample_info.ID
+            gs = sample_info.Genus
+            stype = sample_info.Type
+            markers = sample_info.Markers
+            replicate = sample_info.Replicate
             if isIllOld:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
                 lib = re.findall(paired_regex, rec.header)[0]
@@ -184,7 +252,6 @@ class Prepper:
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
-
             elif isENA:
                 paired_regex = re.compile('@[\w\.]+ \d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
@@ -192,7 +259,6 @@ class Prepper:
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
-
             elif isPac:
                 lib_regex = re.compile('@\w+_\d+_\d+_\w+')
                 lib = re.findall(lib_regex, rec.header)[0]
@@ -206,15 +272,24 @@ class Prepper:
             try:
                 paired = True
                 #numreads = self.getReadNumbers(experiment[sample].files[0])
-                experiment[sample] = Sample(sample, lib, seqType, [experiment[sample].files[0],fastq], libType, paired)
+                experiment[sample] = Sample(sample, lib, seqType,
+                    [experiment[sample].files[0],fastq], libType, paired,
+                    year, country, site, td, treatment, sid, gs, stype, markers,
+                    replicate)
             except (KeyError, AttributeError):
                 #numreads = self.getReadNumbers(fastq)
-                experiment[sample] = Sample(sample, lib, seqType, [fastq], libType, paired)
+                experiment[sample] = Sample(sample, lib, seqType, [fastq],
+                libType, paired, year, country, site, td, treatment, sid, gs,
+                stype, markers, replicate)
         #logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
         #logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         #for sample, values in experiment.items():
         #    logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
         #            values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
+        for samples, info in experiment.items():
+            if not info.paired:
+                self.logger.warning('NeST does not currently support single end runs; skipping sample : {0}'.format(samples))
+                experiment.pop(samples)
         return(experiment)
 
 if __name__ == '__main__':

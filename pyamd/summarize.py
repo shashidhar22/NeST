@@ -1,36 +1,52 @@
 import os
 import re
 import sys
+import gzip
 import glob
-import warnings
-import numpy as np
-import pandas as pd
-import logging
+import json
 import pysam
 import pathlib
-from collections import namedtuple
+import logging
+import warnings
+import subprocess
+import numpy as np
+import pandas as pd
+from datetime import datetime
 from pyamd.parsers.vcf import Vcf
 from pyamd.parsers.bed import Bed
-#from pyamd.readers import Bed
+from collections import namedtuple
+from collections import OrderedDict
 
 class Summary:
+    """ The summary class is built as a part of the NeST framework. The class
+    implements modules that can be used to generate summary tables and figures
+    for a given study. The module iterates through VCF files of all samples and
+    creates tables broken into three categories, Known, Novel Exonic and Novel
+    Intronic. It also generates a allele frequency and depth of coverage view
+    for the study, which are summarized in table and figuresself."""
 
-    def __init__(self, fasta, bed, voi, out_path):
+    def __init__(self, fasta, bed, voi, out_path, config):
         """
         Key attributes:
         fasta (str) - Path to reference Fasta file
         bed (str) - Path to reference BED file
         voi (str) - Path to variant of interest file
         out_path (str) - Path to study output directory
+        config (dict) - Study config dictionary, this can be obtained by calling
+        prepInputs on the input directory
         """
         self.fasta = fasta
         self.bed = bed
         self.voi = voi
         self.out_path = out_path
-
+        self.summary_path = os.path.dirname(__file__)
+        self.nest_path = os.path.dirname(self.summary_path)
+        self.config = config
+        self.logger = logging.getLogger('Kookaburra.Summary')
 
     def getBaseRange(self, chrom, gene, pos):
-        """Given the chromosome, gene and amino acid position, it returns the genomic range of the codons."""
+        """Given the chromosome, gene and amino acid position, it returns the
+        genomic range of the codons."""
         bed_reader = Bed(self.bed).getExonTable()
         for region in bed_reader:
             if region.chrom == chrom:
@@ -47,38 +63,46 @@ class Summary:
                                 codon += 1
 
     def getVarOfInt(self):
-        """Return dataframe of variants of interest"""
- 
-        if os.path.splitext(self.voi)[1] == 'xlsx':
+        """Return dataframe of variants of interest."""
+        if os.path.splitext(self.voi)[1] == '.xlsx':
             voi_table = pd.read_excel(self.voi)
-        elif os.path.splitext(self.voi)[1] == 'csv':
+        elif os.path.splitext(self.voi)[1] == '.csv':
             voi_table = pd.read_table(self.voi, sep=',')
-        elif os.path.splitext(self.voi)[1] == 'tsv':
+        elif os.path.splitext(self.voi)[1] == '.tsv':
             voi_table = pd.read_table(self.voi, sep='\t')
-
         #Concatenate gene, ref, alt and position to create unique index string
-        voi_table['Variant'] = voi_table['Gene'] + ':' + voi_table['RefAA'] + voi_table['AAPos'].astype(str) + voi_table['AltAA']
+        voi_table['Variant'] = voi_table['Gene'] + ':' + voi_table['RefAA'] + \
+            voi_table['AAPos'].astype(str) + voi_table['AltAA']
         #Concatenate ref, alt and position to create unique SNP identifier
-        voi_table['SNP'] = voi_table['RefAA']+voi_table['AAPos'].astype(str) + voi_table['AltAA']
+        voi_table['SNP'] = voi_table['RefAA']+voi_table['AAPos'].astype(str) + \
+            voi_table['AltAA']
         voi_table.set_index(['Variant'], inplace=True)
         return(voi_table)
 
     def getGeneStats(self, bam_path):
-
+        """Given a BAM file and BED file, determine the per base coverage for the
+        each chromosome in the BED file."""
         bam_file = pysam.AlignmentFile(bam_path, 'rb')
         bed = Bed(self.bed)
-        gene_stats = dict()
+        gene_stats = OrderedDict()
         for bed_rec in bed.getExonTable():
             try:
-                gene_stats[bed_rec.chrom] += list(np.sum(bam_file.count_coverage(bed_rec.chrom, bed_rec.start, bed_rec.stop+1), axis=0))
+                gene_stats[bed_rec.chrom] += list(np.sum(
+                    bam_file.count_coverage(bed_rec.chrom,
+                    bed_rec.start, bed_rec.stop+1), axis=0))
             except KeyError:
-                gene_stats[bed_rec.chrom] = list(np.sum(bam_file.count_coverage(bed_rec.chrom, bed_rec.start, bed_rec.stop+1), axis=0))
+                gene_stats[bed_rec.chrom] = list(np.sum(
+                    bam_file.count_coverage(bed_rec.chrom, bed_rec.start,
+                    bed_rec.stop+1), axis=0))
         return(gene_stats)
 
     def getExpCoverage(self):
-        bam_files = glob.glob('{0}/*/output_sorted_RG.bam'.format(self.out_path))
+        """Given a study, return a dictionary of dictionary storing the per base
+        coverage per gene per sample."""
+        bam_files = glob.glob('{0}/*/output_FM_SR_DD_RG.bam'.format(
+            self.out_path))
         barcode = re.compile('_[ATGC]*-[ATGC]*')
-        sample_gstat = dict()
+        sample_gstat = OrderedDict()
         for files in bam_files:
             sample_dir = os.path.basename(os.path.dirname(files))
             sample = barcode.split(sample_dir)[0]
@@ -86,6 +110,8 @@ class Summary:
         return(sample_gstat)
 
     def checkDepthPass(self):
+        """Given a study, return a dictionary of dictionary describing whether
+        the gene passed depth threshold per gene per study."""
         exp_depth = self.getExpCoverage()
         exp_pass = dict()
         for samples in exp_depth:
@@ -99,28 +125,62 @@ class Summary:
         return(exp_pass)
 
     def getIntronTables(self):
-        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
-        vcf_df = pd.DataFrame()
-        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [], 'AAPos': [],
-                    'AltCodon': [], 'RefCodon': [], 'RefAA': [], 'AltAA': [], 'DP': [],
-                    'AF': [], 'Conf': [], 'Exon': [], 'Chrom': []}
+        """Given a study output path, generate a pandas dataframe containing
+        all intronic variants. The module gets a list of variants from the
+        output folder. A dictionary of list is initialzed with the fields that
+        will be recorded in the intron summary tables. The features of the
+        intron summary tables are listed below:
+            1. Chrom: Chromosome where the variant is found.
+            2. Gene: Gene boundary within which the variant is found.
+            3. Pos: Variant position.
+            4. Qual: Phred based quality score of variant call.
+            5. Ref: Reference base call for the variant call.
+            6. Alt: Alternate(variant) base call for the variant call.
+            7. Exon: Exon boundary within which the variant is found. This
+                     value is set to "Intron" for the intron table.
+            8. AAPos: Amino acid position for the variant call. This value is
+                      set to np.nan value for the intron table.
+            9. RefCodon: Reference triplet codon for the variant call. This
+                         value is set to "NA" for the intron table.
+           10. AltCodon: Alternate(variant) base call for the variant call. This
+                         value is set to "NA" for the intron table.
+           11. RefAA: Reference amino acid for the variant call. This value is
+                      set to "NA" for the intron table.
+           12. AltAA: Alternate(variant) base call for the variant call. This
+                      value is set to "NA" for the intron table.
+           13. DP: Depth for the codon to which the variant call belong.
+           14. AF: Allele frequency for the variant call.
+           15. Conf: Number of variant callers that identified the variant call.
+        The table is indexed by the following fields:
+            1. Sample: Sample name
+            2. Variant: A string containing the variant information in
+                        <Chrom>:<Ref><Pos><Alt> for the intron table. """
+
+        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(
+            self.out_path))
+        vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [],
+            'AAPos': [], 'AltCodon': [], 'RefCodon': [], 'RefAA': [],
+            'AltAA': [], 'DP': [], 'AF': [], 'Conf': [], 'Exon': [],
+            'Chrom': []}
         vcf_var = list()
         vcf_sample = list()
-        vcf_gene = list()
         for files in vcf_files:
             vcf = Vcf.Reader(files)
             vcf_file = vcf.read()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
             sample = barcode.split(vcf.samples[0])[0]
             for var in vcf_file:
-                #print(var.INFO)
+                #If variant call is annotated as an intronic call
+                #push it into the intronic variant dictionary
+                variant = '{0}:{1}{2}{3}'.format(var.CHROM, var.REF[0],
+                                                var.POS, var.ALT[0])
                 if var.INFO['Exon'][0] == 'Intron':
                     vcf_dict['Chrom'].append(var.CHROM)
                     vcf_dict['Gene'].append(var.CHROM)
                     vcf_dict['Pos'].append(var.POS)
                     vcf_dict['Qual'].append(var.QUAL)
                     vcf_dict['Ref'].append(var.REF[0])
-                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Alt'].append(var.ALT[0])
                     vcf_dict['Exon'].append('Intron')
                     vcf_dict['AAPos'].append(np.nan)
                     vcf_dict['RefCodon'].append('NA')
@@ -130,28 +190,57 @@ class Summary:
                     vcf_dict['DP'].append(var.INFO['DP'][0])
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0])*100)
                     vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
-                    vcf_gene.append(var.CHROM)
-                    vcf_var.append('{0}:{1}{2}{3}'.format(var.CHROM, var.REF[0], var.POS, str(var.ALT[0])))
+                    vcf_var.append(variant)
                     vcf_sample.append(sample)
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
         return(vcf_df)
 
-
     def getVarTables(self):
+        """Given a study output path, generate a pandas dataframe containing
+        all known and novel exonic variants. The module gets a list of VCF files
+        from the output folder. A dictionary of list is initialzed with the
+        fields that will be recorded in the intron summary tables. If a variant
+        from the list of variants of intrest is not found in the sample, an
+        empty record is added to the dataframe with np.nan or "NA" values for
+        all field expect the variant descriptor fields. The features
+        of the exonic summary tables are listed below:
+            1. Chrom: Chromosome where the variant is found.
+            2. Gene: Gene boundary within which the variant is found.
+            3. Pos: Variant position.
+            4. Qual: Phred based quality score of variant call.
+            5. Ref: Reference base call for the variant call.
+            6. Alt: Alternate(variant) base call for the variant call.
+            7. Exon: Exon boundary within which the variant is found. This
+                     value is set to exon number for the known and novel exonic
+                     table.
+            8. AAPos: Amino acid position for the variant call.
+            9. RefCodon: Reference triplet codon for the variant call.
+           10. AltCodon: Alternate(variant) base call for the variant call.
+           11. RefAA: Reference amino acid for the variant call.
+           12. AltAA: Alternate(variant) base call for the variant call.
+           13. DP: Depth for the codon to which the variant call belong.
+           14. AF: Allele frequency for the variant call.
+           15. Conf: Number of variant callers that identified the variant call.
+        The table is indexed by the following fields:
+            1. Sample: Sample name
+            2. Variant: A string containing the variant information in
+                        <Chrom>:<RefAA><AAPos><AltAA> for the intron table. """
+
         voi_table = self.getVarOfInt()
-        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path))
+        vcf_files = glob.glob('{0}/*/*_variants_merged_annotated.vcf'.format(
+                                                                 self.out_path))
         vcf_df = pd.DataFrame()
-        vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [], 'Alt' : [], 'AAPos' : [], 'RefCodon' : [],
-                    'AltCodon' : [], 'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [], 'Exon' : [],
-                    'Chrom' : []}
+        vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [],
+            'Alt' : [], 'AAPos' : [], 'RefCodon' : [], 'AltCodon' : [],
+            'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [],
+            'Exon' : [], 'Chrom' : []}
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
         var_sample = list()
         voi_df = self.getVarOfInt()
-        #print(voi_df)
         for files in vcf_files:
             vcf = Vcf.Reader(files)
             vcf_file = vcf.read()
@@ -159,27 +248,34 @@ class Summary:
             sample = barcode.split(vcf.samples[0])[0]
             count = 0
             for var in vcf_file:
-                #print(var.CHROM, var.POS)
-                #print(var.Samples)
-                #print(var.INFO)
-                if var.CHROM == None or var.INFO['RefAA'][0] == None or var.INFO['AAPos'][0] == None or var.INFO['AltAA'][0] == None:
+                variant = '{0}:{1}{2}{3}'.format(var.CHROM,
+                                                var.INFO['RefAA'][0],
+                                                var.INFO['AAPos'][0],
+                                                var.INFO['AltAA'][0])
+                sample_variant = '{0}{1}'.format(sample, variant)
+                if (var.CHROM == None or
+                        var.INFO['RefAA'][0] == None or
+                        var.INFO['AAPos'][0] == None or
+                        var.INFO['AltAA'][0] == None):
                     continue
-                if '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]) in voi_df.index:
+                if variant in voi_df.index:
                     count += 1
-                if '{4}{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0],sample) in var_sample:
+                if sample_variant in var_sample:
                     index = 0
                     for pos in range(len(vcf_var)):
-                        if sample == vcf_sample[pos] and '{0}:{1}{2}{3}'.format(var.CHROM, var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]) == vcf_var[pos]:
+                        if sample == vcf_sample[pos] and variant == vcf_var[pos]:
                             index = pos
-                    vcf_dict['Ref'][index] = '{0},{1}'.format(vcf_dict['Ref'][index], var.REF[0])
-                    vcf_dict['Alt'][index] = '{0},{1}'.format(vcf_dict['Alt'][index], str(var.ALT[0]))
+                    vcf_dict['Ref'][index] = '{0},{1}'.format(
+                                             vcf_dict['Ref'][index], var.REF[0])
+                    vcf_dict['Alt'][index] = '{0},{1}'.format(
+                                             vcf_dict['Alt'][index], var.ALT[0])
                 else:
                     vcf_dict['Chrom'].append(var.CHROM)
                     vcf_dict['Gene'].append(var.INFO['Gene'][0])
                     vcf_dict['Pos'].append(var.POS)
                     vcf_dict['Qual'].append(var.QUAL)
                     vcf_dict['Ref'].append(var.REF[0])
-                    vcf_dict['Alt'].append(str(var.ALT[0]))
+                    vcf_dict['Alt'].append(var.ALT[0])
                     vcf_dict['Exon'].append(var.INFO['Exon'][0])
                     vcf_dict['AAPos'].append(int(var.INFO['AAPos'][0]))
                     vcf_dict['RefCodon'].append(var.INFO['RefCodon'][0])
@@ -190,15 +286,16 @@ class Summary:
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0]) * 100)
                     vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
                     vcf_gene.append(var.CHROM)
-                    vcf_var.append('{0}:{1}{2}{3}'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0]))
+                    vcf_var.append(variant)
                     vcf_sample.append(sample)
                     if var.INFO['DP'][0] > 0:
-                        var_sample.append('{4}{0}:{1}{2}{3}'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
+                        var_sample.append(sample_variant)
                     else:
-                        var_sample.append('{4}{0}:{1}{2}NA'.format(var.INFO['Gene'][0], var.INFO['RefAA'][0], var.INFO['AAPos'][0], var.INFO['AltAA'][0], sample))
-                    #count += 1
-
-
+                        var_sample.append('{0}{1}:{2}{3}NA'.format(sample,
+                                                            var.INFO['Gene'][0],
+                                                           var.INFO['RefAA'][0],
+                                                           var.INFO['AAPos'][0],
+                                                           var.INFO['AltAA'][0]))
             if count == 0:
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Chrom'].append(rec.Chrom)
@@ -216,44 +313,117 @@ class Summary:
                     vcf_dict['DP'].append(0)
                     vcf_dict['AF'].append(np.nan)
                     vcf_dict['Conf'].append(2)
-                    #print('{0}{1}{2}'.format(var.group('RefAA'), var.group('AAPos'), var.group('RefAA')))
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
 
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
-        #print(vcf_df.head())
         return(vcf_df)
 
     def getRepSnps(self):
+        """Returns a table containing sample wise breakdown about the presence
+        or absence of variants of interest in the study. If there are samples
+        with no calls for any particular variants of interest, if the sample has
+        coverage at the variant location and no variant call, record is labeled
+        as a "WT" call in the FinalCall field. If there is a variant call at any
+        of the locations, the record is labeled as "SNP" call in the FinalCall
+        field. This module internally calls the following modules:
+            1. getVarTables()
+            2. getVarOfInt()
+
+        The module produces a pandas dataframe with the following fields:
+          1. Sample : Sample name
+          2. Variant : Variant of interest
+          3. Chrom : Chromosome
+          4. Gene : Gene name
+          5. SNP: SNP of interest
+          6. FinalCall : Whether the sample had the SNP or it was a wild type call (WT)
+          7. Ref : Reference genomic base
+          8. Alt : Alternate(Variant) genomic base
+          9. Pos : Genomic position of variant
+          10. Qual : Phred based quality score
+          11. RefCodon : Reference codon at variant of interest
+          12. RefAA : Reference amino acid at variant of interest
+          13. AltCodon : Alternate codon at variant of interest
+          14. AltAA : Alternate amino acid at variant of interest
+          15. AAPos : Amino acid position of interest
+          16. Exon : Exon number where the variant is found
+          17. AF : Allele frequency of variant of interest
+          18. DP : Depth of coverage of variant of interest
+          19. Conf : Number of variant callers that called the variant of interest
+        """
+        #Get table of exonic variants and variants of interest
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
-        samp = 0
         exp_voi = pd.DataFrame()
         for sample, var_df in exp_df.groupby(level=0):
             sam_index = list()
             var_df = var_df.reset_index(level=0)
-            var_voi = var_df.merge(voi_df, how='right', left_index=True, right_index=True)
+            var_voi = var_df.merge(voi_df, how='right', left_index=True,
+                right_index=True)
+            #Create a list of length equal to number of variants of interest
+            #containing the sample name, to ensure that the final table has
+            #exactly the same number of records per sample
             sam_index = [sample] * len(var_voi)
             var_index = [np.array(sam_index), np.array(var_voi.index)]
             var_voi.set_index(var_index, inplace=True)
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
-            #print(var_voi.head())
         exp_voi['FinalCall'] = exp_voi['SNP']
+        #Regex to check if the variant description field is in the correct format
+        var_regex = (r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])'
+                     r'(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])')
         for index, series in exp_voi.iterrows():
             #print(exp_voi.at[index, 'FinalCall'])
-            if pd.isnull(series['DP']):
+            if pd.isnull(series['DP']) or series['DP'] == 0:
                 exp_voi.at[index, 'FinalCall'] = 'WT'
+                exp_voi.at[index, 'Conf'] = 2
             elif pd.isnull(series['Alt']):
-                var_reg = re.match(r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])', series['SNP'])
-                exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos'))
-                #print('{0}{1}{0}'.format(var_reg.group('RefAA'), var_reg.group('AAPos')))
-                #print(series['FinalCall'])
+                var_reg = re.match(var_regex, series['SNP'])
+                exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(
+                                                         var_reg.group('RefAA'),
+                                                         var_reg.group('AAPos'))
+            exp_voi.at[index, 'AAPos'] = series['AAPos_x'] and series['AAPos_y']
+            exp_voi.at[index, 'AltAA'] = series['AltAA_x'] and series['AltAA_y']
+            exp_voi.at[index, 'Chrom'] = series['Chrom_x'] and series['Chrom_y']
+            exp_voi.at[index, 'Gene'] = series['Gene_x'] and series['Gene_y']
+            exp_voi.at[index, 'RefAA'] = series['RefAA_x'] and series['RefAA_y']
+        exp_voi.drop(columns=['AAPos_x', 'AAPos_y', 'AltAA_x', 'AltAA_y',
+            'Chrom_x', 'Chrom_y', 'Gene_x', 'Gene_y', 'RefAA_x', 'RefAA_y',
+            'GenomicStart', 'GenomicStop'], inplace=True)
+        exp_voi = exp_voi[['Chrom', 'Gene', 'SNP', 'FinalCall', 'Ref', 'Alt',
+            'Pos', 'Qual', 'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos',
+            'Exon', 'AF', 'DP', 'Conf']]
         return(exp_voi)
 
     def getNovSnps(self):
+        """Returns a table containing sample wise breakdown about the presence
+        of novel variants in the study. This table will contain a FinalCall
+        field, since only variants are reported and not wild type calls. This
+        module internally calls the following modules:
+            1. getVarTables()
+            2. getVarOfInt()
+        The module produces a pandas dataframe with the following fields:
+          1. Sample : Sample name
+          2. Variant : Variant of interest
+          3. Chrom : Chromosome
+          4. Gene : Gene name
+          5. Ref : Reference genomic base
+          6. Alt : Alternate(Variant) genomic base
+          7. Pos : Genomic position of variant
+          8. Qual : Phred based quality score
+          9. RefCodon : Reference codon at variant of interest
+          10. RefAA : Reference amino acid at variant of interest
+          11. AltCodon : Alternate codon at variant of interest
+          12. AltAA : Alternate amino acid at variant of interest
+          13. AAPos : Amino acid position of interest
+          14. Exon : Exon number where the variant is found
+          15. AF : Allele frequency of variant of interest
+          16. DP : Depth of coverage of variant of interest
+          17. Conf : Number of variant callers that called the variant of interest
+        """
+
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
         exp_nov = pd.DataFrame()
@@ -261,15 +431,24 @@ class Summary:
             sam_index = list()
             var_df = var_df.reset_index(level=0)
             var_nov = var_df[~var_df.index.isin(voi_df.index)]
+            #Create a list of length equal to number of novel variants for that
+            #sample, containing the sample name. This enables the table to be
+            #indexed by sample name.
             sam_index = [sample] * len(var_nov)
             var_index = [np.array(sam_index), np.array(var_nov.index)]
             var_nov.set_index(var_index, inplace=True)
             var_nov.index.names = ['Sample', 'Variant']
             exp_nov = exp_nov.append(var_nov)
         exp_nov = exp_nov[exp_nov.Conf == 2]
+        exp_nov = exp_nov[['Chrom', 'Gene', 'Ref', 'Alt', 'Pos', 'Qual',
+            'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos', 'Exon', 'AF',
+            'DP', 'Conf']]
+
         return(exp_nov)
 
     def getBamStat(self, bamfile, chrom, start, stop):
+        """Given BAM file path, chromosome name, start and stop, return
+        average coverage for the chromosome."""
         bamfile = pysam.AlignmentFile(bamfile, 'rb')
         avg_codon_coverage = bamfile.count(chrom, start, stop)
         return(avg_codon_coverage)
@@ -288,28 +467,250 @@ class Summary:
             return(np.nan)
 
     def getDepthStats(self, var_df):
+        """Given a data frame containing known variant calls, edit the depth to
+        reflect average codon for variant of interest."""
         depth_list = list()
         for row, value in var_df.iterrows():
-            bamfile = glob.glob('{0}/{1}*/output_fixmate_sorted_RG.bam'.format(self.out_path, row[0]))[0]
-            nuc_pos = self.getNucPos(value.Gene_y, value.AAPos_y)
-            if nuc_pos == np.nan:
-                nuc_pos = [value.Pos -1, value.Pos + 1]
-            depth = self.getBamStat(bamfile, value.Chrom_y, nuc_pos[0], nuc_pos[1])
-            depth_list.append(depth)            #np.log10(depth+1))
+            bamfile = glob.glob('{0}/{1}*/output_FM_SR_DD_RG.bam'.format(
+                                                      self.out_path, row[0]))[0]
+            nuc_pos = self.getBaseRange(value.Chrom, value.Gene,
+                        value.AAPos)
+            if nuc_pos == None:
+                nuc_pos = range(int(value.Pos) -1, int(value.Pos) + 2)
+            depth = self.getBamStat(bamfile, value.Chrom, nuc_pos.start,
+                nuc_pos.stop)
+            depth_list.append(depth)
+                   #np.log10(depth+1))
         var_df['DP'] = pd.Series(depth_list, index=var_df.index)
         return(var_df)
 
-    def getNovDepthStats(self, var_df):
-        depth_list = list()
-        for row, value in var_df.iterrows():
-            bamfile = glob.glob('{0}/{1}*/output_fixmate_sorted_RG.bam'.format(self.out_path, row[0]))[0]
-            nuc_pos = self.getNucPos(value.Gene, value.AAPos)
-            if nuc_pos == np.nan:
-                nuc_pos = [value.Pos -1, value.Pos + 1]
-            depth = self.getBamStat(bamfile, value.Chrom, nuc_pos[0], nuc_pos[1])
-            depth_list.append(depth)
-        var_df['DP'] = pd.Series(depth_list, index=var_df.index)
-        return(var_df)
+    def toJSON(self):
+        """Create a summary compressed JSON file for all variants in all samples
+        in the study. The information recorded in the JSON format include:
+            1. Study name
+            2. Number of samples in study
+            3. Date of analysis
+            4. Sample name:
+                i. Variant description string in <Gene><RefAA><AAPos><AltAA>
+                   format:
+                   a. Reference amino acid
+                   b. Alternate amino acid
+                   c. Variant call position
+                   d. Final call field, indicating the wild type or variant call
+                      based of BAM file coverage
+                   e. Allele frequency for the variant call
+                   f. Depth for the variant call
+                   g. Confidence for the vairant call based on the number of
+                      variant callers that identified the variant
+        """
+
+        known_snps = self.getRepSnps()
+        novel_snps = self.getNovSnps()
+        known_snps = self.getDepthStats(known_snps)
+        novel_snps = self.getDepthStats(novel_snps)
+        study = os.path.basename(self.out_path)
+        sampleCount = len(glob.glob(
+                 '{0}/*/*_variants_merged_annotated.vcf'.format(self.out_path)))
+        analysisTime = datetime.now()
+        analysisDate = analysisTime.strftime('%m-%d-%y')
+        jsonFile = open('{0}/Study_variants.json'.format(self.out_path), 'w')
+        json_dict = OrderedDict({'Study': study,
+            'Number of samples': sampleCount, 'Date': analysisDate})
+
+        for index, record in known_snps.iterrows():
+            sample_info = self.config[index[0]]
+            if 'Sample' not in json_dict:
+                json_dict['Sample'] = {}
+            if index[0] not in json_dict['Sample']:
+                json_dict['Sample'][index[0]] = {}
+            if 'VariantCalls' not in json_dict['Sample'][index[0]]:
+                json_dict['Sample'][index[0]]['Year'] = sample_info.year
+                json_dict['Sample'][index[0]]['Country'] = sample_info.country
+                json_dict['Sample'][index[0]]['Site'] = sample_info.site
+                json_dict['Sample'][index[0]]['TreatmentDay'] = sample_info.treatmentDay
+                json_dict['Sample'][index[0]]['SampleID'] = sample_info.iD
+                json_dict['Sample'][index[0]]['Genus&Species'] = sample_info.genus
+                json_dict['Sample'][index[0]]['SampleType'] = sample_info.type
+                json_dict['Sample'][index[0]]['Markers'] = ','.join(sample_info.markers.tolist())
+                json_dict['Sample'][index[0]]['Replicate'] = sample_info.replicate
+                json_dict['Sample'][index[0]]['VariantCalls'] = {}
+            json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
+                'Ref' : record.RefAA, 'Pos': record.AAPos,
+                'Alt': record.AltAA , 'Call' :  record.FinalCall,
+                'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
+                'Status' : 'Known'}
+
+        for index, record in novel_snps.iterrows():
+            sample_info = self.config[index[0]]
+            if 'Sample' not in json_dict:
+                json_dict['Sample'] = OrderedDict()
+            if index[0] not in json_dict['Sample']:
+                json_dict['Sample'][index[0]] = OrderedDict()
+            if 'VariantCalls' not in json_dict['Sample'][index[0]]:
+                json_dict['Sample'][index[0]]['Year'] = sample_info.year
+                json_dict['Sample'][index[0]]['Country'] = sample_info.country
+                json_dict['Sample'][index[0]]['Site'] = sample_info.site
+                json_dict['Sample'][index[0]]['TreatmentDay'] = sample_info.treatmentDay
+                json_dict['Sample'][index[0]]['SampleID'] = sample_info.iD
+                json_dict['Sample'][index[0]]['Genus&Species'] = sample_info.genus
+                json_dict['Sample'][index[0]]['SampleType'] = sample_info.type
+                json_dict['Sample'][index[0]]['Markers'] = ','.join(sample_info.markers.tolist())
+                json_dict['Sample'][index[0]]['Replicate'] = sample_info.replicate
+                json_dict['Sample'][index[0]]['VariantCalls'] = OrderedDict()
+            calls = '{0}{1}{2}'.format(record.RefAA, record.AAPos, record.AltAA)
+            json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
+                'Ref' : record.RefAA, 'Pos': record.AAPos,
+                'Alt': record.AltAA , 'Call' :  'NA',
+                'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
+                'Status' : 'Novel'}
+
+        json.dump(json_dict, jsonFile, indent=4)
+        jsonFile.close()
+        return('{0}/Study_variants.json'.format(self.out_path))
+
+    def toCSV(self, var_type):
+        """Create CSV files from the DataFrames and generate the allele
+        frequency and depth views for known and novel files"""
+        #Sumarize variants of intrest
+        if var_type == 'known':
+            var_df = self.getRepSnps()
+            var_df = self.getDepthStats(var_df)
+            var_df = var_df.reset_index(level=1)
+            out_file = '{0}/Study_known_variants.csv'.format(self.out_path)
+        elif var_type == 'novel':
+            var_df = self.getNovSnps()
+            var_df = self.getDepthStats(var_df)
+            var_df = var_df.reset_index(level=1)
+            out_file = '{0}/Study_novel_exonic_variants.csv'.format(
+                self.out_path)
+            sout_file = '{0}/Study_novel_intronic_variants.csv'.format(
+                self.out_path)
+            exp_intron = self.getIntronTables()
+            exp_intron = exp_intron.reset_index()
+            intron_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
+            intron_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
+                            '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
+                            '(?P<AltAA_sym>[a-zA-Z]?)')
+            exp_intron[intron_key] = exp_intron['Variant'].str.extract(
+                intron_regex, expand=True)
+            exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
+            exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'],
+                inplace=True)
+            exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
+                          'AltAA_sym' ], axis=1, inplace=True)
+            exp_intron.sort_index().reset_index(drop=True).to_csv(sout_file,
+                index=False)
+
+        var_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
+        var_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
+                     '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
+                     '(?P<AltAA_sym>[a-zA-Z]?)')
+        var_df[var_key] = var_df['Variant'].str.extract(var_regex, expand=True)
+        var_df['Sample_name'] = var_df.index
+        var_df['AAPos_sort'] = pd.to_numeric(var_df['AAPos_sort'])
+        var_df.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'],
+            inplace=True)
+        var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
+            'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
+        var_df.to_csv(out_file)
+
+        exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
+        exp_af['Variant'] = exp_af.index
+        exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)
+        exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
+        exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+        exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                      'AltAA_sym'], axis=1, inplace=True)
+        af_mask = exp_af.isnull()
+        exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
+                                                       self.out_path, var_type))
+
+        exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
+        exp_dp['Variant'] = exp_dp.index
+        exp_dp[var_key] = exp_dp['Variant'].str.extract(var_regex, expand=True)
+        exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
+        exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+        exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                      'AltAA_sym'], axis=1, inplace=True)
+        dp_mask = exp_dp.isnull()
+        exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
+                                                                      var_type))
+
+    def getSummary(self):
+        """Generate CSV tables, JSON and figures for a given study"""
+        #Write Known and novel variants to files
+        self.toCSV('known')
+        self.toCSV('novel')
+        self.toJSON()
+        # Plot using Rscript
+        self.logger.info('Plotting Depth Per SNP')
+        dcmd = ['Rscript',
+            '{0}/Rscripts/DepthPerReportSNP.R'.format(self.summary_path), '-i',
+            '{0}/Study_known_variants_depth.csv'.format(self.out_path),
+            '-o', '{0}/Study_depth.pdf'.format(self.out_path)]
+        drun = subprocess.Popen(dcmd, shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        drun.wait()
+        if drun.returncode != 0:
+            self.logger.error('Failed to execute DepthPerReportSNP.R')
+            self.logger.error(' '.join(dcmd))
+
+        self.logger.info('Plotting Reportable SNPs Frequency')
+        acmd = ['Rscript',
+            '{0}/Rscripts/reportableSNPsFreq.R'.format(self.summary_path), '-i',
+            'Study_known_variants.csv', '-r',
+            '{0}/ref/Reportable_SNPs.csv'.format(self.nest_path),
+            '-o', '{0}/'.format(self.out_path)]
+        arun = subprocess.Popen(acmd, shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        arun.wait()
+        if arun.returncode != 0:
+            self.logger.error('Failed to execute reportableSNPsFreq.R')
+            self.logger.error(' '.join(acmd))
+        self.logger.info('Plotting Novel Exonic Non-Synonymous SNPs')
+        nenscmd = ['Rscript',
+            '{0}/Rscripts/NovelExonicNonSynSNPs.R'.format(self.summary_path),
+            '-i', 'Study_novel_exonic_variants.csv',
+            '-o', '{0}/'.format(self.out_path)]
+        nensrun = subprocess.Popen(nenscmd, shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        nensrun.wait()
+        if nensrun.returncode != 0:
+            self.logger.error('Failed to execute NovelExonicNonSynSNPs.R')
+            self.logger.error(' '.join(nenscmd))
+
+        self.logger.info('Plotting Novel Exonic Synonymous SNPs')
+        nescmd = ['Rscript',
+            '{0}/Rscripts/NovelExonicSynSNPs.R'.format(self.summary_path), '-i',
+            'Study_novel_exonic_variants.csv',
+            '-o', '{0}/'.format(self.out_path)]
+        nesrun = subprocess.Popen(nescmd, shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        nesrun.wait()
+        if nesrun.returncode != 0:
+            self.logger.error('Failed to execute NovelExonicSynSNPs.R')
+            self.logger.error(' '.join(acmd))
+
+        self.logger.info('Plotting Novel Intronic SNPs')
+        nicmd = ['Rscript',
+            '{0}/Rscripts/NovelIntronicSNPs.R'.format(self.summary_path), '-i',
+            'Study_novel_intronic_variants.csv',
+                '-o', '{0}/'.format(self.out_path)]
+        nirun = subprocess.Popen(nicmd, shell=False,
+                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        nirun.wait()
+        if nirun.returncode != 0:
+            self.logger.error('Failed to execute NovelIntronicSNPs.R')
+            self.logger.error(' '.join(nicmd))
+
+        #os.remove('{0}/Reportable_SNPs_Report.csv'.format(out_dir))
+        os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(self.out_path))
+        os.remove('{0}/novel_SNPs_intronic.csv'.format(self.out_path))
+        os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(self.out_path))
+        os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(
+            self.out_path))
+        os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(
+            self.out_path))
 
     def getVarStats(self, vcf_file):
         vcf_file = Vcf.Reader(vcf_file)
@@ -341,29 +742,3 @@ class Summary:
                 else:
                     tranv += 1
         return(total, verfied, exonic, intronic, syn, nsyn, trans, tranv)
-
-
-if __name__ == '__main__':
-    fasta_path = sys.argv[1]
-    bed_path = sys.argv[2]
-    voi_path = sys.argv[3]
-    out_path = sys.argv[4]
-    summarizer = Summary(fasta_path, bed_path, voi_path, out_path)
-    exp_voi = summarizer.getRepSnps()
-    #exp_voi.to_excel('variants_of_interest.xlsx')
-    exp_voi = summarizer.getDepthStats(exp_voi)
-    exp_voi = exp_voi.reset_index(level=1)
-    exp_af =  exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
-    exp_af.to_excel('variants_of_interest_af.xlsx')
-    exp_dp =  exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
-    exp_dp.to_excel('variants_of_interest_dp2.xlsx')
-    exp_nov = summarizer.getNovSnps()
-    #exp_nov = summarizer.getDepthStats(exp_nov)
-    exp_nov = exp_nov.reset_index(level=1)
-    exp_nov_af = exp_nov.pivot(exp_nov.index, 'Variant')['AF'].transpose()
-    exp_nov_af.to_excel('novel_variants_af.xlsx')
-    exp_nov_af_mask = exp_nov_af.isnull()
-    summarizer.plotHeatMap(exp_nov_af, 'nov_af', exp_nov_af_mask)
-    depth_pass = summarizer.checkDepthPass()
-    for samples in depth_pass:
-        print(samples, depth_pass[samples])

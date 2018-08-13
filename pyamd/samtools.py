@@ -15,7 +15,7 @@ class Samtools:
 
     def fixmate(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        obam_path = '{0}/{1}_fixmate.bam'.format(self.out_path, base)
+        obam_path = '{0}/alignments/{1}_FM.bam'.format(self.out_path, base)
         fmcmd = [self.sam_path, 'fixmate', '-O', 'BAM',
                 bam_path, obam_path]
         fmrun = subprocess.Popen(fmcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
@@ -28,7 +28,7 @@ class Samtools:
 
     def sort(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        obam_path = '{0}/{1}_sorted.bam'.format(self.out_path, base)
+        obam_path = '{0}/alignments/{1}_SR.bam'.format(self.out_path, base)
         stcmd = [self.sam_path, 'sort', '-O', 'BAM',
                 '-o', obam_path, bam_path]
         strun = subprocess.Popen(stcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
@@ -38,10 +38,21 @@ class Samtools:
 
         return(obam_path, strun.returncode)
 
+    def dedup(self, bam_path):
+        base = os.path.splitext(os.path.basename(bam_path))[0]
+        obam_path = '{0}/alignments/{1}_DD.bam'.format(self.out_path, base)
+        ddcmd = [self.sam_path, 'rmdup', bam_path, obam_path]
+        ddrun = subprocess.Popen(ddcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+        ddrun.wait()
+#        if strun.returncode != 0:
+#            logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
+
+        return(obam_path, ddrun.returncode)
+
     def addreadgroup(self, bam_path, sam_name):
         run_time = time.strftime('%d/%m/%Y')
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        abam_path = '{0}/{1}_RG.bam'.format(self.out_path, base)
+        abam_path = '{0}/alignments/{1}_RG.bam'.format(self.out_path, base)
         acmd = [self.sam_path, 'addreplacerg', '-O', 'BAM',
                 '-r', '"@RG\tID:{0}\tPG:{0}\tSM:{0}\tPM:{0}\tLB=MaRS\tPL=Illumina\tPU=MiSeq\tDT={1}\tPI=null"'.format(sam_name, run_time),
                 '-o', abam_path, bam_path]
@@ -54,8 +65,8 @@ class Samtools:
             print(' '.join(acmd))
         return(abam_path, arun.returncode)
 
-    def pileup(self, ref_path, bam_path):
-        obcf_path = '{0}/variants.bcf'.format(self.out_path)
+    def pileup(self, ref_path, bam_path, sam_name):
+        obcf_path = '{0}/{1}_variants.bcf'.format(self.out_path, sam_name)
 
         mpcmd = [self.sam_path, 'mpileup', '-go', obcf_path,
                 '-f', ref_path, bam_path]
@@ -77,7 +88,7 @@ class Samtools:
         return(birun.returncode)
 
     def bcftools(self, bcf_path, bed_path, sam_name):
-        ovcf_path = '{0}/{1}_variants.vcf'.format(self.out_path, sam_name)
+        ovcf_path = '{0}/{1}_variants_samtools.vcf'.format(self.out_path, sam_name)
         btcmd = [self.bft_path, 'call', '--skip-variants', 'indels',
                 '--multiallelic-caller', '--variants-only', '-O', 'v',
                 '-s', sam_name, '-o', ovcf_path, bcf_path]

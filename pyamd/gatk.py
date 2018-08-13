@@ -38,7 +38,7 @@ class Picard:
 
 
     def picard(self, bam_path, sam_name):
-        add_path = '{0}/{1}_RG.bam'.format(self.out_path, os.path.splitext(os.path.basename(bam_path))[0])
+        add_path = '{0}/alignments/{1}_RG.bam'.format(self.out_path, os.path.splitext(os.path.basename(bam_path))[0])
         acmd = [self.pic_path, 'AddOrReplaceReadGroups',
             'I='+bam_path , 'O='+add_path, 'SORT_ORDER=coordinate', 'RGID={0}'.format(sam_name),
             'RGLB=ExomeSeq', 'RGPL=Illumina', 'RGPU=HiSeq2500', 'RGSM={0}'.format(sam_name),

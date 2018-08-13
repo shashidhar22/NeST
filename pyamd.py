@@ -164,7 +164,7 @@ def main(arguments):
     varengine = Samtools(smt_path, bft_path, out_path)
     if os.path.exists('{0}/fixmate.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(sam_path))[0]
-        bam_path = '{0}/{1}_fixmate.bam'.format(out_path, base)
+        bam_path = '{0}/alignments/{1}_FM.bam'.format(out_path, base)
         fret = 0
         main_logger.debug('Skipping fixmate')
     else:
@@ -192,6 +192,22 @@ def main(arguments):
     else:
         main_logger.debug('Samtools sort completed')
 
+    if os.path.exists('{0}/dedup.rt'.format(completion_path)):
+        base = os.path.splitext(os.path.basename(bam_path))[0]
+        bam_path = '{0}/{1}_DD.bam'.format(out_path, base)
+        dret = 0
+        main_logger.debug('Skipping Dedup')
+    else:
+        bam_path, dret = varengine.dedup(bam_path)
+        if dret == 0:
+            Path('{0}/dedup.rt'.format(completion_path)).touch()
+    main_logger.debug('Running Samtools dedup')
+    if sret != 0:
+        raise RuntimeError('Samtools dedup failed to complete; Exiting MARs')
+    else:
+        main_logger.debug('Samtools dedup completed')
+
+
     rgadder = Picard(java_path, pic_path, out_path)
     if os.path.exists('{0}/readgroup.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
@@ -210,11 +226,11 @@ def main(arguments):
 
     #Run samtools mpileup, bcftools index, call and stats to generate VCF files
     if os.path.exists('{0}/pileup.rt'.format(completion_path)):
-        bcf_path = '{0}/variants.bcf'.format(out_path)
+        bcf_path = '{0}/{1}_variants.bcf'.format(out_path, sam_name)
         pret = 0
         main_logger.debug('Skipping Pileup')
     else:
-        bcf_path, pret = varengine.pileup(ref_path, bam_path)
+        bcf_path, pret = varengine.pileup(ref_path, bam_path, sam_name)
         main_logger.debug('Running Samtools mpileup')
         if pret == 0:
             Path('{0}/pileup.rt'.format(completion_path)).touch()
@@ -237,7 +253,7 @@ def main(arguments):
         main_logger.debug('Bcftools index completed')
 
     if os.path.exists('{0}/bcfcall.rt'.format(completion_path)):
-        vcf_path = '{0}/{1}_variants.vcf'.format(out_path, sam_name)
+        vcf_path = '{0}/{1}_variants_samtools.vcf'.format(out_path, sam_name)
         bret = 0
         main_logger.debug('Skipping bcfcall')
     else:
@@ -308,7 +324,8 @@ def main(arguments):
 #    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged'7)
 #    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
 #    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
-    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    config = dict()
+    summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
     var_sum = summary.getVarStats(merged_vcf)
     main_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
                         var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
@@ -361,142 +378,9 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 repeat(java_path)))
 
     logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
-    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
     #Sumarize variants of intrest
-    exp_voi = summary.getRepSnps()
-    exp_voi = summary.getDepthStats(exp_voi)
-    exp_voi = exp_voi.reset_index(level=1)
-    #exp_voi.drop_duplicates(subset='Variant', inplace=True)
-    exp_voi[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_voi['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_voi['Sample_name'] = exp_voi.index
-    exp_voi['AAPos_sort'] = pd.to_numeric(exp_voi['AAPos_sort'])
-    exp_voi.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
-    exp_voi.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym','Sample'], axis=1, inplace=True)
-    exp_voi.to_csv('{0}/Study_variants.csv'.format(out_dir))
-
-    exp_af = exp_voi.pivot(exp_voi.index, 'Variant')['AF'].transpose()
-    exp_af['Variant'] = exp_af.index
-    exp_af[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_af['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
-    exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-    exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
-    af_mask = exp_af.isnull()
-    exp_af.to_csv('{0}/Study_reportable_variants_allele_frequency.csv'.format(out_dir))
-#    summary.plotHeatMap(exp_af, 'voi_af', af_mask)
-    exp_dp = exp_voi.pivot(exp_voi.index, 'Variant')['DP'].transpose()
-    exp_dp['Variant'] = exp_dp.index
-    exp_dp[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_dp['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
-    exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-    exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
-    dp_mask = exp_dp.isnull()
-    exp_dp.to_csv('{0}/Study_reportable_variants_depth.csv'.format(out_dir))
-#    summary.plotHeatMap(exp_dp, 'voi_dp', dp_mask)
-#    summary.plotCountPlot(exp_af, 'voi')
-    #Summarize novel variants
-    exp_nov = summary.getNovSnps()
-    exp_nov = summary.getNovDepthStats(exp_nov)
-    exp_nov = exp_nov.reset_index(level=1)
-    exp_nov[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_nov['Sample_name'] = exp_nov.index
-    exp_nov['AAPos_sort'] = pd.to_numeric(exp_nov['AAPos_sort'])
-    exp_nov.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'], inplace=True)
-    exp_nov.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym', 'Sample'], axis=1, inplace=True)
-    exp_nov.to_csv('{0}/Study_novel_exonic_variants.csv'.format(out_dir))
-    #Separate and capture Intron and exonic variants
-    exp_nov_af = exp_nov.loc[:,['Variant', 'AF']]
-    exp_nov_af[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov_af['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_nov_af['AAPos_sort'] = pd.to_numeric(exp_nov_af['AAPos_sort'])
-    exp_nov_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-    exp_nov_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
-    exp_nov_af.to_csv('{0}/Study_novel_variants_alele_frequency.csv'.format(out_dir))
-    exp_nov_dp = exp_nov.loc[:,['Variant', 'DP']]
-    exp_nov_dp['Variant'] = exp_nov_dp.index
-    exp_nov_dp[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_nov_dp['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    exp_nov_dp['AAPos_sort'] = pd.to_numeric(exp_nov_dp['AAPos_sort'])
-    exp_nov_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-    exp_nov_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym'], axis=1, inplace=True)
-    exp_nov_dp.to_csv('{0}/Study_novel_variants_depth.csv'.format(out_dir))
-    exp_intron = summary.getIntronTables()
-    exp_intron = exp_intron.reset_index()
-
-    #print(exp_intron.index)
-    #exp_intron.reset_index(level=1)
-#    print(exp_intron.head())
-    exp_intron[['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']] = exp_intron['Variant'].str.extract('(?P<Gene_name>[a-zA-Z0-9]+):(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)(?P<AltAA_sym>[a-zA-Z]?)', expand=True)
-    #exp_intron['']
-    exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
-    exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'], inplace=True)
-    exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
-                  'AltAA_sym' ], axis=1, inplace=True)
-    exp_intron.sort_index().reset_index(drop=True).to_csv('{0}/Study_novel_intronic_variants.csv'.format(out_dir), index=False)
-    # Plot using Rscript
-    logger.info('Plotting Depth Per SNP')
-    dcmd = ['Rscript', 'pyamd/Rscripts/DepthPerReportSNP.R', '-i',
-            '{0}/Study_reportable_variants_depth.csv'.format(out_dir), '-o',
-            '{0}/Study_depth.pdf'.format(out_dir)]
-    drun = subprocess.Popen(dcmd, shell=False,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    drun.wait()
-    if drun.returncode != 0:
-        logger.error('Failed to execute DepthPerReportSNP.R')
-        logger.error(' '.join(dcmd))
-
-    logger.info('Plotting Reportable SNPs Frequency')
-    acmd = ['Rscript', 'pyamd/Rscripts/reportableSNPsFreq.R', '-i',
-            'Study_variants.csv'.format(out_dir), '-r',
-            'ref/Reportable_SNPs.csv', '-o', '{0}/'.format(out_dir)]
-    arun = subprocess.Popen(acmd, shell=False,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    arun.wait()
-    if arun.returncode != 0:
-        logger.error('Failed to execute reportableSNPsFreq.R')
-        logger.error(' '.join(acmd))
-    logger.info('Plotting Novel Exonic Non-Synonymous SNPs')
-    nenscmd = ['Rscript', 'pyamd/Rscripts/NovelExonicNonSynSNPs.R', '-i',
-            'Study_novel_exonic_variants.csv'.format(out_dir),
-            '-o', '{0}/'.format(out_dir)]
-    nensrun = subprocess.Popen(nenscmd, shell=False,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    nensrun.wait()
-    if nensrun.returncode != 0:
-        logger.error('Failed to execute NovelExonicNonSynSNPs.R')
-        logger.error(' '.join(nenscmd))
-
-    logger.info('Plotting Novel Exonic Synonymous SNPs')
-    nescmd = ['Rscript', 'pyamd/Rscripts/NovelExonicSynSNPs.R', '-i',
-            'Study_novel_exonic_variants.csv'.format(out_dir),
-            '-o', '{0}/'.format(out_dir)]
-    nesrun = subprocess.Popen(nescmd, shell=False,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    nesrun.wait()
-    if nesrun.returncode != 0:
-        logger.error('Failed to execute NovelExonicSynSNPs.R')
-        logger.error(' '.join(acmd))
-
-    logger.info('Plotting Novel Intronic SNPs')
-    nicmd = ['Rscript', 'pyamd/Rscripts/NovelIntronicSNPs.R', '-i',
-            'Study_novel_intronic_variants.csv'.format(out_dir),
-            '-o', '{0}/'.format(out_dir)]
-    nirun = subprocess.Popen(nicmd, shell=False,
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    nirun.wait()
-    if nirun.returncode != 0:
-        logger.error('Failed to execute NovelIntronicSNPs.R')
-        logger.error(' '.join(nicmd))
-
-    #os.remove('{0}/Reportable_SNPs_Report.csv'.format(out_dir))
-    os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(out_dir))
-    os.remove('{0}/novel_SNPs_intronic.csv'.format(out_dir))
-    os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(out_dir))
-    os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(out_dir))
-    os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(out_dir))
+    summary.getSummary()
     return(0)
 
 if __name__ == '__main__':

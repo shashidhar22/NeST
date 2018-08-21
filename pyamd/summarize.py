@@ -99,7 +99,7 @@ class Summary:
     def getExpCoverage(self):
         """Given a study, return a dictionary of dictionary storing the per base
         coverage per gene per sample."""
-        bam_files = glob.glob('{0}/*/output_FM_SR_DD_RG.bam'.format(
+        bam_files = glob.glob('{0}/*/alignments/output_FM_SR_DD_RG.bam'.format(
             self.out_path))
         barcode = re.compile('_[ATGC]*-[ATGC]*')
         sample_gstat = OrderedDict()
@@ -471,7 +471,7 @@ class Summary:
         reflect average codon for variant of interest."""
         depth_list = list()
         for row, value in var_df.iterrows():
-            bamfile = glob.glob('{0}/{1}*/output_FM_SR_DD_RG.bam'.format(
+            bamfile = glob.glob('{0}/{1}*/alignments/output_FM_SR_DD_RG.bam'.format(
                                                       self.out_path, row[0]))[0]
             nuc_pos = self.getBaseRange(value.Chrom, value.Gene,
                         value.AAPos)

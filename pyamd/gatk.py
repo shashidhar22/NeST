@@ -35,7 +35,7 @@ class Picard:
         self.java = java
         self.pic_path = pic_path
         self.out_path = out_path
-
+        self.logger = logging.getLogger('Kookaburra.picard')
 
     def picard(self, bam_path, sam_name):
         add_path = '{0}/alignments/{1}_RG.bam'.format(self.out_path, os.path.splitext(os.path.basename(bam_path))[0])
@@ -47,4 +47,6 @@ class Picard:
         arun = subprocess.Popen(acmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         arun.wait()
 
+        if arun.returncode != 0:
+            self.logger.error('Picard add read group information failed running the following command : {0}'.format(' '.join(acmd)))
         return(add_path, arun.returncode)

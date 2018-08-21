@@ -974,10 +974,11 @@ class Vcf:
 
     class Merge:
 
-        def __init__(self, fone, ftwo ):
+        def __init__(self, fone, ftwo, out_path ):
             self.reading_list = [fone, ftwo]
             self.info_fields = list()
             self.sample_fields = list()
+            self.out_path = out_path
             self.info_hone = OrderedDict()
             for header in fone.header['info']:
                 if header.id not in self.info_fields:
@@ -1361,7 +1362,7 @@ class Vcf:
             record.INFO = information
             return(record)
 
-        def merge(self, out_path):
+        def merge(self):
             annotate = Vcf.Annotate()
             vcf_one = self.reading_list[0]
             vcf_two = self.reading_list[1]
@@ -1374,8 +1375,8 @@ class Vcf:
             self.merged_header['info'].append(annotate.addInfoHeader(
                                                         'Conf', type='Integer'))
             #writer objects
-            sample = os.path.basename(out_path.strip('/'))
-            out_file = '{0}/{1}_variants_merged_annotated.vcf'.format(out_path,
+            sample = os.path.basename(self.out_path.strip('/'))
+            out_file = '{0}/{1}_variants_merged_annotated.vcf'.format(self.out_path,
                                                                         sample)
             writer = Vcf.Writer(out_file)
             writer.writeHeaders(self.merged_header, vcf_one.rec_fields,

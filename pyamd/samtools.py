@@ -11,7 +11,7 @@ class Samtools:
         self.sam_path = sam_path
         self.out_path = out_path
         self.bft_path = bft_path
-
+        self.logger = logging.getLogger('Kookaburra.samtools')
 
     def fixmate(self, bam_path):
         base = os.path.splitext(os.path.basename(bam_path))[0]
@@ -20,8 +20,9 @@ class Samtools:
                 bam_path, obam_path]
         fmrun = subprocess.Popen(fmcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         fmrun.wait()
-#        if fmrun.returncode != 0:
-#            logger.error('Samtools fixmate failed running the following command : {0}'.format(' '.join(fmcmd)))
+        if fmrun.returncode != 0:
+            self.logger.error('Samtools fixmate failed running the following command : {0}'.format(' '.join(fmcmd)))
+            print(' '.format(fmcmd))
 
         return(obam_path, fmrun.returncode)
 
@@ -33,8 +34,8 @@ class Samtools:
                 '-o', obam_path, bam_path]
         strun = subprocess.Popen(stcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         strun.wait()
-#        if strun.returncode != 0:
-#            logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
+        if strun.returncode != 0:
+            self.logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
 
         return(obam_path, strun.returncode)
 
@@ -44,8 +45,8 @@ class Samtools:
         ddcmd = [self.sam_path, 'rmdup', bam_path, obam_path]
         ddrun = subprocess.Popen(ddcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         ddrun.wait()
-#        if strun.returncode != 0:
-#            logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(stcmd)))
+        if ddrun.returncode != 0:
+            self.logger.error('Samtools sort failed running the following command : {0}'.format(' '.join(ddcmd)))
 
         return(obam_path, ddrun.returncode)
 
@@ -72,8 +73,8 @@ class Samtools:
                 '-f', ref_path, bam_path]
         mprun = subprocess.Popen(mpcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         mprun.wait()
-#        if mprun.returncode != 0:
-#            logger.error('Samtools mpileup failed running the following command : {0}'.format(' '.join(mpcmd)))
+        if mprun.returncode != 0:
+            self.logger.error('Samtools mpileup failed running the following command : {0}'.format(' '.join(mpcmd)))
 
         return(obcf_path, mprun.returncode)
 
@@ -82,20 +83,20 @@ class Samtools:
         bicmd = [self.bft_path, 'index', bcf_path]
         birun = subprocess.Popen(bicmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         birun.wait()
-#        if birun.returncode != 0:
-#            logger.error('Bcftools index failed running the following command : {0}'.format(' '.join(bicmd)))
+        if birun.returncode != 0:
+            self.logger.error('Bcftools index failed running the following command : {0}'.format(' '.join(bicmd)))
 
         return(birun.returncode)
 
-    def bcftools(self, bcf_path, bed_path, sam_name):
+    def bcftools(self, bcf_path, sam_name):
         ovcf_path = '{0}/{1}_variants_samtools.vcf'.format(self.out_path, sam_name)
         btcmd = [self.bft_path, 'call', '--skip-variants', 'indels',
                 '--multiallelic-caller', '--variants-only', '-O', 'v',
                 '-s', sam_name, '-o', ovcf_path, bcf_path]
         btrun = subprocess.Popen(btcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         btrun.wait()
-#        if btrun.returncode != 0:
-#            logger.error('Bcftools call failed running the following command : {0}'.format(' '.join(btcmd)))
+        if btrun.returncode != 0:
+            self.logger.error('Bcftools call failed running the following command : {0}'.format(' '.join(btcmd)))
 
         return(ovcf_path, btrun.returncode)
 

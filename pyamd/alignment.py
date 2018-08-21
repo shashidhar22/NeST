@@ -22,8 +22,21 @@ class Bwa:
         self.bwa_path = bwa_path
         self.out_path = '{0}/alignments'.format(out_path)
         self.ref_path = ref_path
+        self.logger = logging.getLogger('Kookaburra.alignment')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
+        #Build index if its not present
+        if not os.path.exists('{0}.sa'.format(self.out_path)):
+            self.logger.debug(('Reference fasta file not indexed;'
+                'Creating BWA index files'))
+            icmd = ['bwa', 'index', ref_path]
+            irun = subprocess.Popen(icmd, shell=False, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
+            irun.wait()
+            if irun.returncode != 0:
+                self.logger.error('Reference fasta could not be indexed')
+            else:
+                self.logger.debug('Reference fasta indexed')
         return
 
     def bwamem(self, rone_path, rtwo_path):
@@ -39,9 +52,9 @@ class Bwa:
         sam_path = '{0}/output.sam'.format(self.out_path)
         bwcmd = [self.bwa_path, 'mem', '-t', '4', self.ref_path,
                 rone_path, rtwo_path, '>', sam_path]
-        bwrun = subprocess.Popen(' '.join(bwcmd), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        bwrun = subprocess.Popen(' '.join(bwcmd), stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, shell=True)
         bwrun.wait()
-
         return(sam_path, bwrun.returncode)
 
 
@@ -61,8 +74,22 @@ class Bowtie:
         self.bowtie_path =  bowtie_path
         self.out_path = '{0}/alignments'.format(out_path)
         self.ref_path = ref_path
+        self.logger = logging.getLogger('Kookaburra.alingment')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
+        #Build index if its not present
+        if not os.path.exists('{0}.sa'.format(self.ref_path)):
+            self.logger.debug(('Reference fasta file not indexed;'
+                'Creating Bowtie2 index files'))
+            icmd = ['bowtie2-build', ref_path, ref_path]
+            irun = subprocess.Popen(icmd, shell=False, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
+            irun.wait()
+            if irun.returncode != 0:
+                self.logger.error('Reference fasta could not be indexed')
+            else:
+                self.logger.debug('Reference fasta indexed')
+
         return
 
     def bowtie(self, rone_path, rtwo_path):
@@ -81,6 +108,8 @@ class Bowtie:
                 '-p', '4', '-S', sam_path]
         bwrun = subprocess.Popen(bwcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         bwrun.wait()
+        if bwrun.returncode:
+            self.logger.error(' '.join(bwcmd))
 
         return(sam_path, bwrun.returncode)
 
@@ -101,8 +130,21 @@ class BBMap:
         self.bbmap_path = bbmap_path
         self.out_path = out_path
         self.ref_path =  ref_path
+        self.logger = logging.getLogger('Kookaburra.alingment')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
+        #Build index if its not present
+        if not os.path.exists('{0}.sa'.format(self.out_path)):
+            self.logger.debug(('Reference fasta file not indexed;'
+                'Creating BBMap index files'))
+            icmd = ['bbmap.sh', 'ref={0}'.format(ref_path)]
+            irun = subprocess.Popen(icmd, shell=False, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
+            irun.wait()
+            if irun.returncode != 0:
+                self.logger.error('Reference fasta could not be indexed')
+            else:
+                self.logger.debug('Reference fasta indexed')
 
     def bbmap(self, rone_path, rtwo_path):
         '''Bbmap method runs BBMap using default parameters to align R1 and
@@ -139,8 +181,22 @@ class Snap:
         self.snap_path = snap_path
         self.out_path = out_path
         self.ref_path = os.path.dirname(ref_path)
+        self.logger = logging.getLogger('Kookaburra.alingment')
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
+        #Build index if its not present
+        if not os.path.exists('{0}.sa'.format(self.out_path)):
+            ref_out = os.path.dirname(self.ref_path)
+            self.logger.debug(('Reference fasta file not indexed;'
+                'Creating SNAP index files'))
+            icmd = ['snap-aligner', 'index', ref_path, ref_out]
+            irun = subprocess.Popen(icmd, shell=False, stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL)
+            irun.wait()
+            if irun.returncode != 0:
+                self.logger.error('Reference fasta could not be indexed')
+            else:
+                self.logger.debug('Reference fasta indexed')
 
 
     def snap(self, rone_path, rtwo_path):

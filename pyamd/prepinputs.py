@@ -11,13 +11,18 @@ from itertools import groupby
 
 
 class Identifier:
+    """ The Identifier class contains a set of modules that recognize the
+    type of fastq file from the fastq the fastq header. The class is initialzed
+    by passing a record to the constructor"""
 
     def __init__(self, record):
+        """Initialize the Identifier class from a fastq record"""
         self.rec = record
 
 
     def isIlluminaOld(self):
-        #@HWUSI-EAS100R:6:73:941:1973#0/1
+        """Identify fastq headers in the following format
+         @HWUSI-EAS100R:6:73:941:1973#0/1"""
         header_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d*')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -27,7 +32,8 @@ class Identifier:
 
 
     def isIlluminaNew(self):
-        #@D00468:24:H8ELMADXX:1:1101:1470:2237 1:N:0:2
+        """Idetify fastq headers in the following format
+        #@D00468:24:H8ELMADXX:1:1101:1470:2237 1:N:0:2"""
         header_regex = re.compile('@\w+-?\w+:\d+:\w+-?\w+:\d+:\d+:\d+:\d+\s\d:\w+:\w+:\w*')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -37,8 +43,9 @@ class Identifier:
 
 
     def isSraOld(self):
+        """Identify fastq headers in the following format
         #@SRR037455.1 HWI-E4_6_30ACL:4:1:0:29 length=35
-        #@SRR902931.1 HWI-ST1384:61:D1DJ4ACXX:8:1101:1240:2015 length=50
+        #@SRR902931.1 HWI-ST1384:61:D1DJ4ACXX:8:1101:1240:2015 length=50"""
         header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -47,7 +54,8 @@ class Identifier:
             return(False)
 
     def isSraNew(self):
-        #@SRR1873770.5 DH1DQQN1:437:HACT2ADXX:1:2204:8270:58140 length=150
+        """Identify fastq headers in the following format
+        #@SRR1873770.5 DH1DQQN1:437:HACT2ADXX:1:2204:8270:58140 length=150"""
         header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -56,7 +64,8 @@ class Identifier:
             return(False)
 
     def isENA(self):
-        # ERR161234.14 14 length=100
+        """Identify fastq headers in the following format
+        # ERR161234.14 14 length=100"""
         header_regex = re.compile('@[\w\.]+ \d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -65,7 +74,8 @@ class Identifier:
             return(False)
 
     def isPacbio(self):
-        #@m160113_152755_42135_c100906712550000001823199104291667_s1_p0/15/7044_26271
+        """Identify fastq headers in the following format
+        #@m160113_152755_42135_c100906712550000001823199104291667_s1_p0/15/7044_26271"""
         header_regex = re.compile('@\w+/\d+/\d+_\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
@@ -75,11 +85,15 @@ class Identifier:
 
 
 class Metrics:
+    """The Metrics class calculates read length and quality metrics for a given
+    fastq file. The class is initialized with the following inputs:
+      1. fastq (str): Path to the fastq file"""
 
     def __init__(self, fastq):
         self.fastq = fastq
 
     def avgReadLen(self):
+        """Given a fastq file, calculate average read length"""
         fastq_reader = Fastq(self.fastq, './', 'phred33')
         total_length = 0
         total_reads = 0
@@ -93,6 +107,10 @@ class Metrics:
         return(avg_length)
 
 class Prepper:
+    """Prepper class create the config dictionary for a given study. The class
+    constructor takes the following input parameters:
+      1. input_path (str) : Path to input directory or sra accession list
+      2. sra_path (str) : Path to fastq-dump executable """
 
     def __init__(self, input_path, sra_path):
         self.input_path = os.path.abspath(input_path)
@@ -100,6 +118,7 @@ class Prepper:
         self.logger = logging.getLogger('Kookaburra.prepInputs')
 
     def downloadSRA(self):
+        """Give a SRA accession list, download all the associated fastq files"""
         out_dir = os.path.dirname(self.input_path)
         sra_list = open(self.input_path)
         for accessions in sra_list:
@@ -119,6 +138,7 @@ class Prepper:
         return(out_dir)
 
     def getFastqPaths(self):
+        """Given a directory path, extract all the fastq file names"""
         filenames = list()
         for subdir, dirname, files in os.walk(self.input_path):
             for filename in files:
@@ -129,6 +149,8 @@ class Prepper:
         return(filenames)
 
     def getReadPresence(self, file_name, minimum=1):
+        """Given a fastq file, check for the presence of a minimum number of
+        reads"""
         reader = Fastq(file_name, None, 'phred33')
         read_number = 0
         for rec in reader.read():
@@ -139,6 +161,12 @@ class Prepper:
                 return(False)
 
     def parseMaRS(self, file_name):
+        """Given a fastq file, check is the file name follows the MaRS regex:
+        <Year>{2}<Country>{2}<Site>{2}<Day of treatment>{2}<Treatment>{1}
+        <SampleID>{4}<Genus and species>{2}<Strain type>{1}<Markers>{3}<Rep>{1}
+        If the regex is found, the module decodes the sample information and
+        returns a namedtuple for the sample"""
+
         mars_regex = ('(?P<Year>[0-9x]{2})(?P<Country>[A-Zx]{2})'
                       '(?P<Site>[A-Zx]{2})(?P<DT>[0-9]{2})'
                       '(?P<Treatment>[A-Kx]{1})(?P<SID>[0-9]{4})'
@@ -184,6 +212,10 @@ class Prepper:
         return(sample)
 
     def prepInputs(self):
+        """Given a input directory path or sra accession list, iterate through
+        the list and create a sample record of reach file. Each sample record is
+        added to a dictionary with the sample name as the key and sample record
+        as the value"""
         if os.path.isfile(self.input_path):
             self.logger.info('Found SRA accession list,'
                             'Will download files from SRA')
@@ -267,25 +299,22 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                #logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
-                a = None
+                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
             try:
                 paired = True
-                #numreads = self.getReadNumbers(experiment[sample].files[0])
                 experiment[sample] = Sample(sample, lib, seqType,
                     [experiment[sample].files[0],fastq], libType, paired,
                     year, country, site, td, treatment, sid, gs, stype, markers,
                     replicate)
             except (KeyError, AttributeError):
-                #numreads = self.getReadNumbers(fastq)
                 experiment[sample] = Sample(sample, lib, seqType, [fastq],
                 libType, paired, year, country, site, td, treatment, sid, gs,
                 stype, markers, replicate)
-        #logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
-        #logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
-        #for sample, values in experiment.items():
-        #    logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
-        #            values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
+        self.logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
+        self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
+        for sample, values in experiment.items():
+            self.logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
+                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
         for samples, info in experiment.items():
             if not info.paired:
                 self.logger.warning('NeST does not currently support single end runs; skipping sample : {0}'.format(samples))

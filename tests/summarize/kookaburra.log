@@ -1,0 +1,1541 @@
+2018-07-02 20:42:46,973 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:42:46,974 - Kookaburra.prepInputs - INFO - Found SRA accession list,Will download files from SRA
+2018-07-02 20:42:46,974 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463548
+
+2018-07-02 20:43:02,721 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463548
+2018-07-02 20:43:02,722 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463549
+
+2018-07-02 20:43:17,255 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463549
+2018-07-02 20:43:17,256 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463550
+
+2018-07-02 20:43:33,379 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463550
+2018-07-02 20:43:33,379 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463551
+
+2018-07-02 20:44:31,290 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463551
+2018-07-02 20:44:31,290 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463552
+
+2018-07-02 20:44:54,796 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463552
+2018-07-02 20:44:54,796 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463553
+
+2018-07-02 20:45:14,344 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463553
+2018-07-02 20:45:14,344 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463554
+
+2018-07-02 20:45:39,062 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463554
+2018-07-02 20:45:39,062 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463555
+
+2018-07-02 20:46:03,135 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463555
+2018-07-02 20:46:03,136 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463556
+
+2018-07-02 20:46:26,139 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463556
+2018-07-02 20:46:26,139 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463557
+
+2018-07-02 20:46:51,888 - Kookaburra.prepInputs - INFO - Downladed complete: SRR6463557
+2018-07-02 20:46:51,960 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 20:46:51,971 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 20:46:51,993 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 20:46:51,993 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 20:46:51,993 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 20:46:51,996 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 20:46:54,335 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 20:46:54,335 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 20:46:54,749 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 20:46:54,749 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 20:46:54,838 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 20:46:54,839 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 20:46:55,406 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 20:46:55,406 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 20:46:57,744 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 20:46:59,143 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 20:46:59,496 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 20:46:59,496 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 20:47:01,612 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 20:47:01,612 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 20:47:02,861 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 20:47:02,861 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 20:47:03,478 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 20:47:03,478 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 20:47:03,720 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 20:47:03,720 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 20:47:04,263 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 20:47:04,263 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 20:47:06,580 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 20:47:06,580 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 20:47:07,336 - Kookaburra.SRR6463550 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:47:07,336 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:47:07,547 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 20:47:07,548 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 20:47:08,098 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 20:47:08,098 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 20:47:10,673 - Kookaburra.SRR6463552 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:47:10,674 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:47:11,835 - Kookaburra.SRR6463553 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:47:11,836 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:47:12,348 - Kookaburra.SRR6463556 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:47:12,349 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:47:17,890 - Kookaburra.SRR6463550 - DEBUG - Running Samtools mpileup
+2018-07-02 20:47:17,891 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 20:47:17,964 - Kookaburra.SRR6463550 - DEBUG - Running Bcftools index
+2018-07-02 20:47:17,964 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 20:47:18,039 - Kookaburra.SRR6463550 - DEBUG - Running Bcftools call
+2018-07-02 20:47:18,039 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 20:47:18,040 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:47:20,166 - Kookaburra.SRR6463552 - DEBUG - Running Samtools mpileup
+2018-07-02 20:47:20,167 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 20:47:20,240 - Kookaburra.SRR6463552 - DEBUG - Running Bcftools index
+2018-07-02 20:47:20,240 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 20:47:20,342 - Kookaburra.SRR6463552 - DEBUG - Running Bcftools call
+2018-07-02 20:47:20,343 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 20:47:20,343 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:47:28,043 - Kookaburra.SRR6463556 - DEBUG - Running Samtools mpileup
+2018-07-02 20:47:28,043 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 20:47:28,166 - Kookaburra.SRR6463556 - DEBUG - Running Bcftools index
+2018-07-02 20:47:28,167 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 20:47:28,292 - Kookaburra.SRR6463556 - DEBUG - Running Bcftools call
+2018-07-02 20:47:28,292 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 20:47:28,292 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:47:29,285 - Kookaburra.SRR6463553 - DEBUG - Running Samtools mpileup
+2018-07-02 20:47:29,286 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 20:47:29,401 - Kookaburra.SRR6463553 - DEBUG - Running Bcftools index
+2018-07-02 20:47:29,401 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 20:47:29,510 - Kookaburra.SRR6463553 - DEBUG - Running Bcftools call
+2018-07-02 20:47:29,510 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 20:47:29,510 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:47:33,255 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:47:33,255 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 20:47:33,257 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 20:55:03,657 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:55:03,657 - Kookaburra.prepInputs - INFO - Found SRA accession list,Will download files from SRA
+2018-07-02 20:55:03,657 - Kookaburra.prepInputs - DEBUG - Downloading : SRR6463548
+
+2018-07-02 20:55:14,422 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:55:14,488 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 20:55:14,498 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping BBDuk
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping BWA
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping fixmate
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping sort
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping add read group
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:55:14,499 - Kookaburra.SRR6463556 - DEBUG - Skipping Pileup
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Skipping Bcfindex
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Skipping bcfcall
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 20:55:14,500 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:55:17,546 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 20:55:17,546 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 20:55:17,747 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 20:55:17,747 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 20:55:19,084 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 20:55:19,084 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 20:55:22,701 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 20:55:23,385 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 20:55:26,379 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 20:55:29,891 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 20:55:29,891 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 20:55:30,600 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 20:55:30,600 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 20:55:34,777 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 20:55:34,777 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 20:55:35,433 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 20:55:35,434 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 20:55:35,877 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 20:55:35,877 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 20:55:38,560 - Kookaburra.SRR6463554 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:55:38,561 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:55:40,134 - Kookaburra.SRR6463557 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:55:40,135 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:55:43,155 - Kookaburra.SRR6463556 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:55:43,155 - Kookaburra.SRR6463556 - DEBUG - Annotating variants
+2018-07-02 20:55:43,386 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 20:57:22,103 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:57:22,168 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 20:57:22,177 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 20:57:22,178 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 20:57:22,179 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 20:57:22,180 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 20:57:22,180 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 20:57:22,180 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 20:57:22,180 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:57:22,180 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 20:57:22,182 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 20:57:22,183 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 20:57:22,183 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 20:57:22,183 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 20:57:22,183 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:57:40,709 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:57:40,709 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Skipping BBDuk
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Skipping BWA
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Skipping fixmate
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 20:57:41,055 - Kookaburra.SRR6463550 - DEBUG - Skipping sort
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Skipping add read group
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Skipping Pileup
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Skipping Bcfindex
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Skipping bcfcall
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Skipping GATK
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:57:41,056 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 20:58:17,108 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:58:17,172 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 20:58:17,181 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 20:58:17,183 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:58:17,182 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 20:58:17,186 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 20:58:18,237 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 20:58:18,237 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 20:58:19,707 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 20:58:22,232 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 20:58:22,232 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 20:58:24,632 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 20:58:24,633 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 20:58:27,252 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 20:58:27,252 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 20:58:27,454 - Kookaburra.SRR6463549 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:58:27,454 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:58:32,679 - Kookaburra.SRR6463551 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 20:58:32,679 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:58:38,885 - Kookaburra.SRR6463549 - DEBUG - Running Samtools mpileup
+2018-07-02 20:58:38,885 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 20:58:38,962 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:58:38,962 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 20:58:38,976 - Kookaburra.SRR6463549 - DEBUG - Running Bcftools index
+2018-07-02 20:58:38,977 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 20:58:39,034 - Kookaburra.SRR6463549 - DEBUG - Running Bcftools call
+2018-07-02 20:58:39,034 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 20:58:39,034 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:58:39,180 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 20:59:13,099 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 20:59:13,163 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 20:59:13,172 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 20:59:13,173 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 20:59:13,175 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Skipping GATK
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 20:59:13,176 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 20:59:13,174 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 20:59:13,177 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 20:59:13,178 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 20:59:13,178 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 20:59:13,178 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 20:59:13,178 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 20:59:13,178 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 20:59:13,438 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,353 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 21:00:08,417 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 21:00:08,427 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Skipping BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463548 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Skipping BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Skipping fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Skipping sort
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 21:00:08,428 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Skipping add read group
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Skipping Pileup
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Skipping Bcfindex
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Skipping bcfcall
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Skipping GATK
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:00:08,429 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 21:00:08,691 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 21:00:08,692 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:29,555 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 21:02:29,620 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 21:02:29,629 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463548 - DEBUG - Running BBDuk
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:29,631 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:29,633 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Skipping GATK
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:02:29,634 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 21:02:30,361 - Kookaburra.SRR6463553 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:02:30,461 - Kookaburra.SRR6463553 - INFO - Total variants : 9; Verified calls : 3; Exonic : 3; Intronic : 6; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:02:30,462 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 21:02:30,619 - Kookaburra.SRR6463548 - DEBUG - BBDuk completed
+2018-07-02 21:02:30,619 - Kookaburra.SRR6463548 - DEBUG - Running BWA
+2018-07-02 21:02:32,192 - Kookaburra.SRR6463548 - DEBUG - BWA completed
+2018-07-02 21:02:32,361 - Kookaburra.SRR6463555 - DEBUG - BBDuk completed
+2018-07-02 21:02:32,362 - Kookaburra.SRR6463555 - DEBUG - Running BWA
+2018-07-02 21:02:35,213 - Kookaburra.SRR6463548 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:35,213 - Kookaburra.SRR6463548 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:35,310 - Kookaburra.SRR6463555 - DEBUG - BWA completed
+2018-07-02 21:02:37,009 - Kookaburra.SRR6463548 - DEBUG - Running Samtools sort
+2018-07-02 21:02:37,009 - Kookaburra.SRR6463548 - DEBUG - Samtools sort completed
+2018-07-02 21:02:39,351 - Kookaburra.SRR6463548 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 21:02:39,351 - Kookaburra.SRR6463548 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:40,225 - Kookaburra.SRR6463555 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:40,226 - Kookaburra.SRR6463555 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:44,086 - Kookaburra.SRR6463548 - DEBUG - Running Samtools mpileup
+2018-07-02 21:02:44,086 - Kookaburra.SRR6463548 - DEBUG - Samtools mpileup completed
+2018-07-02 21:02:44,151 - Kookaburra.SRR6463548 - DEBUG - Running Bcftools index
+2018-07-02 21:02:44,151 - Kookaburra.SRR6463548 - DEBUG - Bcftools index completed
+2018-07-02 21:02:44,219 - Kookaburra.SRR6463548 - DEBUG - Running Bcftools call
+2018-07-02 21:02:44,220 - Kookaburra.SRR6463548 - DEBUG - Bcftools call completed
+2018-07-02 21:02:44,220 - Kookaburra.SRR6463548 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:02:44,446 - Kookaburra.SRR6463555 - DEBUG - Running Samtools sort
+2018-07-02 21:02:44,446 - Kookaburra.SRR6463555 - DEBUG - Samtools sort completed
+2018-07-02 21:02:49,345 - Kookaburra.SRR6463555 - DEBUG - Running Picard AddOrReplaceReadGroups
+2018-07-02 21:02:49,346 - Kookaburra.SRR6463555 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:49,530 - Kookaburra.SRR6463557 - DEBUG - Running Samtools mpileup
+2018-07-02 21:02:49,531 - Kookaburra.SRR6463557 - DEBUG - Samtools mpileup completed
+2018-07-02 21:02:49,637 - Kookaburra.SRR6463557 - DEBUG - Running Bcftools index
+2018-07-02 21:02:49,637 - Kookaburra.SRR6463557 - DEBUG - Bcftools index completed
+2018-07-02 21:02:49,746 - Kookaburra.SRR6463557 - DEBUG - Running Bcftools call
+2018-07-02 21:02:49,746 - Kookaburra.SRR6463557 - DEBUG - Bcftools call completed
+2018-07-02 21:02:49,746 - Kookaburra.SRR6463557 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:02:56,101 - Kookaburra.SRR6463548 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:02:56,102 - Kookaburra.SRR6463548 - DEBUG - Annotating variants
+2018-07-02 21:02:56,985 - Kookaburra.SRR6463548 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:02:57,122 - Kookaburra.SRR6463548 - INFO - Total variants : 24; Verified calls : 14; Exonic : 14; Intronic : 10; Synonymous : 2; Non Synonymous : 12; Transition : 7; Transversion : 7
+2018-07-02 21:02:57,122 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 21:02:57,122 - Kookaburra.SRR6463550 - DEBUG - Skipping BBDuk
+2018-07-02 21:02:57,122 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping BWA
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping fixmate
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping sort
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping add read group
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping Pileup
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping Bcfindex
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping bcfcall
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Skipping GATK
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:02:57,123 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 21:02:58,090 - Kookaburra.SRR6463550 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463550 - INFO - Total variants : 21; Verified calls : 12; Exonic : 12; Intronic : 9; Synonymous : 2; Non Synonymous : 10; Transition : 6; Transversion : 6
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 21:02:58,228 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 21:02:58,229 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:03:03,832 - Kookaburra.SRR6463555 - DEBUG - Running Samtools mpileup
+2018-07-02 21:03:03,832 - Kookaburra.SRR6463555 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:03,905 - Kookaburra.SRR6463555 - DEBUG - Running Bcftools index
+2018-07-02 21:03:03,906 - Kookaburra.SRR6463555 - DEBUG - Bcftools index completed
+2018-07-02 21:03:03,981 - Kookaburra.SRR6463555 - DEBUG - Running Bcftools call
+2018-07-02 21:03:03,981 - Kookaburra.SRR6463555 - DEBUG - Bcftools call completed
+2018-07-02 21:03:03,981 - Kookaburra.SRR6463555 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:12,885 - Kookaburra.SRR6463551 - DEBUG - Running Samtools mpileup
+2018-07-02 21:03:12,885 - Kookaburra.SRR6463551 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:12,998 - Kookaburra.SRR6463551 - DEBUG - Running Bcftools index
+2018-07-02 21:03:12,999 - Kookaburra.SRR6463551 - DEBUG - Bcftools index completed
+2018-07-02 21:03:13,107 - Kookaburra.SRR6463551 - DEBUG - Running Bcftools call
+2018-07-02 21:03:13,107 - Kookaburra.SRR6463551 - DEBUG - Bcftools call completed
+2018-07-02 21:03:13,107 - Kookaburra.SRR6463551 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:19,467 - Kookaburra.SRR6463557 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:03:19,467 - Kookaburra.SRR6463557 - DEBUG - Annotating variants
+2018-07-02 21:03:20,303 - Kookaburra.SRR6463557 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:03:20,459 - Kookaburra.SRR6463557 - INFO - Total variants : 18; Verified calls : 9; Exonic : 11; Intronic : 7; Synonymous : 2; Non Synonymous : 9; Transition : 6; Transversion : 5
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping BBDuk
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping BWA
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping fixmate
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping sort
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping add read group
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Skipping Pileup
+2018-07-02 21:03:20,460 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:20,461 - Kookaburra.SRR6463549 - DEBUG - Skipping Bcfindex
+2018-07-02 21:03:20,461 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 21:03:20,461 - Kookaburra.SRR6463549 - DEBUG - Skipping bcfcall
+2018-07-02 21:03:20,461 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 21:03:20,461 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:25,427 - Kookaburra.SRR6463554 - DEBUG - Running Samtools mpileup
+2018-07-02 21:03:25,427 - Kookaburra.SRR6463554 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:25,533 - Kookaburra.SRR6463554 - DEBUG - Running Bcftools index
+2018-07-02 21:03:25,533 - Kookaburra.SRR6463554 - DEBUG - Bcftools index completed
+2018-07-02 21:03:25,617 - Kookaburra.SRR6463554 - DEBUG - Running Bcftools call
+2018-07-02 21:03:25,617 - Kookaburra.SRR6463554 - DEBUG - Bcftools call completed
+2018-07-02 21:03:25,617 - Kookaburra.SRR6463554 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:38,975 - Kookaburra.SRR6463555 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:03:38,976 - Kookaburra.SRR6463555 - DEBUG - Annotating variants
+2018-07-02 21:03:40,381 - Kookaburra.SRR6463555 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:03:40,563 - Kookaburra.SRR6463555 - INFO - Total variants : 17; Verified calls : 8; Exonic : 9; Intronic : 8; Synonymous : 4; Non Synonymous : 5; Transition : 4; Transversion : 5
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Skipping BBDuk
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Skipping BWA
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Skipping fixmate
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Skipping sort
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Skipping add read group
+2018-07-02 21:03:40,564 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Skipping Pileup
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Skipping Bcfindex
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Skipping bcfcall
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Skipping GATK
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:03:40,565 - Kookaburra.SRR6463556 - DEBUG - Annotating variants
+2018-07-02 21:03:40,648 - Kookaburra.SRR6463549 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:03:40,649 - Kookaburra.SRR6463549 - DEBUG - Annotating variants
+2018-07-02 21:03:41,301 - Kookaburra.SRR6463549 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:03:41,361 - Kookaburra.SRR6463556 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:03:41,406 - Kookaburra.SRR6463549 - INFO - Total variants : 13; Verified calls : 7; Exonic : 7; Intronic : 6; Synonymous : 1; Non Synonymous : 6; Transition : 3; Transversion : 4
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 21:03:41,407 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Skipping GATK
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:03:41,408 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 21:03:41,512 - Kookaburra.SRR6463556 - INFO - Total variants : 19; Verified calls : 7; Exonic : 11; Intronic : 8; Synonymous : 2; Non Synonymous : 9; Transition : 5; Transversion : 6
+2018-07-02 21:03:42,310 - Kookaburra.SRR6463552 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:03:42,477 - Kookaburra.SRR6463552 - INFO - Total variants : 17; Verified calls : 6; Exonic : 8; Intronic : 9; Synonymous : 1; Non Synonymous : 7; Transition : 3; Transversion : 5
+2018-07-02 21:04:03,171 - Kookaburra.SRR6463554 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:04:03,171 - Kookaburra.SRR6463554 - DEBUG - Annotating variants
+2018-07-02 21:04:03,372 - Kookaburra.SRR6463551 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:04:03,372 - Kookaburra.SRR6463551 - DEBUG - Annotating variants
+2018-07-02 21:04:03,643 - Kookaburra.SRR6463554 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:04:03,732 - Kookaburra.SRR6463554 - INFO - Total variants : 8; Verified calls : 3; Exonic : 3; Intronic : 5; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:04:04,376 - Kookaburra.SRR6463551 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:04:04,509 - Kookaburra.SRR6463551 - INFO - Total variants : 29; Verified calls : 16; Exonic : 19; Intronic : 10; Synonymous : 4; Non Synonymous : 15; Transition : 9; Transversion : 10
+2018-07-02 21:04:04,509 - Kookaburra - INFO - Summarizing variant calls from all 10 experiments
+2018-07-02 21:04:12,547 - Kookaburra - INFO - Plotting Depth Per SNP
+2018-07-02 21:04:15,649 - Kookaburra - INFO - Plotting Reportable SNPs Frequency
+2018-07-02 21:04:16,192 - Kookaburra - INFO - Plotting Novel Exonic Non-Synonymous SNPs
+2018-07-02 21:04:16,982 - Kookaburra - INFO - Plotting Novel Exonic Synonymous SNPs
+2018-07-02 21:04:17,775 - Kookaburra - INFO - Plotting Novel Intronic SNPs
+2018-07-02 21:08:16,863 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 21:08:16,927 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 21:08:16,937 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 21:08:16,938 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 21:08:16,938 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 21:08:16,938 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping Pileup
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping Pileup
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Bcftools index completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Bcftools call completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Bcftools index completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - Skipping GATK
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463554 - DEBUG - Bcftools call completed
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463552 - DEBUG - Skipping GATK
+2018-07-02 21:08:16,939 - Kookaburra.SRR6463557 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463554 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463557 - DEBUG - Annotating variants
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463554 - DEBUG - Skipping GATK
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463554 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:16,940 - Kookaburra.SRR6463554 - DEBUG - Annotating variants
+2018-07-02 21:08:16,938 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping BWA
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping fixmate
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping sort
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping add read group
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping Pileup
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:16,943 - Kookaburra.SRR6463549 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Skipping GATK
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:16,944 - Kookaburra.SRR6463549 - DEBUG - Annotating variants
+2018-07-02 21:08:17,442 - Kookaburra.SRR6463554 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463554 - INFO - Total variants : 8; Verified calls : 3; Exonic : 3; Intronic : 5; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:17,535 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Skipping GATK
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:17,536 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 21:08:17,605 - Kookaburra.SRR6463549 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:17,637 - Kookaburra.SRR6463552 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:17,720 - Kookaburra.SRR6463549 - INFO - Total variants : 13; Verified calls : 7; Exonic : 7; Intronic : 6; Synonymous : 1; Non Synonymous : 6; Transition : 3; Transversion : 4
+2018-07-02 21:08:17,720 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 21:08:17,720 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:17,720 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping Pileup
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Bcftools index completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Bcftools call completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Skipping GATK
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:17,721 - Kookaburra.SRR6463551 - DEBUG - Annotating variants
+2018-07-02 21:08:17,751 - Kookaburra.SRR6463552 - INFO - Total variants : 17; Verified calls : 6; Exonic : 8; Intronic : 9; Synonymous : 1; Non Synonymous : 7; Transition : 3; Transversion : 5
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Running BBDuk
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - BBDuk completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Running BWA
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping BWA
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - BWA completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping fixmate
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping sort
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Running Samtools sort
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Samtools sort completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping add read group
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping Pileup
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Bcftools index completed
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:17,752 - Kookaburra.SRR6463548 - DEBUG - Bcftools call completed
+2018-07-02 21:08:17,753 - Kookaburra.SRR6463548 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:17,753 - Kookaburra.SRR6463548 - DEBUG - Skipping GATK
+2018-07-02 21:08:17,753 - Kookaburra.SRR6463548 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:17,753 - Kookaburra.SRR6463548 - DEBUG - Annotating variants
+2018-07-02 21:08:17,787 - Kookaburra.SRR6463557 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463557 - INFO - Total variants : 18; Verified calls : 9; Exonic : 11; Intronic : 7; Synonymous : 2; Non Synonymous : 9; Transition : 6; Transversion : 5
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - BBDuk completed
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Running BWA
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Skipping BWA
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - BWA completed
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Skipping fixmate
+2018-07-02 21:08:17,915 - Kookaburra.SRR6463555 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping sort
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Running Samtools sort
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Samtools sort completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping add read group
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping Pileup
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Bcftools index completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Bcftools call completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Skipping GATK
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:17,916 - Kookaburra.SRR6463555 - DEBUG - Annotating variants
+2018-07-02 21:08:18,042 - Kookaburra.SRR6463553 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:18,140 - Kookaburra.SRR6463553 - INFO - Total variants : 9; Verified calls : 3; Exonic : 3; Intronic : 6; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping BWA
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping fixmate
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping sort
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping add read group
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping Pileup
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:18,141 - Kookaburra.SRR6463550 - DEBUG - Skipping GATK
+2018-07-02 21:08:18,142 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:18,142 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 21:08:18,654 - Kookaburra.SRR6463548 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:18,736 - Kookaburra.SRR6463555 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:18,785 - Kookaburra.SRR6463548 - INFO - Total variants : 24; Verified calls : 14; Exonic : 14; Intronic : 10; Synonymous : 2; Non Synonymous : 12; Transition : 7; Transversion : 7
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Skipping BBDuk
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Skipping BWA
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Skipping fixmate
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Skipping sort
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Skipping add read group
+2018-07-02 21:08:18,786 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Skipping Pileup
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Skipping Bcfindex
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Skipping bcfcall
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Skipping GATK
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:08:18,787 - Kookaburra.SRR6463556 - DEBUG - Annotating variants
+2018-07-02 21:08:18,867 - Kookaburra.SRR6463555 - INFO - Total variants : 17; Verified calls : 8; Exonic : 9; Intronic : 8; Synonymous : 4; Non Synonymous : 5; Transition : 4; Transversion : 5
+2018-07-02 21:08:18,921 - Kookaburra.SRR6463551 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:18,965 - Kookaburra.SRR6463550 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:19,067 - Kookaburra.SRR6463551 - INFO - Total variants : 29; Verified calls : 16; Exonic : 19; Intronic : 10; Synonymous : 4; Non Synonymous : 15; Transition : 9; Transversion : 10
+2018-07-02 21:08:19,090 - Kookaburra.SRR6463550 - INFO - Total variants : 21; Verified calls : 12; Exonic : 12; Intronic : 9; Synonymous : 2; Non Synonymous : 10; Transition : 6; Transversion : 6
+2018-07-02 21:08:19,466 - Kookaburra.SRR6463556 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:08:19,571 - Kookaburra.SRR6463556 - INFO - Total variants : 19; Verified calls : 7; Exonic : 11; Intronic : 8; Synonymous : 2; Non Synonymous : 9; Transition : 5; Transversion : 6
+2018-07-02 21:08:19,571 - Kookaburra - INFO - Summarizing variant calls from all 10 experiments
+2018-07-02 21:08:27,674 - Kookaburra - INFO - Plotting Depth Per SNP
+2018-07-02 21:08:30,546 - Kookaburra - INFO - Plotting Reportable SNPs Frequency
+2018-07-02 21:08:31,084 - Kookaburra - INFO - Plotting Novel Exonic Non-Synonymous SNPs
+2018-07-02 21:08:31,868 - Kookaburra - INFO - Plotting Novel Exonic Synonymous SNPs
+2018-07-02 21:08:32,654 - Kookaburra - INFO - Plotting Novel Intronic SNPs
+2018-07-02 21:09:11,234 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 21:09:11,299 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 21:09:11,308 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463548 - DEBUG - Running BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463555 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463548 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463555 - DEBUG - BBDuk completed
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463548 - DEBUG - BBDuk completed
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463555 - DEBUG - Running BWA
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463548 - DEBUG - Running BWA
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463555 - DEBUG - Skipping BWA
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463548 - DEBUG - Skipping BWA
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - BWA completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - BWA completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Running Samtools sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Running Samtools sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Samtools sort completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Samtools sort completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping add read group
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping add read group
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping Pileup
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping Pileup
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Bcftools index completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping Pileup
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Bcftools index completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Bcftools call completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Bcftools call completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Bcftools index completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Skipping GATK
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Skipping GATK
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Bcftools call completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463555 - DEBUG - Annotating variants
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463548 - DEBUG - Annotating variants
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Skipping GATK
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:11,310 - Kookaburra.SRR6463557 - DEBUG - Annotating variants
+2018-07-02 21:09:11,309 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 21:09:11,313 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:11,314 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 21:09:11,314 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:11,314 - Kookaburra.SRR6463553 - DEBUG - Skipping GATK
+2018-07-02 21:09:11,314 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:11,314 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 21:09:11,878 - Kookaburra.SRR6463553 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:11,975 - Kookaburra.SRR6463553 - INFO - Total variants : 9; Verified calls : 3; Exonic : 3; Intronic : 6; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping Pileup
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Bcftools index completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Bcftools call completed
+2018-07-02 21:09:11,976 - Kookaburra.SRR6463551 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:11,977 - Kookaburra.SRR6463551 - DEBUG - Skipping GATK
+2018-07-02 21:09:11,977 - Kookaburra.SRR6463551 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:11,977 - Kookaburra.SRR6463551 - DEBUG - Annotating variants
+2018-07-02 21:09:12,016 - Kookaburra.SRR6463555 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:12,086 - Kookaburra.SRR6463557 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463555 - INFO - Total variants : 17; Verified calls : 8; Exonic : 9; Intronic : 8; Synonymous : 4; Non Synonymous : 5; Transition : 4; Transversion : 5
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - Skipping BWA
+2018-07-02 21:09:12,131 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping fixmate
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping sort
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping add read group
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping Pileup
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Skipping GATK
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:12,132 - Kookaburra.SRR6463549 - DEBUG - Annotating variants
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463557 - INFO - Total variants : 18; Verified calls : 9; Exonic : 11; Intronic : 7; Synonymous : 2; Non Synonymous : 9; Transition : 6; Transversion : 5
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Skipping BWA
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Skipping fixmate
+2018-07-02 21:09:12,224 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping sort
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping add read group
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping Pileup
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Skipping GATK
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:12,225 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 21:09:12,276 - Kookaburra.SRR6463548 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463548 - INFO - Total variants : 24; Verified calls : 14; Exonic : 14; Intronic : 10; Synonymous : 2; Non Synonymous : 12; Transition : 7; Transversion : 7
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Skipping BWA
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Skipping fixmate
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Skipping sort
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 21:09:12,416 - Kookaburra.SRR6463556 - DEBUG - Skipping add read group
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Skipping Pileup
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Skipping GATK
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:12,417 - Kookaburra.SRR6463556 - DEBUG - Annotating variants
+2018-07-02 21:09:12,794 - Kookaburra.SRR6463549 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:12,900 - Kookaburra.SRR6463549 - INFO - Total variants : 13; Verified calls : 7; Exonic : 7; Intronic : 6; Synonymous : 1; Non Synonymous : 6; Transition : 3; Transversion : 4
+2018-07-02 21:09:12,900 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping Pileup
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Bcftools index completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Bcftools call completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Skipping GATK
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:12,901 - Kookaburra.SRR6463554 - DEBUG - Annotating variants
+2018-07-02 21:09:13,143 - Kookaburra.SRR6463551 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:13,188 - Kookaburra.SRR6463550 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:13,231 - Kookaburra.SRR6463556 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463551 - INFO - Total variants : 29; Verified calls : 16; Exonic : 19; Intronic : 10; Synonymous : 4; Non Synonymous : 15; Transition : 9; Transversion : 10
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 21:09:13,295 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Skipping GATK
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:09:13,296 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 21:09:13,327 - Kookaburra.SRR6463550 - INFO - Total variants : 21; Verified calls : 12; Exonic : 12; Intronic : 9; Synonymous : 2; Non Synonymous : 10; Transition : 6; Transversion : 6
+2018-07-02 21:09:13,354 - Kookaburra.SRR6463556 - INFO - Total variants : 19; Verified calls : 7; Exonic : 11; Intronic : 8; Synonymous : 2; Non Synonymous : 9; Transition : 5; Transversion : 6
+2018-07-02 21:09:13,400 - Kookaburra.SRR6463554 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:13,489 - Kookaburra.SRR6463554 - INFO - Total variants : 8; Verified calls : 3; Exonic : 3; Intronic : 5; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:09:13,926 - Kookaburra.SRR6463552 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:09:14,028 - Kookaburra.SRR6463552 - INFO - Total variants : 17; Verified calls : 6; Exonic : 8; Intronic : 9; Synonymous : 1; Non Synonymous : 7; Transition : 3; Transversion : 5
+2018-07-02 21:09:14,028 - Kookaburra - INFO - Summarizing variant calls from all 10 experiments
+2018-07-02 21:09:22,066 - Kookaburra - INFO - Plotting Depth Per SNP
+2018-07-02 21:09:24,935 - Kookaburra - INFO - Plotting Reportable SNPs Frequency
+2018-07-02 21:09:25,467 - Kookaburra - INFO - Plotting Novel Exonic Non-Synonymous SNPs
+2018-07-02 21:09:26,250 - Kookaburra - INFO - Plotting Novel Exonic Synonymous SNPs
+2018-07-02 21:09:27,041 - Kookaburra - INFO - Plotting Novel Intronic SNPs
+2018-07-02 21:13:18,625 - Kookaburra - INFO - Gathering input information from input path.
+2018-07-02 21:13:18,689 - Kookaburra - INFO - Running MaRS on 10 experiments
+2018-07-02 21:13:18,698 - Kookaburra - WARNING - 0 samples are not paired, skipping these samples
+2018-07-02 21:13:18,699 - Kookaburra.SRR6463556 - DEBUG - Running BBDuk
+2018-07-02 21:13:18,699 - Kookaburra.SRR6463551 - DEBUG - Running BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Running BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463557 - DEBUG - Running BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - BBDuk completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - BBDuk completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Running BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Running BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - BBDuk completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - BWA completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Running BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - BWA completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping BWA
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - BWA completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Running Samtools sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Running Samtools sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Samtools sort completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Samtools sort completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Running Samtools sort
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping add read group
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping add read group
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Samtools sort completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping add read group
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping Pileup
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping Pileup
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping Pileup
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Bcftools index completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Bcftools index completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463556 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463551 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463554 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463556 - DEBUG - Bcftools call completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463551 - DEBUG - Bcftools call completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Bcftools index completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463556 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463551 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Bcftools call completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463556 - DEBUG - Skipping GATK
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463551 - DEBUG - Skipping GATK
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463556 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463551 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Skipping GATK
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463556 - DEBUG - Annotating variants
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463551 - DEBUG - Annotating variants
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:18,701 - Kookaburra.SRR6463554 - DEBUG - Annotating variants
+2018-07-02 21:13:18,700 - Kookaburra.SRR6463557 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - BBDuk completed
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Running BWA
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Skipping BWA
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - BWA completed
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Skipping fixmate
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Skipping sort
+2018-07-02 21:13:18,703 - Kookaburra.SRR6463557 - DEBUG - Running Samtools sort
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Samtools sort completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Skipping add read group
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Skipping Pileup
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Bcftools index completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Bcftools call completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Skipping GATK
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:18,704 - Kookaburra.SRR6463557 - DEBUG - Annotating variants
+2018-07-02 21:13:22,019 - Kookaburra.SRR6463554 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:22,112 - Kookaburra.SRR6463554 - INFO - Total variants : 8; Verified calls : 3; Exonic : 3; Intronic : 5; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Running BBDuk
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - BBDuk completed
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Running BWA
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Skipping BWA
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - BWA completed
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Skipping fixmate
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Skipping sort
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Running Samtools sort
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Samtools sort completed
+2018-07-02 21:13:22,113 - Kookaburra.SRR6463553 - DEBUG - Skipping add read group
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Skipping Pileup
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Bcftools index completed
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Bcftools call completed
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Skipping GATK
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:22,114 - Kookaburra.SRR6463553 - DEBUG - Annotating variants
+2018-07-02 21:13:23,069 - Kookaburra.SRR6463556 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463556 - INFO - Total variants : 19; Verified calls : 7; Exonic : 11; Intronic : 8; Synonymous : 2; Non Synonymous : 9; Transition : 5; Transversion : 6
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463555 - DEBUG - Running BBDuk
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463555 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463555 - DEBUG - BBDuk completed
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463555 - DEBUG - Running BWA
+2018-07-02 21:13:23,189 - Kookaburra.SRR6463555 - DEBUG - Skipping BWA
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - BWA completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping fixmate
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping sort
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Running Samtools sort
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Samtools sort completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping add read group
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping Pileup
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Bcftools index completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Bcftools call completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Skipping GATK
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:23,190 - Kookaburra.SRR6463555 - DEBUG - Annotating variants
+2018-07-02 21:13:23,944 - Kookaburra.SRR6463557 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:24,066 - Kookaburra.SRR6463557 - INFO - Total variants : 18; Verified calls : 9; Exonic : 11; Intronic : 7; Synonymous : 2; Non Synonymous : 9; Transition : 6; Transversion : 5
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Running BBDuk
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - BBDuk completed
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Running BWA
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Skipping BWA
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - BWA completed
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Skipping fixmate
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Skipping sort
+2018-07-02 21:13:24,067 - Kookaburra.SRR6463549 - DEBUG - Running Samtools sort
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Samtools sort completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Skipping add read group
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Skipping Pileup
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Bcftools index completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Bcftools call completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Skipping GATK
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:24,068 - Kookaburra.SRR6463549 - DEBUG - Annotating variants
+2018-07-02 21:13:24,656 - Kookaburra.SRR6463553 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:24,761 - Kookaburra.SRR6463553 - INFO - Total variants : 9; Verified calls : 3; Exonic : 3; Intronic : 6; Synonymous : 1; Non Synonymous : 2; Transition : 2; Transversion : 1
+2018-07-02 21:13:24,761 - Kookaburra.SRR6463550 - DEBUG - Running BBDuk
+2018-07-02 21:13:24,761 - Kookaburra.SRR6463550 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - BBDuk completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Running BWA
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping BWA
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - BWA completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping fixmate
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping sort
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Running Samtools sort
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Samtools sort completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping add read group
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping Pileup
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Bcftools index completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Bcftools call completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Skipping GATK
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:24,762 - Kookaburra.SRR6463550 - DEBUG - Annotating variants
+2018-07-02 21:13:26,416 - Kookaburra.SRR6463555 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463555 - INFO - Total variants : 17; Verified calls : 8; Exonic : 9; Intronic : 8; Synonymous : 4; Non Synonymous : 5; Transition : 4; Transversion : 5
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Running BBDuk
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - BBDuk completed
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Running BWA
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Skipping BWA
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - BWA completed
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Skipping fixmate
+2018-07-02 21:13:26,530 - Kookaburra.SRR6463552 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping sort
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Running Samtools sort
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Samtools sort completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping add read group
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping Pileup
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Bcftools index completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Bcftools call completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Skipping GATK
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:26,531 - Kookaburra.SRR6463552 - DEBUG - Annotating variants
+2018-07-02 21:13:26,600 - Kookaburra.SRR6463549 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:26,681 - Kookaburra.SRR6463551 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463549 - INFO - Total variants : 13; Verified calls : 7; Exonic : 7; Intronic : 6; Synonymous : 1; Non Synonymous : 6; Transition : 3; Transversion : 4
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - Running BBDuk
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - Skipping BBDuk
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - BBDuk completed
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - Running BWA
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - Skipping BWA
+2018-07-02 21:13:26,712 - Kookaburra.SRR6463548 - DEBUG - BWA completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping fixmate
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Running Samtools fixmate
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Samtools fixmate completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping sort
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Running Samtools sort
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Samtools sort completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping add read group
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Picard AddOrReplaceReadGroups completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping Pileup
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Samtools mpileup completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping Bcfindex
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Bcftools index completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping bcfcall
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Bcftools call completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Running GATK HaplotypeCaller
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Skipping GATK
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - GATK HaplotypeCaller stats completed
+2018-07-02 21:13:26,713 - Kookaburra.SRR6463548 - DEBUG - Annotating variants
+2018-07-02 21:13:26,831 - Kookaburra.SRR6463551 - INFO - Total variants : 29; Verified calls : 16; Exonic : 19; Intronic : 10; Synonymous : 4; Non Synonymous : 15; Transition : 9; Transversion : 10
+2018-07-02 21:13:26,913 - Kookaburra.SRR6463550 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:27,036 - Kookaburra.SRR6463550 - INFO - Total variants : 21; Verified calls : 12; Exonic : 12; Intronic : 9; Synonymous : 2; Non Synonymous : 10; Transition : 6; Transversion : 6
+2018-07-02 21:13:28,539 - Kookaburra.SRR6463548 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:28,662 - Kookaburra.SRR6463548 - INFO - Total variants : 24; Verified calls : 14; Exonic : 14; Intronic : 10; Synonymous : 2; Non Synonymous : 12; Transition : 7; Transversion : 7
+2018-07-02 21:13:28,906 - Kookaburra.SRR6463552 - DEBUG - Filetering low quality variants and merging GATK and Samtools calls
+2018-07-02 21:13:29,009 - Kookaburra.SRR6463552 - INFO - Total variants : 17; Verified calls : 6; Exonic : 8; Intronic : 9; Synonymous : 1; Non Synonymous : 7; Transition : 3; Transversion : 5
+2018-07-02 21:13:29,010 - Kookaburra - INFO - Summarizing variant calls from all 10 experiments
+2018-07-02 21:13:37,056 - Kookaburra - INFO - Plotting Depth Per SNP
+2018-07-02 21:13:39,912 - Kookaburra - INFO - Plotting Reportable SNPs Frequency
+2018-07-02 21:13:40,447 - Kookaburra - INFO - Plotting Novel Exonic Non-Synonymous SNPs
+2018-07-02 21:13:41,235 - Kookaburra - INFO - Plotting Novel Exonic Synonymous SNPs
+2018-07-02 21:13:42,023 - Kookaburra - INFO - Plotting Novel Intronic SNPs

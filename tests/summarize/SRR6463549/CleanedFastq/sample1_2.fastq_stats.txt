@@ -1,0 +1,6 @@
+#File	/home/shashi/datastore/projects/NeST/fq/MaRS_test/SRR6463549_2.fastq.gz	/home/shashi/datastore/projects/NeST/fq/MaRS_test/SRR6463549_1.fastq.gz
+#Total	58158
+#Matched	16652	28.63235%
+#Name	Reads	ReadsPct
+Nextera_transposase_read1	8878	15.26531%
+Nextera_transposase_read2	7774	13.36703%

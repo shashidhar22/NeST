@@ -1,0 +1,6 @@
+#File	tests/bbduk/SRR6463555_1.fastq	tests/bbduk/SRR6463555_2.fastq
+#Total	142858
+#Matched	43922	30.74522%
+#Name	Reads	ReadsPct
+Nextera_transposase_read1	22717	15.90180%
+Nextera_transposase_read2	21205	14.84341%

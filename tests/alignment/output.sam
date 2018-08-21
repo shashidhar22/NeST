@@ -1,0 +1,3 @@
+@HD	VN:1.4	SO:unsorted
+@RG	ID:FASTQ	PL:Illumina	PU:pu	LB:lb	SM:sm
+@PG	ID:SNAP	PN:SNAP	CL:paired tests/alignment tests/SRR6463555_1.fastq tests/SRR6463555_2.fastq -t 4 -o -sam tests/alignment/output.sam	VN:1.0beta.23

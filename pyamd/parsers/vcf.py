@@ -188,9 +188,9 @@ class Vcf:
                     # Store conting information; Length is mandatory, URL is
                     # not required
                     # ##contig=<ID=ctg1,URL=ftp://somewhere.org/assembly.fa,...>
-                    elif re.match('##contig=<ID=\w+,length=\d+(,URL=.*)?>',
+                    elif re.match('##contig=<ID=.+,length=\d+(,URL=.*)?>',
                                 rec):
-                        contig = re.match(('##contig=<ID=(?P<ID>\w+),'
+                        contig = re.match(('##contig=<ID=(?P<ID>.+),'
                             'length=(?P<length>\d+)(,URL=(?P<url>.*))?>'), rec)
                         contig_field = namedtuple('Contig', ['ID', 'length',
                                                              'url'])

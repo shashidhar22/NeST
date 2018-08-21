@@ -47,13 +47,9 @@ def main(arguments):
     #Get logger for main method
     main_logger = logging.getLogger('Kookaburra.{0}'.format(sam_name))
     #Check if files are present
-    #sam_name = config[samples].sample
-    #rone_path = config[samples].files[0]
-    #rtwo_path = config[samples].files[1]
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
         os.mkdir(out_path)
-    #main_logger.info('Analyzing sample : {0}'.format(sam_name))
 
 
     if not os.path.exists(rone_path):
@@ -179,7 +175,7 @@ def main(arguments):
 
     if os.path.exists('{0}/sort.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        bam_path = '{0}/{1}_sorted.bam'.format(out_path, base)
+        bam_path = '{0}/alignments/{1}_SO.bam'.format(out_path, base)
         sret = 0
         main_logger.debug('Skipping sort')
     else:
@@ -194,7 +190,7 @@ def main(arguments):
 
     if os.path.exists('{0}/dedup.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        bam_path = '{0}/{1}_DD.bam'.format(out_path, base)
+        bam_path = '{0}/alignments/{1}_DD.bam'.format(out_path, base)
         dret = 0
         main_logger.debug('Skipping Dedup')
     else:
@@ -211,7 +207,7 @@ def main(arguments):
     rgadder = Picard(java_path, pic_path, out_path)
     if os.path.exists('{0}/readgroup.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        bam_path = '{0}/{1}_RG.bam'.format(out_path, base)
+        bam_path = '{0}/alignments/{1}_RG.bam'.format(out_path, base)
         aret = 0
         main_logger.debug('Skipping add read group')
     else:
@@ -257,7 +253,7 @@ def main(arguments):
         bret = 0
         main_logger.debug('Skipping bcfcall')
     else:
-        vcf_path, bret = varengine.bcftools(bcf_path, bed_path, sam_name)
+        vcf_path, bret = varengine.bcftools(bcf_path, sam_name)
         main_logger.debug('Running Bcftools call')
         if bret == 0:
             Path('{0}/bcfcall.rt'.format(completion_path)).touch()
@@ -267,13 +263,6 @@ def main(arguments):
     else:
         main_logger.debug('Bcftools call completed')
 
-    #if os.path.exists('{0}/stats.rt'.format())
-    #stats_path, bret = varengine.bcfstats(vcf_path, ref_path)
-    #main_logger.debug('Running Bcftools stats')
-    #if bret != 0:
-    #    raise RuntimeError('Bcftools stats failed to complete; Exiting MARs')
-    #else:
-    #    main_logger.debug('Bcftools stats completed')
 
     #Call GATK HaplotypeCaller to generate VCF files
     varcaller = GenAnTK(gatk_path, out_path, java_path)
@@ -319,11 +308,7 @@ def main(arguments):
     main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
     gvcf_file = Vcf.Reader(gvcf_path)
     svcf_file = Vcf.Reader(vcf_path)
-    merge_vcf = Vcf.Merge(gvcf_file, svcf_file)
-    merged_vcf = merge_vcf.merge(out_path)
-#    merged_vcf = annotate.iterVcf(bed_path, merged_vcf, sam_name, ref_path, 'merged'7)
-#    gatk_vcf = annotate.iterVcf(bed_path, gvcf_path, sam_name, ref_path, 'gatk')
-#    samtools_vcf = annotate.iterVcf(bed_path, vcf_path , sam_name, ref_path, 'samtools')
+    merged_vcf = Vcf.Merge(gvcf_file, svcf_file, out_path).merge()
     config = dict()
     summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
     var_sum = summary.getVarStats(merged_vcf)

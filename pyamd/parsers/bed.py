@@ -17,6 +17,7 @@ class Bed:
 
     def __init__(self, bed_path):
         self.bed_path = os.path.abspath(bed_path)
+        self.logger = logging.getLogger('Kookaburra.BedReader')
         self.getUid()
 
     def read(self):
@@ -91,7 +92,7 @@ class Bed:
                 cdsStart = records.thickStart
                 cdsStop  = records.thickEnd
                 blockSize = records.blockSizes
-                exonStop = exonStart + (stop- start - overHang) - 1
+                exonStop = exonStart + (stop- start - overHang)
                 aacount, extraBases = divmod((exonStop-exonStart+ 1), 3)
                 annotation = Annotations(chrom, gene, exon, start, stop, strand,
                                 uidStart, uidStop, cdsStart, cdsStop,
@@ -139,9 +140,10 @@ class Bed:
         while True:
             try:
                 if exon_rec.uidStart in range(fasta_rec.fid,
-                    fasta_rec.fid + fasta_rec.length + 1):
+                    fasta_rec.fid + fasta_rec.length ):
                     if exon_rec.gene not in coding_dict:
                         chrom = exon_rec.gene
+                        #CHanged this from exon_rec.start -1 tp exon_rec.start + 1 and exon_rec.stop tp exon_rec.stop + 1
                         seq = fasta_rec.seq[exon_rec.start-1: exon_rec.stop]
                         fid = exon_rec.uidStart
                         length = len(seq)
@@ -170,7 +172,7 @@ class Bed:
             yield(record)
 
     def getRevComp(self, fasta):
-#        logger.debug('Reverse complimenting fasta sequence')
+        self.logger.debug('Reverse complimenting fasta sequence')
         rev_comp = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A'}
         rev = ''
         for nuc in fasta:

@@ -64,6 +64,8 @@ class Summary:
 
     def getVarOfInt(self):
         """Return dataframe of variants of interest."""
+        if self.voi == None:
+            return(None)
         if os.path.splitext(self.voi)[1] == '.xlsx':
             voi_table = pd.read_excel(self.voi)
         elif os.path.splitext(self.voi)[1] == '.csv':
@@ -356,12 +358,17 @@ class Summary:
         #Get table of exonic variants and variants of interest
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
+        voi_df.to_excel('{0}/VariantOfInterest.xlsx'.format(self.out_path))
         exp_voi = pd.DataFrame()
+        if voi_df is None:
+            return(None)
         for sample, var_df in exp_df.groupby(level=0):
             sam_index = list()
             var_df = var_df.reset_index(level=0)
             var_voi = var_df.merge(voi_df, how='right', left_index=True,
                 right_index=True)
+            if sample == 'SRR6463548':
+                var_voi.to_excel('{0}/ExperimentTable.xlsx'.format(self.out_path))
             #Create a list of length equal to number of variants of interest
             #containing the sample name, to ensure that the final table has
             #exactly the same number of records per sample
@@ -385,13 +392,14 @@ class Summary:
                                                          var_reg.group('RefAA'),
                                                          var_reg.group('AAPos'))
             exp_voi.at[index, 'AAPos'] = series['AAPos_x'] and series['AAPos_y']
+            #print(series['AltAA_x'] , series['AltAA_y'])
             exp_voi.at[index, 'AltAA'] = series['AltAA_x'] and series['AltAA_y']
             exp_voi.at[index, 'Chrom'] = series['Chrom_x'] and series['Chrom_y']
             exp_voi.at[index, 'Gene'] = series['Gene_x'] and series['Gene_y']
             exp_voi.at[index, 'RefAA'] = series['RefAA_x'] and series['RefAA_y']
         exp_voi.drop(columns=['AAPos_x', 'AAPos_y', 'AltAA_x', 'AltAA_y',
-            'Chrom_x', 'Chrom_y', 'Gene_x', 'Gene_y', 'RefAA_x', 'RefAA_y',
-            'GenomicStart', 'GenomicStop'], inplace=True)
+            'Chrom_x', 'Chrom_y', 'Gene_x', 'Gene_y', 'RefAA_x', 'RefAA_y'],
+            inplace=True)
         exp_voi = exp_voi[['Chrom', 'Gene', 'SNP', 'FinalCall', 'Ref', 'Alt',
             'Pos', 'Qual', 'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos',
             'Exon', 'AF', 'DP', 'Conf']]
@@ -430,7 +438,10 @@ class Summary:
         for sample, var_df  in exp_df.groupby(level=0):
             sam_index = list()
             var_df = var_df.reset_index(level=0)
-            var_nov = var_df[~var_df.index.isin(voi_df.index)]
+            if voi_df is None:
+                var_nov = var_df
+            else:
+                var_nov = var_df[~var_df.index.isin(voi_df.index)]
             #Create a list of length equal to number of novel variants for that
             #sample, containing the sample name. This enables the table to be
             #indexed by sample name.
@@ -517,28 +528,31 @@ class Summary:
         json_dict = OrderedDict({'Study': study,
             'Number of samples': sampleCount, 'Date': analysisDate})
 
-        for index, record in known_snps.iterrows():
-            sample_info = self.config[index[0]]
-            if 'Sample' not in json_dict:
-                json_dict['Sample'] = {}
-            if index[0] not in json_dict['Sample']:
-                json_dict['Sample'][index[0]] = {}
-            if 'VariantCalls' not in json_dict['Sample'][index[0]]:
-                json_dict['Sample'][index[0]]['Year'] = sample_info.year
-                json_dict['Sample'][index[0]]['Country'] = sample_info.country
-                json_dict['Sample'][index[0]]['Site'] = sample_info.site
-                json_dict['Sample'][index[0]]['TreatmentDay'] = sample_info.treatmentDay
-                json_dict['Sample'][index[0]]['SampleID'] = sample_info.iD
-                json_dict['Sample'][index[0]]['Genus&Species'] = sample_info.genus
-                json_dict['Sample'][index[0]]['SampleType'] = sample_info.type
-                json_dict['Sample'][index[0]]['Markers'] = ','.join(sample_info.markers.tolist())
-                json_dict['Sample'][index[0]]['Replicate'] = sample_info.replicate
-                json_dict['Sample'][index[0]]['VariantCalls'] = {}
-            json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
-                'Ref' : record.RefAA, 'Pos': record.AAPos,
-                'Alt': record.AltAA , 'Call' :  record.FinalCall,
-                'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
-                'Status' : 'Known'}
+        if known_snps is None:
+            self.logger.debug('No vairants of interest provided; generating only novel SNP summary')
+        else:
+            for index, record in known_snps.iterrows():
+                sample_info = self.config[index[0]]
+                if 'Sample' not in json_dict:
+                    json_dict['Sample'] = {}
+                if index[0] not in json_dict['Sample']:
+                    json_dict['Sample'][index[0]] = {}
+                if 'VariantCalls' not in json_dict['Sample'][index[0]]:
+                    json_dict['Sample'][index[0]]['Year'] = sample_info.year
+                    json_dict['Sample'][index[0]]['Country'] = sample_info.country
+                    json_dict['Sample'][index[0]]['Site'] = sample_info.site
+                    json_dict['Sample'][index[0]]['TreatmentDay'] = sample_info.treatmentDay
+                    json_dict['Sample'][index[0]]['SampleID'] = sample_info.iD
+                    json_dict['Sample'][index[0]]['Genus&Species'] = sample_info.genus
+                    json_dict['Sample'][index[0]]['SampleType'] = sample_info.type
+                    json_dict['Sample'][index[0]]['Markers'] = ','.join(sample_info.markers.tolist())
+                    json_dict['Sample'][index[0]]['Replicate'] = sample_info.replicate
+                    json_dict['Sample'][index[0]]['VariantCalls'] = {}
+                json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
+                    'Ref' : record.RefAA, 'Pos': record.AAPos,
+                    'Alt': record.AltAA , 'Call' :  record.FinalCall,
+                    'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
+                    'Status' : 'Known'}
 
         for index, record in novel_snps.iterrows():
             sample_info = self.config[index[0]]
@@ -574,9 +588,12 @@ class Summary:
         #Sumarize variants of intrest
         if var_type == 'known':
             var_df = self.getRepSnps()
-            var_df = self.getDepthStats(var_df)
-            var_df = var_df.reset_index(level=1)
-            out_file = '{0}/Study_known_variants.csv'.format(self.out_path)
+            if var_df is None:
+                self.logger.debug('No known variants provided')
+            else:
+                var_df = self.getDepthStats(var_df)
+                var_df = var_df.reset_index(level=1)
+                out_file = '{0}/Study_known_variants.csv'.format(self.out_path)
         elif var_type == 'novel':
             var_df = self.getNovSnps()
             var_df = self.getDepthStats(var_df)
@@ -601,40 +618,41 @@ class Summary:
             exp_intron.sort_index().reset_index(drop=True).to_csv(sout_file,
                 index=False)
 
-        var_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
-        var_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
-                     '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
-                     '(?P<AltAA_sym>[a-zA-Z]?)')
-        var_df[var_key] = var_df['Variant'].str.extract(var_regex, expand=True)
-        var_df['Sample_name'] = var_df.index
-        var_df['AAPos_sort'] = pd.to_numeric(var_df['AAPos_sort'])
-        var_df.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'],
-            inplace=True)
-        var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
-            'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
-        var_df.to_csv(out_file)
+        if var_df is not None:
+            var_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
+            var_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
+                         '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
+                         '(?P<AltAA_sym>[a-zA-Z]?)')
+            var_df[var_key] = var_df['Variant'].str.extract(var_regex, expand=True)
+            var_df['Sample_name'] = var_df.index
+            var_df['AAPos_sort'] = pd.to_numeric(var_df['AAPos_sort'])
+            var_df.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'],
+                inplace=True)
+            var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
+                'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
+            var_df.to_csv(out_file)
 
-        exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
-        exp_af['Variant'] = exp_af.index
-        exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)
-        exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
-        exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-        exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                      'AltAA_sym'], axis=1, inplace=True)
-        af_mask = exp_af.isnull()
-        exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
-                                                       self.out_path, var_type))
+            exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
+            exp_af['Variant'] = exp_af.index
+            exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)
+            exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
+            exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+            exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                          'AltAA_sym'], axis=1, inplace=True)
+            af_mask = exp_af.isnull()
+            exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
+                                                           self.out_path, var_type))
 
-        exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
-        exp_dp['Variant'] = exp_dp.index
-        exp_dp[var_key] = exp_dp['Variant'].str.extract(var_regex, expand=True)
-        exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
-        exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-        exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
-                      'AltAA_sym'], axis=1, inplace=True)
-        dp_mask = exp_dp.isnull()
-        exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
-                                                                      var_type))
+            exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
+            exp_dp['Variant'] = exp_dp.index
+            exp_dp[var_key] = exp_dp['Variant'].str.extract(var_regex, expand=True)
+            exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
+            exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+            exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                          'AltAA_sym'], axis=1, inplace=True)
+            dp_mask = exp_dp.isnull()
+            exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
+                                                                          var_type))
 
     def getSummary(self):
         """Generate CSV tables, JSON and figures for a given study"""

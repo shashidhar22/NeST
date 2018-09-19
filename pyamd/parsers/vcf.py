@@ -937,7 +937,7 @@ class Vcf:
                         # because all whole genome bacterial instances will be
                         # similar to MT situation
                         if (current_bed_rec > bed.uids[bed_rec.chrom]
-                            and bed_rec.chrom == 'MT'):
+                            and bed_rec.chrom != bed_rec.gene):
                             cds_pos = 0
                         # If magnitude of bed uid changed by an order,
                         # it indicates a change of chromosome, hence reset

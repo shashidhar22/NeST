@@ -46,11 +46,11 @@ class Vcf:
             # 2. samples : List of samples found in VCF file
             # 3. vcf_reader : Iterator paused at the first record in the VCF
             self.rec_fields, self.samples, self.vcf_reader = self.getHeaders()
-
+            self.logger = logging.getLogger('Kookaburra.VcfReader')
             if self.vcf_reader is None:
-#                logger.error('Emtpy VCF file; Please check file : {0}'.format(
-#                                                                self.vcf_path))
-                sys.exit()
+                self.logger.error('Emtpy VCF file; Please check file : {0}'.format(
+                                                                self.vcf_path))
+                #sys.exit()
             # Append annotation fields to record fields list
             self.rec_fields.append('Samples')
             self.rec_fields.append('UID')
@@ -254,40 +254,33 @@ class Vcf:
             # Split by ',' to tokenize by info field separator
             values = value.split(',')
             if info_number == 'A' and len(values) != len(alt):
-#                logger.error('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contian {0} entries'.format(len(alt)))
-                sys.exit()
+                self.logger.error('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contian {0} entries'.format(len(alt)))
             elif info_number == 'R' and len(values) != len(ref) + len(alt):
-#                logger.error('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entires'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(len(ref)))
-                sys.exit()
+                self.logger.error('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entires'.format(len(values)) +
+                    '; Should contain {0} entries'.format(len(ref)))
             elif info_number == 'G' and len(values) != gt:
-#                logger.error('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(gt))
-                sys.exit()
+                self.logger.error('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain {0} entries'.format(gt))
             elif info_number == '.':
-#                logger.warning('Info number unbounded')
-                a =None
+                self.logger.warning('Info number unbounded')
             elif info_number == '0' and (len(values) != 0 or
                                         type(values[0]) != bool):
-#                logger.warning('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain no entries')
-                sys.exit()
+                self.logger.warning('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain no entries')
             elif info_number != 'R' and\
                 info_number != 'A' and\
                 info_number != 'G' and\
                 info_number != '.' and int(info_number) != len(values):
-#                logger.info('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(info_number))
-                sys.exit()
+                self.logger.info('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain {0} entries'.format(info_number))
             else:
-#                logger.debug('Info number validated')
-                a = None
+                self.logger.debug('Info number validated')
             # Type cast values based on header information
             try:
                 # If info_number is in R,A,G,. groups, the values are stored as
@@ -341,10 +334,9 @@ class Vcf:
                 elif int(info_number) == '0':
                     value = [True]
             except (ValueError, TypeError):
-#                logger.error('Value specified does not conform to any Info'
-#                            'classification')
-#                logger.error('Field : {0} ; Value : {1}'.format(field, value))
-                sys.exit()
+                self.logger.error('Value specified does not conform to any Info'
+                            'classification')
+                self.logger.error('Field : {0} ; Value : {1}'.format(field, value))
             return(value)
 
         def validateFormat(self, field, value, ref, alt):
@@ -374,40 +366,32 @@ class Vcf:
             # Split by ',' to tokenize by info field separator
             values = value.split(',')
             if format_number == 'A' and len(values) != len(alt):
-#                logger.error('Illegal FORMAT format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contian {0} entries'.format(len(alt)))
-                sys.exit()
+                self.logger.error('Illegal FORMAT format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contian {0} entries'.format(len(alt)))
             elif format_number == 'R' and len(values) != (len(ref) +len(alt)):
-                #print(values, ref, alt)
-#                logger.error('Illegal FORMAT format for {0}'.format(field) +
-#                    '; Contains {0} entires'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(len(ref)+len(alt)))
-                sys.exit()
+                self.logger.error('Illegal FORMAT format for {0}'.format(field) +
+                    '; Contains {0} entires'.format(len(values)) +
+                    '; Should contain {0} entries'.format(len(ref)+len(alt)))
             elif format_number == 'G' and len(values) != gt:
-#                logger.error('Illegal FORMAT format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(gt))
-                sys.exit()
+                self.logger.error('Illegal FORMAT format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain {0} entries'.format(gt))
             elif format_number == '.':
-#                logger.warning('Format number unbounded')
-                a = None
+                self.logger.warning('Format number unbounded')
             elif format_number == '0' and len(values) != 0:
-#                logger.error('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain no entries')
-                sys.exit()
+                self.logger.error('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain no entries')
             elif format_number != 'R' and\
                 format_number != 'A' and\
                 format_number != 'G' and\
                 format_number != '.' and int(format_number) != len(values):
-#                logger.error('Illegal INFO format for {0}'.format(field) +
-#                    '; Contains {0} entries'.format(len(values)) +
-#                    '; Should contain {0} entries'.format(format_number))
-                sys.exit()
+                self.logger.error('Illegal INFO format for {0}'.format(field) +
+                    '; Contains {0} entries'.format(len(values)) +
+                    '; Should contain {0} entries'.format(format_number))
             else:
-#                logger.debug('Format number validated')
-                a = None
+                self.logger.debug('Format number validated')
             try:
                 # If format_number is in R,A,G,. groups, the values are stored as
                 # a list of lists to maintain value consistency
@@ -460,10 +444,9 @@ class Vcf:
                 elif int(format_number) == 0:
                     value = [True]
             except ValueError:
-#                logger.error('Value specified does not conform to any Format'
-#                            'classification')
-#                logger.error('Field : {0} ; Value : {1}'.format(field, value))
-                sys.exit()
+                self.logger.error('Value specified does not conform to any Format'
+                            'classification')
+                self.logger.error('Field : {0} ; Value : {1}'.format(field, value))
             return(value)
 
         def getUid(self):
@@ -504,8 +487,8 @@ class Vcf:
                                                                     value,
                                                                     record.REF,
                                                                     record.ALT)
-#                logger.debug('Sample information')
-#                logger.debug(sample_information)
+                self.logger.debug('Sample information')
+                self.logger.debug(sample_information)
                 sample_info.append(sample_information)
             record.Samples = sample_info
             # Get validated info values
@@ -538,8 +521,8 @@ class Vcf:
                     information[fields] = [[None] * int(value_range)]
                 elif value_range == '0':
                     information[fields] = [False]
-#            logger.debug('Info field values')
-#            logger.debug(information)
+            self.logger.debug('Info field values')
+            self.logger.debug(information)
             record.INFO = information
 
             return(record)
@@ -565,8 +548,8 @@ class Vcf:
                             value == bool(value)
                             filter_dict[key] = value
                         else:
-#                            logger.error(
-#                                     'String field cannot be used as a filter')
+                            self.logger.error(
+                                     'String field cannot be used as a filter')
                             a = None
                 return(filter_dict)
             except AttributeError:
@@ -620,21 +603,21 @@ class Vcf:
                     if info_filter:
                         for key, value in info_filter.items():
                             if type(value) is int and rec.INFO[key][0] < value:
-#                                logger.info(
-#                                        'Skipping variant; {0}:{1}:{2}'.format(
-#                                        key, value, rec.INFO[key][0]))
+                                self.logger.info(
+                                        'Skipping variant; {0}:{1}:{2}'.format(
+                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             elif (type(value) is float and
                                 rec.INFO[key][0] < value):
-#                                logger.info(
-#                                        'Skipping variant; {0}:{1}:{2}'.format(
-#                                        key, value, rec.INFO[key][0]))
+                                self.logger.info(
+                                        'Skipping variant; {0}:{1}:{2}'.format(
+                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             elif (type(value) is bool and\
                                 rec.INFO[key] == None):
-#                                logger.info(
-#                                        'Skipping variant; {0}:{1}:{2}'.format(
-#                                        key, value, rec.INFO[key][0]))
+                                self.logger.info(
+                                        'Skipping variant; {0}:{1}:{2}'.format(
+                                        key, value, rec.INFO[key][0]))
                                 filter_info = True
                             else:
                                 filter_info = False
@@ -656,6 +639,7 @@ class Vcf:
 
     class Annotate:
         def __init__(self):
+            self.logger = logging.getLogger('Kookaburra.VcfAnnotate')
             #self.vcf = vcf_object
             return
 
@@ -689,7 +673,7 @@ class Vcf:
                 'TCA':'S', 'TCC':'S', 'TCG':'S', 'TCT':'S',
                 'TTC':'F', 'TTT':'F', 'TTA':'L', 'TTG':'L',
                 'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
-                'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W'
+                'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
                 }
             amino_acid = codontable[codon]
             return(amino_acid)
@@ -704,11 +688,12 @@ class Vcf:
             exon_table = bed.getExonTable()
             exon = ''
             for records in exon_table:
-                if uid in range(records.uidStart, records.uidStop+1):
+                if uid in range(records.uidStart, records.uidStop):
                     exon = records.exon
             coding_fasta = bed.getCodingFasta(fasta_path)
             for seq in coding_fasta:
-                if uid in range(seq.fid, seq.fid + seq.length +1):
+                if uid in range(seq.fid, seq.fid + seq.length):
+                    #print(uid, cds_pos, seq.fid, seq.fid+seq.length+1, seq.chrom)
                     codon_pos = cds_pos % 3
                     if codon_pos == 0:
                         aa_pos = int(cds_pos/3)
@@ -737,11 +722,11 @@ class Vcf:
                 length = fasta_rec.length
                 for vcf_rec in vcf_reader:
                     if vcf_rec.UID in range(fasta_rec.fid,
-                                    fasta_rec.fid + fasta_rec.length + 1):
+                                    fasta_rec.fid + fasta_rec.length ):
                         if len(vcf_rec.REF[0]) > 1 or len(vcf_rec.ALT[0]) > 1:
                             continue
                         else:
-                            seq = seq[:vcf_rec.POS -1] + vcf_rec.ALT[0] +\
+                            seq = seq[:vcf_rec.POS-1] + vcf_rec.ALT[0] +\
                                                         seq[vcf_rec.POS:]
                 mod_seq = namedtuple('fastaRec', ['header', 'seq', 'fid',
                                                 'length'])
@@ -761,24 +746,22 @@ class Vcf:
 
         def getAlFreq(self, vcf_rec):
             '''Calculate allele frequency based on allelic depth'''
-#            logger.debug('Calulating allele frequency')
+            self.logger.debug('Calulating allele frequency')
             try:
                 if 'DP4' in vcf_rec.INFO:
-#                    logger.debug('Variant with DP4 notation')
-                    #print(vcf_rec.INFO)
+                    self.logger.debug('Variant with DP4 notation')
                     alt = sum(vcf_rec.INFO['DP4'][0][2:])
                     total = sum(vcf_rec.INFO['DP4'][0])
                     alfreq = alt/float(total)
                 else:
-#                    logger.debug('Variant with AD notation')
-                    #print(vcf_rec.Samples[0])
+                    self.logger.debug('Variant with AD notation')
                     alt = vcf_rec.Samples[0]['AD'][0][1]
                     total = sum(vcf_rec.Samples[0]['AD'][0])
                     alfreq = alt/float(total)
             # Fix added for cases where AD is missing
             # Instance found when GT == ./.
             except (KeyError, ZeroDivisionError):
-#                logger.debug('Variant laccking allele split up')
+                self.logger.debug('Variant laccking allele split up')
                 if 'AF' in vcf_rec.INFO:
                     alfreq = vcf_rec.INFO['AF'][0]
                 else:
@@ -862,9 +845,12 @@ class Vcf:
             #Write vcf headers
             vcf_writer.writeHeaders(vcf.header, vcf.rec_fields, vcf.samples)
             #print('Annotating : {0}'.format(vcf_path))
+            vcf_count = 0
             while True:
                 try:
                     if vcf_rec.UID in range(bed_rec.uidStart, bed_rec.uidStop):
+                        #print('Annotating vcf record in bed region')
+
                         var_cds = cds_pos + vcf_rec.UID - bed_rec.uidStart + 1
                         triplet, aa_pos, codon_pos, exon, gene =\
                                                         self.getTriplet(bed,
@@ -921,19 +907,37 @@ class Vcf:
                             #Add Variant
                             vcf_rec.INFO['Var'] = ['{0}:{1}{2}{3}'.format(
                                                 gene, ref_aa, aa_pos, alt_aa)]
-                        vcf_writer.writeRecords(vcf_rec)
-                        vcf_rec = next(vcf_reader)
 
-                    elif vcf_rec.UID > bed_rec.uidStop:
+                        vcf_writer.writeRecords(vcf_rec)
+                        vcf_count += 1
+                        #print('Vcf record {0} written'.format(vcf_count))
+                        #print(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.REF, vcf_rec.ALT)
+
+                        vcf_rec = next(vcf_reader)
+                        #print('Next records are :')
+                        #print(' VCF : {0} {1} {2} {3} {4}'.format(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.REF, vcf_rec.ALT, vcf_rec.UID))
+                        #print(' BED : {0} {1} {2} {3}'.format(bed_rec.chrom, bed_rec.gene, bed_rec.uidStart, bed_rec.uidStop))
+
+                    elif vcf_rec.UID >= bed_rec.uidStop:
+                        #print('Skipping bed record')
+                        #print(bed_rec.chrom, bed_rec.uidStart, bed_rec.uidStop)
+                        #print('Vcf at position : {0}'.format(vcf_rec.UID))
                         current_bed_rec = bed_rec.uidStart
                         current_bed_chrom = bed_rec.chrom
                         cds_pos += bed_rec.length + 1
                         bed_rec = next(bed_reader)
+                        #print('Next records are :')
+                        #print(' VCF : {0} {1} {2} {3} {4}'.format(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.REF, vcf_rec.ALT, vcf_rec.UID))
+                        #print(' BED : {0} {1} {2} {3}'.format(bed_rec.chrom, bed_rec.gene, bed_rec.uidStart, bed_rec.uidStop))
+
                         # Fix added to account for MT chromsome and gene issue
                         # Codon pos was not being reset when MT gene changed
                         # TODO: Rethink strategy to handle such issues
-                        if (current_bed_rec > bed.uids[bed_rec.chrom] and
-                                                    bed_rec.chrom == 'MT'):
+                        # This needs to change when doing whole genome analysis
+                        # because all whole genome bacterial instances will be
+                        # similar to MT situation
+                        if (current_bed_rec > bed.uids[bed_rec.chrom]
+                            and bed_rec.chrom == 'MT'):
                             cds_pos = 0
                         # If magnitude of bed uid changed by an order,
                         # it indicates a change of chromosome, hence reset
@@ -941,6 +945,8 @@ class Vcf:
                         if current_bed_rec < bed.uids[bed_rec.chrom]:
                             cds_pos = 0
                     elif vcf_rec.UID < bed_rec.uidStart:
+                        #print('Annotating vcf record in intronic region')
+
                         allele_freq = self.getAlFreq(vcf_rec)
                         #Add codon pos to info
                         vcf_rec.INFO['CDSPos'] = [None]
@@ -965,8 +971,13 @@ class Vcf:
                                             vcf_rec.CHROM, vcf_rec.REF[0],
                                             vcf_rec.POS, vcf_rec.ALT[0])]
                         vcf_writer.writeRecords(vcf_rec)
+                        vcf_count += 1
+                        #print('Vcf record {0} written'.format(vcf_count))
                         #yield vcf_rec
                         vcf_rec = next(vcf_reader)
+                        #print('Next records are :')
+                        #print(' VCF : {0} {1} {2} {3} {4}'.format(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.REF, vcf_rec.ALT, vcf_rec.UID))
+                        #print(' BED : {0} {1} {2} {3}'.format(bed_rec.chrom, bed_rec.gene, bed_rec.uidStart, bed_rec.uidStop))
 
                 except StopIteration:
                     break

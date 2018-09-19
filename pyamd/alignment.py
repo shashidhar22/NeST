@@ -26,7 +26,7 @@ class Bwa:
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
         #Build index if its not present
-        if not os.path.exists('{0}.sa'.format(self.out_path)):
+        if not os.path.exists('{0}.sa'.format(self.ref_path)):
             self.logger.debug(('Reference fasta file not indexed;'
                 'Creating BWA index files'))
             icmd = ['bwa', 'index', ref_path]
@@ -35,6 +35,7 @@ class Bwa:
             irun.wait()
             if irun.returncode != 0:
                 self.logger.error('Reference fasta could not be indexed')
+                self.logger.error(' '.join(icmd))
             else:
                 self.logger.debug('Reference fasta indexed')
         return
@@ -78,7 +79,7 @@ class Bowtie:
         if not os.path.exists(self.out_path):
             os.mkdir(self.out_path)
         #Build index if its not present
-        if not os.path.exists('{0}.sa'.format(self.ref_path)):
+        if not os.path.exists('{0}.1.bt2'.format(self.ref_path)):
             self.logger.debug(('Reference fasta file not indexed;'
                 'Creating Bowtie2 index files'))
             icmd = ['bowtie2-build', ref_path, ref_path]
@@ -87,6 +88,7 @@ class Bowtie:
             irun.wait()
             if irun.returncode != 0:
                 self.logger.error('Reference fasta could not be indexed')
+                self.logger.error(' '.join(icmd))
             else:
                 self.logger.debug('Reference fasta indexed')
 

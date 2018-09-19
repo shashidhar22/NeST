@@ -745,12 +745,12 @@ class Summary:
         transversion = ['AC', 'AT', 'CA', 'CG', 'GC', 'GT', 'TA', 'TG']
         for variant in vcf_reader:
             total += 1
+            if variant.INFO['Conf'][0] == 2:
+                verfied += 1
             if variant.INFO['Exon'][0] == 'Intron':
                 intronic += 1
             else:
                 exonic += 1
-                if variant.INFO['Conf'][0] == 2:
-                    verfied += 1
                 if variant.INFO['RefAA'][0] == variant.INFO['AltAA'][0]:
                     syn += 1
                 else:

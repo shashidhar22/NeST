@@ -46,6 +46,8 @@ def main(arguments):
     #Setup logging
     #Get logger for main method
     main_logger = logging.getLogger('Kookaburra.{0}'.format(sam_name))
+    main_logger.info('Running NeST on {0}'.format(sam_name))
+
     #Check if files are present
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
@@ -175,7 +177,7 @@ def main(arguments):
 
     if os.path.exists('{0}/sort.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
-        bam_path = '{0}/alignments/{1}_SO.bam'.format(out_path, base)
+        bam_path = '{0}/alignments/{1}_SR.bam'.format(out_path, base)
         sret = 0
         main_logger.debug('Skipping sort')
     else:
@@ -345,7 +347,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     samples = config.keys()
-    pools = Pool(4)
+    pools = Pool(1)
     rone_list = list()
     rtwo_list = list()
     name_list = list()

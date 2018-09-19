@@ -19,9 +19,9 @@ class GenAnTK:
     def hapCaller(self, bam_path, ref_path, sam_name):
         vcf_path = '{0}/{1}_variants_gatk.vcf'.format(self.out_path, sam_name)
 
-        hcmd = [self.gatk_path, '-T', 'HaplotypeCaller', '-R', ref_path,
-            '-I', bam_path, '-o', vcf_path, '-nct', '1', '-sn', sam_name,
-            '-gt_mode', 'DISCOVERY']
+        hcmd = [self.gatk_path, 'HaplotypeCaller', '-R', ref_path,
+            '-I', bam_path, '-O', vcf_path, '--sample-name', sam_name,
+            '--genotyping-mode', 'DISCOVERY']
         hrun = subprocess.Popen(hcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         hrun.wait()
         if hrun.returncode != 0:

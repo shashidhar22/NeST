@@ -677,7 +677,7 @@ class Summary:
         acmd = ['Rscript',
             '{0}/Rscripts/reportableSNPsFreq.R'.format(self.summary_path), '-i',
             'Study_known_variants.csv', '-r',
-            '{0}/ref/Reportable_SNPs.csv'.format(self.nest_path),
+            '{0}'.format(self.voi),
             '-o', '{0}/'.format(self.out_path)]
         arun = subprocess.Popen(acmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)

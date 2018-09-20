@@ -46,7 +46,6 @@ def main(arguments):
     #Setup logging
     #Get logger for main method
     main_logger = logging.getLogger('Kookaburra.{0}'.format(sam_name))
-    main_logger.info('Running NeST on {0}'.format(sam_name))
 
     #Check if files are present
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)

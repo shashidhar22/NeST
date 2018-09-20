@@ -7,7 +7,7 @@ library(tidyr) # used for data transformation
 library(readr) # used to read in csv files into tibbles
 library(dplyr) # used for data transformation
 library(optparse) # used to designate flags
-
+library(RColorBrewer)
 # set flags
 option_list <- list(
   make_option(c("-i", "--input_file"), type = "character", default = NULL,
@@ -38,10 +38,17 @@ tbl.long <- arrange(tbl.long, Loci, CodonPos)
 
 #Make boxplot
 #Set desired colors useing hexidecimal values for your plot (6 colors for 6 genes/targets)
-cbPalette <- c("#FF0000", "#0000FF", "#009900", "#FFFF00", "#9933FF", "#FF9900")
+#cbPalette <- c("#FF0000", "#0000FF", "#009900", "#FFFF00", "#9933FF", "#FF9900")
+#Adding three colors for 9 gene/targets
+if(length(unique(tbl.long$Loci)) <= 12){
+	cbPalette <- brewer.pal(length(unique(tbl.long$Loci)), "Paired")
+} else {
+	cbPalette <- brewer.pal(length(unique(tbl.long$Loci)), "Spectral")
+}
+#cbPalette <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf','#999999')
 
 #Generate boxplot
 ggplot(tbl.long, aes(x=Variant, y=Readdepth, fill=Loci)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 90)) + ylab("Read Depth") + theme(text = element_text(size=10), axis.text.x = element_text(size = 6)) + scale_fill_manual(values=cbPalette)
 
 #Save plot as image file
-ggsave(opt$output_file, plot = last_plot(), dpi = 300, width = 17.46, height = 12.22, units = c("cm"), limitsize = T)
+ggsave(opt$output_file, plot = last_plot(), dpi = 300, width = 30, height = 15, units = c("cm"), limitsize = T)

@@ -346,7 +346,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.info('Running MaRS on {0} experiments'.format(len(config)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     samples = config.keys()
-    pools = Pool(1)
+    pools = Pool(5)
     rone_list = list()
     rtwo_list = list()
     name_list = list()

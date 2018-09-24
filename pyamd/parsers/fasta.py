@@ -45,7 +45,7 @@ class Fasta:
 					while True:
 						try:
 								if self.peek(fasta_handle)[0] != '>' and self.peek(fasta_handle) != ' \n':
-									sequence += fasta_handle.readline().strip()
+									sequence += fasta_handle.readline().strip().upper()
 									header_found = False
 									line_number += 1
 

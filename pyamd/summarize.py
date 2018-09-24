@@ -367,7 +367,7 @@ class Summary:
             var_df = var_df.reset_index(level=0)
             var_voi = var_df.merge(voi_df, how='right', left_index=True,
                 right_index=True)
-            if sample == 'SRR6463548':
+            if sample == 'SRR7517697':
                 var_voi.to_excel('{0}/ExperimentTable.xlsx'.format(self.out_path))
             #Create a list of length equal to number of variants of interest
             #containing the sample name, to ensure that the final table has

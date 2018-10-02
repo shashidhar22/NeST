@@ -1,0 +1,40 @@
+channels:
+  - bioconda
+  - defaults
+
+dependencies:
+  - fastqc
+  - perl
+  - r=3.3.2
+  - igv=2.4.6
+  - python=3.6
+  - pysam
+  - pandas
+  - numpy
+  - xlrd
+  - openpyxl
+  - bbmap
+  - bwa
+  - bowtie2
+  - samtools
+  - bcftools
+  - bamtools
+  - gatk4=4.0.4.0
+  - picard
+  - sra-tools
+  - orthomcl    
+  - minimap2
+  - blast
+  - blast-legacy
+  - mummer
+  - r-ggplot2
+  - r-dplyr
+  - r-tidyr
+  - r-optparse
+  - r-readr
+  - r-stringr
+  - r-RColorBrewer
+  - rstudio
+  - snpsift
+  - snpeff
+  - bedops

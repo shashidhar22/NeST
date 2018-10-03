@@ -58,7 +58,7 @@ Create an object:
 >>> from pyamd.prepinputs import Prepper
 >>> from pyamd.summarize import Summary
 >>> config = Prepper('tests/prepinputs/SRR_Acc_List.txt', None).prepInputs()
->>> summarizer = Summary('ref/mdr.fa', 'ref/mdr.bed', 'ref/Reportable_SNPs.csv', 'tests/summarize')
+>>> summarizer = Summary('ref/pfalciparum/mdr.fa', 'ref/pfalciparum/mdr.bed', 'ref/pfalciparum/Reportable_SNPs.csv', 'tests/summarize')
 ```
 
 ## Get the codon base range for a given amino acid position

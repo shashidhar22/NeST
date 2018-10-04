@@ -755,6 +755,8 @@ class Vcf:
                 codon_pos = codon_pos
             else:
                 codon_pos = 3 - codon_pos
+                if codon_pos == 3:
+                    codon_pos = 0
             for rec in fasta:
                 if rec.header == vcf_rec.CHROM:
                     if codon_pos == 0:
@@ -897,6 +899,9 @@ class Vcf:
                         alt_triplet = self.getAltTriplet(bed, mod_file, vcf_rec,
                                                         codon_pos, strand)
                         ref_aa = self.getAA(triplet)
+                        if alt_triplet == None:
+                            print(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.REF[0], vcf_rec.ALT[0], vcf_rec.Samples)
+                            print(triplet, aa_pos, codon_pos, exon, gene, strand)
                         alt_aa = self.getAA(alt_triplet)
                         allele_freq = self.getAlFreq(vcf_rec)
                         if len(vcf_rec.REF[0]) > 1 or len(vcf_rec.ALT[0]) > 1:

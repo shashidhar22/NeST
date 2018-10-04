@@ -45,7 +45,7 @@ class Identifier:
         """Identify fastq headers in the following format
         #@SRR037455.1 HWI-E4_6_30ACL:4:1:0:29 length=35
         #@SRR902931.1 HWI-ST1384:61:D1DJ4ACXX:8:1101:1240:2015 length=50"""
-        header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
+        header_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
             return(True)
@@ -55,7 +55,7 @@ class Identifier:
     def isSraNew(self):
         """Identify fastq headers in the following format
         #@SRR1873770.5 DH1DQQN1:437:HACT2ADXX:1:2204:8270:58140 length=150"""
-        header_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+        header_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
             return(True)
@@ -270,14 +270,14 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Short'
             elif isSraOld:
-                paired_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+                paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
             elif isSraNew:
-                paired_regex = re.compile('@\w+\.?\w? \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+                paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
@@ -298,7 +298,7 @@ class Prepper:
                 if metric.avgReadLen():
                     libType = 'Long'
             else:
-                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec_header))
+                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec.header))
             try:
                 paired = True
                 experiment[sample] = Sample(sample, lib, seqType,

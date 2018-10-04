@@ -53,14 +53,25 @@ class Summary:
                 if region.gene == gene:
                     cds_pos = pos * 3
                     if cds_pos in range(region.exonStart, region.exonStop+1):
-                        start = region.start + region.overHang
-                        stop = region.stop
-                        codon = 1 + region.aaCount
-                        for base in range(start, stop, 3):
-                            if codon == pos:
-                                return(range(base , base + 3))
-                            else:
-                                codon += 1
+                        if region.strand == '+':
+                            start = region.start + region.overHang
+                            stop = region.stop
+                            codon = 1 + region.aaCount
+                            for base in range(start, stop, 3):
+                                if codon == pos:
+                                    return(range(base , base +3 ))
+                                else:
+                                    codon += 1
+                        else:
+                            start = region.stop - region.overHang
+                            stop = region.start
+                            print(start, stop, region.start, region.stop)
+                            codon = 1 + region.aaCount
+                            for base in range(start, stop, -3):
+                                if codon == pos:
+                                    return(range(base -2, base +1))
+                                else:
+                                    codon += 1
 
     def getVarOfInt(self):
         """Return dataframe of variants of interest."""
@@ -487,7 +498,10 @@ class Summary:
             nuc_pos = self.getBaseRange(value.Chrom, value.Gene,
                         value.AAPos)
             if nuc_pos == None:
+                print(value, row)
                 nuc_pos = range(int(value.Pos) -1, int(value.Pos) + 2)
+            if value.Gene == 'katG':
+                print(value.Chrom, nuc_pos.start, nuc_pos.stop)
             depth = self.getBamStat(bamfile, value.Chrom, nuc_pos.start,
                 nuc_pos.stop)
             depth_list.append(depth)
@@ -608,51 +622,57 @@ class Summary:
             intron_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
                             '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
                             '(?P<AltAA_sym>[a-zA-Z]?)')
-            exp_intron[intron_key] = exp_intron['Variant'].str.extract(
-                intron_regex, expand=True)
-            exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
-            exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'],
-                inplace=True)
-            exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
-                          'AltAA_sym' ], axis=1, inplace=True)
-            exp_intron.sort_index().reset_index(drop=True).to_csv(sout_file,
-                index=False)
+            try:
+                exp_intron[intron_key] = exp_intron['Variant'].str.extract(
+                    intron_regex, expand=True)
+                exp_intron['AAPos_sort'] = pd.to_numeric(exp_intron['AAPos_sort'])
+                exp_intron.sort_values(['Sample', 'Gene_name', 'AAPos_sort'],
+                    inplace=True)
+                exp_intron.drop(labels=['Gene_name', 'RefAA_sym', 'AAPos_sort',
+                    'AltAA_sym' ], axis=1, inplace=True)
+                exp_intron.sort_index().reset_index(drop=True).to_csv(sout_file,
+                     index=False)
+            except AttributeError:
+                self.logger.debug('No novel intronic variants found')
 
         if var_df is not None:
             var_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
             var_regex = ('(?P<Gene_name>[a-zA-Z0-9]+):'
                          '(?P<RefAA_sym>[a-zA-Z]?)(?P<AAPos_sort>[0-9]+)'
                          '(?P<AltAA_sym>[a-zA-Z]?)')
-            var_df[var_key] = var_df['Variant'].str.extract(var_regex, expand=True)
-            var_df['Sample_name'] = var_df.index
-            var_df['AAPos_sort'] = pd.to_numeric(var_df['AAPos_sort'])
-            var_df.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'],
-                inplace=True)
-            var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
-                'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
-            var_df.to_csv(out_file)
+            try:
+                var_df[var_key] = var_df['Variant'].str.extract(var_regex, expand=True)
+                var_df['Sample_name'] = var_df.index
+                var_df['AAPos_sort'] = pd.to_numeric(var_df['AAPos_sort'])
+                var_df.sort_values(['Sample_name', 'Gene_name', 'AAPos_sort'],
+                    inplace=True)
+                var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
+                    'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
+                var_df.to_csv(out_file)
 
-            exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
-            exp_af['Variant'] = exp_af.index
-            exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)
-            exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
-            exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-            exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
+                exp_af['Variant'] = exp_af.index
+                exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)
+                exp_af['AAPos_sort'] = pd.to_numeric(exp_af['AAPos_sort'])
+                exp_af.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+                exp_af.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                           'AltAA_sym'], axis=1, inplace=True)
-            af_mask = exp_af.isnull()
-            exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
+                af_mask = exp_af.isnull()
+                exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
                                                            self.out_path, var_type))
 
-            exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
-            exp_dp['Variant'] = exp_dp.index
-            exp_dp[var_key] = exp_dp['Variant'].str.extract(var_regex, expand=True)
-            exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
-            exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
-            exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
+                exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
+                exp_dp['Variant'] = exp_dp.index
+                exp_dp[var_key] = exp_dp['Variant'].str.extract(var_regex, expand=True)
+                exp_dp['AAPos_sort'] = pd.to_numeric(exp_dp['AAPos_sort'])
+                exp_dp.sort_values(['Gene_name', 'AAPos_sort'], inplace=True)
+                exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                           'AltAA_sym'], axis=1, inplace=True)
-            dp_mask = exp_dp.isnull()
-            exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
+                dp_mask = exp_dp.isnull()
+                exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
                                                                           var_type))
+            except AttributeError:
+                self.logger.debug('No novel exonic variants found') 
 
     def getSummary(self):
         """Generate CSV tables, JSON and figures for a given study"""

@@ -1,16 +1,12 @@
 #!/bin/bash
 
 if [ "$(uname)" == "Darwin" ]; then
-    # Do something under Mac OS X platform        
+    # Download latest Miniconda distribution for MacOS        
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ./lib/miniconda.sh
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-    # Do something under GNU/Linux platform
-elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
-    # Do something under 32 bits Windows NT platform
-elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
-    # Do something under 64 bits Windows NT platform
+    # Download latest Miniconda distribution for Linux
+    wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./lib/miniconda.sh
 fi
-# Download latest Miniconda distribution
-wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./lib/miniconda.sh
 # Silent install Miniconda into HOME directory
 bash ./lib/miniconda.sh -b -p $HOME/miniconda
 # Add conda activation script to bashrc

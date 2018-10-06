@@ -27,6 +27,7 @@ dependencies:
   - blast
   - blast-legacy
   - mummer
+  - readline=6.2
   - r-ggplot2
   - r-dplyr
   - r-tidyr

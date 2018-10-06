@@ -14,10 +14,10 @@ echo -e "\n#Adding conda activation script to .bashrc \n. $HOME/miniconda/etc/pr
 # Refresh terminal
 source ~/.bashrc
 # Update conda
-conda update -y conda
+~/miniconda/bin/conda update -y conda
 # Install Anaconda dependencies and packages
-conda install -y anaconda-client anaconda-build conda-build
+~/miniconda/bin/conda install -y anaconda-client anaconda-build conda-build
 # Create NeST virtual environment
-conda env create -n nest -f lib/nest_env.yaml
+~/miniconda/bin/conda env create -n nest -f lib/nest_env.yaml
 # Remove Miniconda installation script
 rm lib/miniconda.sh

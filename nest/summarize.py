@@ -65,7 +65,6 @@ class Summary:
                         else:
                             start = region.stop - region.overHang
                             stop = region.start
-                            print(start, stop, region.start, region.stop)
                             codon = 1 + region.aaCount
                             for base in range(start, stop, -3):
                                 if codon == pos:
@@ -498,10 +497,7 @@ class Summary:
             nuc_pos = self.getBaseRange(value.Chrom, value.Gene,
                         value.AAPos)
             if nuc_pos == None:
-                print(value, row)
                 nuc_pos = range(int(value.Pos) -1, int(value.Pos) + 2)
-            if value.Gene == 'katG':
-                print(value.Chrom, nuc_pos.start, nuc_pos.stop)
             depth = self.getBamStat(bamfile, value.Chrom, nuc_pos.start,
                 nuc_pos.stop)
             depth_list.append(depth)

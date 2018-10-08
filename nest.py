@@ -319,7 +319,7 @@ def main(arguments):
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               inp_path, ref_path, adp_path, bed_path, out_dir, aligner,
-              pic_path, voi_path, java_path, sra_path):
+              pic_path, voi_path, java_path, sra_path, verbose):
     #Creating logger for nest
     logger = logging.getLogger('NeST')
     logger.setLevel(logging.DEBUG)
@@ -328,7 +328,10 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
         os.mkdir(os.path.abspath(out_dir))
     # Creating a file handler which logs even debug messages
     fh = logging.FileHandler('{0}/nest.log'.format(os.path.abspath(out_dir)))
-    fh.setLevel(logging.DEBUG)
+    if verbose:
+        fh.setLevel(logging.DEBUG)
+    else:
+        fh.setLevel(logging.INFO)
     # Creating a console handler to log info messages
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
@@ -424,6 +427,8 @@ if __name__ == '__main__':
                         help='Path to Bcftools executable')
     parser.add_argument('--varofint', dest='voi_path', type=str, default=voi_def,
                         help='Path to variant of interest')
+    parser.add_argument('--verbose', action='store_true', 
+                        help='Increase verbosity of log file')                        
     args = parser.parse_args()
 
     #Validate parsed arguments
@@ -440,4 +445,4 @@ if __name__ == '__main__':
     status = marsBatch(args.bbduk_path, args.aligner_path, args.smt_path,
                 args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
                 args.adp_path, args.bed_path, args.out_path, args.aligner,
-                args.pic_path, args.voi_path, java_def, sra_def)
+                args.pic_path, args.voi_path, java_def, sra_def, args.verbose)

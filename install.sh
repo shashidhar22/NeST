@@ -27,8 +27,6 @@ fi
 ~/miniconda/bin/conda install -y anaconda-client anaconda-build conda-build
 # Create NeST virtual environment
 ~/miniconda/bin/conda env create -n nest -f lib/nest_env.yaml
-# Install optparse
-~/miniconda/bin/conda install -y -n nest -c conda-forge r-optparse=1.6.0
 # Remove Miniconda installation script
 rm lib/miniconda.sh
 

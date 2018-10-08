@@ -48,10 +48,10 @@ for samples in sra_file_dict:
     r1s = sra_file_dict[samples][0]
     r2s = sra_file_dict[samples][1]
     logger.info('Merging {0} into {1}'.format(';'.join(r1s), samples))
-    out_r1 = 'fq/ColmanEtAl/{0}_1.fq'.format(samples)
-    out_r2 = 'fq/ColmanEtAl/{0}_2.fq'.format(samples)
-    z1 = ['zcat'] + r1s + ['>', out_r1]
-    z2 = ['zcat'] + r2s + ['>', out_r2]
+    out_r1 = 'fq/ColmanEtAl/{0}_1.fq.gz'.format(samples)
+    out_r2 = 'fq/ColmanEtAl/{0}_2.fq.gz'.format(samples)
+    z1 = ['cat'] + r1s + ['>', out_r1]
+    z2 = ['cat'] + r2s + ['>', out_r2]
     z1r = subprocess.Popen(' '.join(z1), shell=True)
     z1r.wait()
     z2r = subprocess.Popen(' '.join(z2), shell=True)

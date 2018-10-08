@@ -47,7 +47,12 @@ for samples in config:
 for samples in sra_file_dict:
     r1s = sra_file_dict[samples][0]
     r2s = sra_file_dict[samples][1]
-    logger.info('Merging {0} into {1}'.format(';'.join(r1s), samples))
+    sam_names = list()
+    for reads in r1s:
+        filename = os.path.basename(reads)
+        sam_name = filename.split('_1.fastq.gz')[0]
+        sam_names.append(sam_name)
+    logger.info('Merging {0} into {1}'.format(';'.join(sam_names), samples))
     out_r1 = 'fq/ColmanEtAl/{0}_1.fq.gz'.format(samples)
     out_r2 = 'fq/ColmanEtAl/{0}_2.fq.gz'.format(samples)
     z1 = ['cat'] + r1s + ['>', out_r1]

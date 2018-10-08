@@ -368,7 +368,6 @@ class Summary:
         #Get table of exonic variants and variants of interest
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
-        voi_df.to_excel('{0}/VariantOfInterest.xlsx'.format(self.out_path))
         exp_voi = pd.DataFrame()
         if voi_df is None:
             return(None)
@@ -377,8 +376,6 @@ class Summary:
             var_df = var_df.reset_index(level=0)
             var_voi = var_df.merge(voi_df, how='right', left_index=True,
                 right_index=True)
-            if sample == 'SRR7517697':
-                var_voi.to_excel('{0}/ExperimentTable.xlsx'.format(self.out_path))
             #Create a list of length equal to number of variants of interest
             #containing the sample name, to ensure that the final table has
             #exactly the same number of records per sample

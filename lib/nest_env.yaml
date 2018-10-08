@@ -23,6 +23,7 @@ dependencies:
   - picard
   - sra-tools
   - readline=6.2
+  - r-optparse=1.6.0
   - r-ggplot2
   - r-dplyr
   - r-tidyr

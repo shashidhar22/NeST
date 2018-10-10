@@ -1,5 +1,6 @@
 #Ignore directory with fastq files
 fq/*
+fq/*/*.fastq.gz
 !fq/MaRS_test
 #Ignore output directory
 local

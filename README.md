@@ -4,7 +4,7 @@ Advancements in next-generation sequencing have led to the development of numero
 
 1. [Overview of NeST framework](#Overview)
 2. [Availability of code and installation](#Installation)
-3. [NeST for Malaria Resistance Surveillance(MaRS)](#MaRS)
+3. [Your first analysis](#First)
 4. [Input standardization](#inputs)
 5. [NeST class structure](#classes)
 
@@ -31,79 +31,76 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    git clone https://github.com/shashidhar22/NeST
    ```
 
-2. Installing perquisites for Conda:R
-   NeST requires [Python3](https://www.python.org/downloads/) to be installed with [Pip](https://pip.pypa.io/en/stable/installing/) available. Please make sure this is available on the system. To setup your runtime environment, we recommend using conda, the perquisites for conda can be installed using the following command
+2. Installation:
+
+   NeST comes with a install script that can be run to setup miniconda and create the virtual environment required to run NeST. To setup up miniconda and the NeST virtual environment, run the following command from the NeST directory.
 
    ```
-   python3 -m pip install pycosat pyyaml requests --user
+   ./install.sh
    ```
 
-3. Installing MiniConda and downloading third party libraries:
-
-   NeST uses many Python and R modules along with standard bioinformatics tools for the analysis pipeline. To ensure easy installation and versioning of these tools, we using MiniConda package manager. The following steps detail the installation of MiniConda and the listed tools.
-
-     1. Installing MiniConda:
-        If you do not have MiniConda or Anaconda installed already, follow the steps below to setup the MiniConda environment.
-
-        ```
-        sh lib/Miniconda3-latest-Linux-x86_64.sh
-        ```
-
-        Press ```ENTER``` when prompted, when asked for installation path, type yes and press ```ENTER``` to use your ```HOME``` folder as the site of  installation or enter path to the folder where you want Miniconda3 to be installed. When asked if you want to add Miniconda3 to your ```.bashrc```, type yes and press ```ENTER```, this will just add Miniconda3 to your ```PATH```.
-
-        Source your ```.bashrc```, to ensure that MiniConda gets loaded. To verify your installation, type the following command
-
-        ```
-        source ~/.bashrc
-        conda list
-        ```
-
-        This will display the list of installed packages in the MiniConda environment.
-        Update conda after installation and install anaconda client to allow the use of R packages in conda environment
-
-        ```
-        conda update conda
-        conda install anaconda-client anaconda-build conda-build
-        ```
-
-     2. Loading conda environment:
-
-        Loading the ```kookaburra_env.yaml``` from the ```lib``` folder will install all the required tools for NeST into a conda environment
-
-        ```
-        conda env create -n kook_env --file lib/kookaburra_env.yaml
-        source activate kook_env
-        gatk-register lib/GenomeAnalysisTK.jar
-        ```
-
-     3. Deactivate conda environment:
-        Once the analysis is complete you can exit from the NeST environment by typing the following command:
-
-        ```
-        source deactivate kook_env
-        ```
-
-        To perform another analysis with NeST you will activate the kook_env environment.
-
-4. Your first analysis:
-
-   NeST comes packaged with an SRA accession list from the [MaRS]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) experiment. The includes the SRA accession for 10 Illumina paired end samples. Running the command listed below, will download the 10 samples using [SRAToolkit](https://trace.ncbi.nlm.nih.gov/Traces/sra/sra.cgi?view=software) and run NeST on it.
+   If you already have Anaconda or Miniconda installed on your system. You can skip the install step and just create a new environment for NeST using the configuration file provided in ```lib/``` directory. To create the NeST environment, run the following command from the NeST directory.
 
    ```
-   sh run.sh fq/MaRS_test/SRR_Acc_List.txt local/MaRs_test
+   conda env create -n nest -f lib/nest_env.yaml
    ```
 
-   To run NeST on locally stored fastq files. You can just provide the path to the input directory instead of the accession list.
-   For example if you have stored your fastq files in ```fq/``` folder and you want to store the results in the folder ```local/```. You can run the following command from the NeST directory.
+   Once the environment is create it can be activated using the command.
 
    ```
-   sh run.sh fq/ local/
+   conda activate nest
    ```
 
-<a id="MaRS"></a>
-## NeST for Malaria Resistance Surveillance(MaRS):
+   To deactivate the environment just type.
 
-Coming soon
+   ```
+   conda deactivate
+   ```
+
+   Note: NeST virtual environment currently uses `bioconda` and `conda-forge` channels. There are known conflicts with the conda `defaults` channel and `conda-forge` channel, which can lead to errors in creation of the environment. To overcome the issue, the NeST environment ignores the `defaults` channel. If you plan to modify the NeST environment, please update the configuration file provided or make sure to ignore the `defaults` channel.
+
+<a id="First"></a>
+## Your first analysis
+
+   NeST was conceptualized to identify mutations that confer anti-malarial drug resistance in *P.falciparum* (Talundzic et al., 2018). It was also applied for the detection of antibiotic drug resistance in *M.tubercolosis* (Colman et al., 2015). To make it easier to recreate these studies, we have included script to execute NeST on these two datasets.
+
+   1. MaRS on NeST:
+
+      To re-create the MaRS study (Talundzic et al., 2018), run the following command from the NeST directory.
+
+      ```
+      ./runPF.sh
+      ```
+
+      This downloads 10 sample fastq files from the [MaRS bioproject]((https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA428490) and executes NeST on the samples. The results are stored under `local/MaRS_test` folder within the NeST directory. The 10 target amplicon sequencing datasets, serve as a perfect test case for NeST and the analysis should take about 10 minutes on any laptop*.
+
+      *\*Depending on internet speed*
+
+   2. Detecting mutations conferring drug resistance in *M.tuberculosis* clinical samples from Colman et al., 2015:
+
+      To re-create the analysis from Colman et al., 2015, run the following command from the NeST directory.
+
+      ```
+      ./runTB.sh
+      ```
+
+      This will download 57 paired fastq files from the bioproject [PRJNA271805](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA271805), merges the different runs and executes NeST on the clinical samples from the paper. The results are stored under `local/ColmanEtAl` folder within the NeST directory. This analysis takes significantly longer than the MaRS study and requires around 80GB of disk space, due to the large amount of data that is download. Make sure you have a good internet connection and adequate amount of coffee before starting this study.
+
+   3. Executing your own analysis using NeST:
+
+      NeST can be executed on your own dataset using the following command:
+
+      ```
+      python3 nest.py -i <path to input directory/ sra accession list> -a <adapter fasta file> -r < reference fasta file> -o <output directory path> --varofint <CSV file with variants of interest>
+      ```
+
+      NeST can be run without a variant of interest file, but it will not produce any summary figures. To get a list of options that can be used with NeST just type
+
+      ```
+      python3 nest.py -h
+      ```
+
+      The details about the required input formats are listed in the next section.
 
 <a id="inputs"></a>
 ## Input standardization:

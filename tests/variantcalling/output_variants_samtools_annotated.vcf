@@ -1,0 +1,61 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##samtoolsVersion=1.3.1+htslib-1.3.1
+##samtoolsCommand=samtools mpileup -go tests/variantcalling/output_variants.bcf -f tests/variantcalling/ref.fa tests/variantcalling/output_FM_SR_DD_RG.bam
+##reference=file://tests/variantcalling/ref.fa
+##bcftools_callVersion=1.3.1+htslib-1.3.1
+##bcftools_callCommand=call --skip-variants indels --multiallelic-caller --variants-only -O v -s output -o tests/variantcalling/output_variants_samtools.vcf tests/variantcalling/output_variants.bcf
+##contig=<ID=PfCRT,length=3399>
+##contig=<ID=MT,length=5967>
+##contig=<ID=PfDHFR,length=1827>
+##contig=<ID=PfDHPS,length=2417>
+##contig=<ID=PfK13,length=2181>
+##contig=<ID=PfMDR1,length=4260>
+##ALT=<ID=*,Description="Represents allele(s) other than observed.">
+##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
+##INFO=<ID=IDV,Number=1,Type=Integer,Description="Maximum number of reads supporting an indel">
+##INFO=<ID=IMF,Number=1,Type=Float,Description="Maximum fraction of reads supporting an indel">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw read depth">
+##INFO=<ID=VDB,Number=1,Type=Float,Description="Variant Distance Bias for filtering splice-site artefacts in RNA-seq data (bigger is better)",Version="3">
+##INFO=<ID=RPB,Number=1,Type=Float,Description="Mann-Whitney U test of Read Position Bias (bigger is better)">
+##INFO=<ID=MQB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality Bias (bigger is better)">
+##INFO=<ID=BQB,Number=1,Type=Float,Description="Mann-Whitney U test of Base Quality Bias (bigger is better)">
+##INFO=<ID=MQSB,Number=1,Type=Float,Description="Mann-Whitney U test of Mapping Quality vs Strand Bias (bigger is better)">
+##INFO=<ID=SGB,Number=1,Type=Float,Description="Segregation based metric.">
+##INFO=<ID=MQ0F,Number=1,Type=Float,Description="Fraction of MQ0 reads (smaller is better)">
+##INFO=<ID=ICB,Number=1,Type=Float,Description="Inbreeding Coefficient Binomial test (bigger is better)">
+##INFO=<ID=HOB,Number=1,Type=Float,Description="Bias in the number of HOMs number (smaller is better)">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=DP4,Number=4,Type=Integer,Description="Number of high-quality ref-forward , ref-reverse, alt-forward and alt-reverse bases">
+##INFO=<ID=MQ,Number=1,Type=Integer,Description="Average mapping quality">
+##INFO=<ID=CDSPos,Number=1,Type=Integer,Description="CDS location of variant">
+##INFO=<ID=RefCodon,Number=1,Type=String,Description="Reference codon for the variant">
+##INFO=<ID=AAPos,Number=1,Type=Integer,Description="Amino acid position altered by variant">
+##INFO=<ID=AltCodon,Number=1,Type=String,Description="Alternate codon for the variant">
+##INFO=<ID=RefAA,Number=1,Type=String,Description="Reference amino acid">
+##INFO=<ID=AltAA,Number=1,Type=String,Description="Alternate amino acid">
+##INFO=<ID=Freq,Number=1,Type=Float,Description="Variant allele frequency">
+##INFO=<ID=Var,Number=1,Type=String,Description="Variant string, with chromsome and position">
+##INFO=<ID=Exon,Number=1,Type=String,Description="Exon number of the variant">
+##INFO=<ID=Gene,Number=1,Type=String,Description="Gene name">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	output
+PfCRT	1079	11079	T	A	62.0	.	DP=23;VDB=0.470313;SGB=-0.511536;RPB=0.150134;MQB=0.750668;MQSB=0.900802;BQB=0.150134;MQ0F=0.0434783;ICB=1.0;HOB=0.5;AC=1;AN=2;DP4=4,1,1,2;MQ=44;Freq=0.375;Exon=Intron;Var=PfCRT:T1079A	GT:PL	0/1:95,0,35
+PfCRT	1083	11083	T	A	45.3741	.	DP=28;VDB=0.0433485;SGB=-0.511536;RPB=0.115573;MQB=0.346719;MQSB=0.730948;BQB=0.346719;MQ0F=0.0357143;ICB=1.0;HOB=0.5;AC=1;AN=2;DP4=5,1,0,3;MQ=46;Freq=0.3333333333333333;Exon=Intron;Var=PfCRT:T1083A	GT:PL	0/1:78,0,56
+PfCRT	1117	11117	A	T	228.0	.	DP=67;VDB=8.80293e-05;SGB=-0.693146;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,4,40;MQ=60;Freq=1.0;Exon=Intron;Var=PfCRT:A1117T	GT:PL	1/1:255,132,0
+PfCRT	1778	11778	A	G	64.0	.	DP=464;VDB=1.7656e-16;SGB=-0.693146;RPB=2.74069e-09;MQB=0.859896;MQSB=0.964414;BQB=8.01747e-09;MQ0F=0.00431034;ICB=1.0;HOB=0.5;AC=1;AN=2;DP4=25,38,8,34;MQ=58;Freq=0.4;Exon=Intron;Var=PfCRT:A1778G	GT:PL	0/1:98,0,255
+PfCRT	1782	11782	G	A	6.22126	.	DP=412;VDB=7.61515e-13;SGB=-0.692562;RPB=3.63096e-13;MQB=0.989163;MQSB=0.997216;BQB=0.93722;MQ0F=0.00485437;ICB=1.0;HOB=0.5;AC=1;AN=2;DP4=97,57,3,19;MQ=59;Freq=0.125;Exon=Intron;Var=PfCRT:G1782A	GT:PL	0/1:41,0,255
+PfCRT	2193	12193	A	T	228.0	.	DP=91;VDB=0.126836;SGB=-0.693021;MQSB=0.958048;MQ0F=0.0;AC=2;AN=2;DP4=0,0,15,12;MQ=59;Freq=1.0;Exon=Intron;Var=PfCRT:A2193T	GT:PL	1/1:255,81,0
+PfCRT	2520	12520	G	T	228.0	.	DP=323;VDB=2.01789e-06;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,74,109;MQ=60;Freq=1.0;Exon=Intron;Var=PfCRT:G2520T	GT:PL	1/1:255,255,0
+PfCRT	2701	12701	T	G	228.0	.	DP=160;VDB=0.00623434;SGB=-0.693147;RPB=1.0;MQB=1.0;MQSB=0.959477;BQB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=1,0,44,61;MQ=59;CDSPos=1111;RefCodon=TGA;AAPos=371;AltCodon=GGA;RefAA=_;AltAA=G;Freq=0.9905660377358491;Exon=exon11;Gene=PfCRT;Var=PfCRT:_371G	GT:PL	1/1:255,255,0
+MT	4952	24952	T	C	228.0	.	DP=392;VDB=0.994328;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,144,94;MQ=60;Freq=1.0;Exon=Intron;Var=MT:T4952C	GT:PL	1/1:255,255,0
+MT	5943	25943	A	C	64.0	.	DP=53;VDB=0.00444448;SGB=-0.590765;RPB=0.73872;MQB=0.931552;MQSB=1.0;BQB=0.724199;MQ0F=0.0;ICB=1.0;HOB=0.5;AC=1;AN=2;DP4=1,27,0,5;MQ=58;Freq=0.15151515151515152;Exon=Intron;Var=MT:A5943C	GT:PL	0/1:99,0,255
+PfDHFR	152	30152	A	T	228.0	.	DP=593;VDB=0.000653386;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,154,153;MQ=60;CDSPos=152;RefCodon=AAT;AAPos=51;AltCodon=ATT;RefAA=N;AltAA=I;Freq=1.0;Exon=exon1;Gene=PfDHFR;Var=PfDHFR:N51I	GT:PL	1/1:255,255,0
+PfDHFR	323	30323	G	A	228.0	.	DP=615;VDB=0.0744149;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,174,218;MQ=60;CDSPos=323;RefCodon=AGC;AAPos=108;AltCodon=AAC;RefAA=S;AltAA=N;Freq=1.0;Exon=exon1;Gene=PfDHFR;Var=PfDHFR:S108N	GT:PL	1/1:255,255,0
+PfDHPS	1486	41486	C	G	228.0	.	DP=1550;VDB=0.999064;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,364,647;MQ=60;CDSPos=1311;RefCodon=TGC;AAPos=437;AltCodon=TGG;RefAA=C;AltAA=W;Freq=1.0;Exon=exon2;Gene=PfDHPS;Var=PfDHPS:C437W	GT:PL	1/1:255,255,0
+PfDHPS	1487	41487	G	T	228.0	.	DP=1535;VDB=0.999013;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,365,646;MQ=60;CDSPos=1312;RefCodon=GCC;AAPos=438;AltCodon=TCC;RefAA=A;AltAA=S;Freq=1.0;Exon=exon2;Gene=PfDHPS;Var=PfDHPS:A438S	GT:PL	1/1:255,255,0
+PfDHPS	1794	41794	A	G	228.0	.	DP=1316;VDB=0.270752;SGB=-0.693147;RPB=0.919876;MQB=1.0;MQSB=1.0;BQB=0.0590062;MQ0F=0.0;AC=2;AN=2;DP4=2,0,310,495;MQ=60;CDSPos=1619;RefCodon=TAA;AAPos=540;AltCodon=TGA;RefAA=_;AltAA=_;Freq=0.9975216852540273;Exon=exon2;Gene=PfDHPS;Var=PfDHPS:_540_	GT:PL	1/1:255,255,0
+PfMDR1	2520	62520	T	C	228.0	.	DP=168;VDB=0.000225273;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,35,76;MQ=60;CDSPos=2520;RefCodon=GCT;AAPos=840;AltCodon=GCC;RefAA=A;AltAA=A;Freq=1.0;Exon=exon1;Gene=PfMDR1;Var=PfMDR1:A840A	GT:PL	1/1:255,255,0
+PfMDR1	3207	63207	T	G	228.0	.	DP=89;VDB=0.748951;SGB=-0.693147;MQSB=1.0;MQ0F=0.0;AC=2;AN=2;DP4=0,0,30,31;MQ=60;CDSPos=3207;RefCodon=ACT;AAPos=1069;AltCodon=ACG;RefAA=T;AltAA=T;Freq=1.0;Exon=exon1;Gene=PfMDR1;Var=PfMDR1:T1069T	GT:PL	1/1:255,184,0

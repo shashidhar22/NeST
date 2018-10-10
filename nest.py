@@ -304,8 +304,8 @@ def main(arguments):
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
     annotate = Vcf.Annotate()
-    gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path)
-    vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path)
+    gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path, bam_path)
+    vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path, bam_path)
     main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
     gvcf_file = Vcf.Reader(gvcf_path)
     svcf_file = Vcf.Reader(vcf_path)

@@ -5,10 +5,12 @@ import csv
 import gzip
 import math
 import time
+import pysam
 import logging
 import tempfile
 import itertools
 import pathlib
+import pandas as pd
 import numpy as np
 from pprint import pprint
 from collections import namedtuple
@@ -805,7 +807,68 @@ class Vcf:
                     alfreq = None
             return(alfreq)
 
-        def getAnnotation(self, bed_path, vcf_path, fasta_path, out_path):
+        def createReadTable(self, readset, variant):
+            readtable = list()
+            for reads in readset:
+                #print(reads.query_name, reads.reference_start, reads.reference_end)
+                ref_start = reads.reference_start
+                ref_end =  reads.reference_end
+                if ref_end == None or ref_start == None:
+                    continue
+                else:
+                    overlap = ref_end - ref_start + 1
+                    center = (ref_start+ref_end)/2
+                    skew = (variant.POS)/ center
+                    if skew >= 1 :
+                        divergence = skew - 1
+                    else:
+                        divergence = 1 - skew
+                    readtable.append([ref_start, ref_end, overlap, divergence, variant.POS, center])
+            readtable = pd.DataFrame(readtable, columns=['Start', 'Stop', 'Overlap', 'Divergence', 'VarPos', 'Center'])
+            return(readtable)
+
+        def calculateVQ(self, bam_path, vcf_rec, cut_off=0.5):
+            '''Given BAM file and vcf_rec, scan the alignments to calculate variant quality, which
+            is defined as mean_centrality of var within reads, times mean_overlap between reads, times
+            the depth at the loci'''
+
+            bamreader = pysam.AlignmentFile(bam_path, 'rb')
+            read_set = bamreader.fetch(region='{0}:{1}-{2}'.format(vcf_rec.CHROM, vcf_rec.POS, vcf_rec.POS+1))
+            read_table = self.createReadTable(read_set, vcf_rec)
+            count = 0
+            min_overlap = list()
+            index = [var for var in range(0, len(read_table.index))]
+            read_table.sort_values(by=['Divergence','Overlap'], ascending=[True, False], inplace=True)
+            read_table_sorted = read_table.reindex(labels=index)
+            max_index, max_overlap =  next(read_table.iterrows())
+            for index, values in read_table.iterrows():
+                local_start = 0
+                local_end = 0
+                if values.Start >= max_overlap.Start:
+                    local_start = values.Start
+                else:
+                    local_start = max_overlap.Start
+                if values.Stop <= max_overlap.Stop:
+                    local_end = values.Stop
+                else:
+                    local_end = max_overlap.Stop
+
+                local_overlap = local_end - local_start
+                if local_overlap <= cut_off * max_overlap.Overlap:
+                    count += 1
+                min_overlap.append(local_overlap)
+            min_series = pd.Series(min_overlap)
+            read_table['MinOverlap'] = min_series.values
+            read_table['Centrality'] = 1 - read_table['Divergence']
+            mean_centrality = np.mean(read_table.Centrality)
+            mean_overlap = np.mean(read_table.MinOverlap)
+            depth = len(read_table.index)
+            vardepth = vcf_rec.INFO['DP'][0]
+            variant_quality = mean_centrality * mean_overlap * depth
+            log_vq = np.log10(variant_quality)
+            return(log_vq)
+
+        def getAnnotation(self, bed_path, vcf_path, fasta_path, out_path, bam_path):
             #Open bed reader
             bed = Bed(bed_path)
             bed_reader = bed.getExonTable()
@@ -866,6 +929,13 @@ class Vcf:
                 description='Variant allele frequency', number=1)
             vcf.header['info'].append(freq_header)
             vcf.info_dict['Freq'] = [1, 'Float']
+            vqual_header = self.addInfoHeader('VFD', type='Float',
+                description=('Log variant flanking depth;'
+                    'A measure that account for position of the base in the reads, '
+                    'the coverage at the location, '
+                    'and the average length of the overlap between the supporting reads'), number=1)
+            vcf.header['info'].append(vqual_header)
+            vcf.info_dict['VFD'] = [1, 'Float']
             var_header = self.addInfoHeader('Var', type='String',
                 description='Variant string, with chromsome and position',
                 number=1)
@@ -904,6 +974,7 @@ class Vcf:
                             print(triplet, aa_pos, codon_pos, exon, gene, strand)
                         alt_aa = self.getAA(alt_triplet)
                         allele_freq = self.getAlFreq(vcf_rec)
+                        log_vq = self.calculateVQ(bam_path, vcf_rec)
                         if len(vcf_rec.REF[0]) > 1 or len(vcf_rec.ALT[0]) > 1:
                             #Add codon pos to info
                             vcf_rec.INFO['CDSPos'] = [None]
@@ -919,6 +990,8 @@ class Vcf:
                             vcf_rec.INFO['AltAA'] = [None]
                             #Add Allele frequency
                             vcf_rec.INFO['Freq'] = [allele_freq]
+                            #Add Log variant flanking depth
+                            vcf_rec.INFO['VFD'] = [log_vq]
                             #Add Exonic location
                             vcf_rec.INFO['Exon'] = [None]
                             vcf_rec.INFO['Exon'] = [None]
@@ -943,6 +1016,8 @@ class Vcf:
                             vcf_rec.INFO['AltAA'] = [alt_aa]
                             #Add Allele frequency
                             vcf_rec.INFO['Freq'] = [allele_freq]
+                            #Add log variant flanking depth
+                            vcf_rec.INFO['VFD'] = [log_vq]
                             #Add Exonic location
                             vcf_rec.INFO['Exon'] = [exon]
                             #Add Gene
@@ -990,6 +1065,7 @@ class Vcf:
                     elif vcf_rec.UID < bed_rec.uidStart:
                         #print('Annotating vcf record in intronic region')
                         allele_freq = self.getAlFreq(vcf_rec)
+                        log_vq = self.calculateVQ(bam_path, vcf_rec)
                         #Add codon pos to info
                         vcf_rec.INFO['CDSPos'] = [None]
                         #Add triplet to info
@@ -1004,6 +1080,8 @@ class Vcf:
                         vcf_rec.INFO['AltAA'] = [None]
                         #Add Allele frequency
                         vcf_rec.INFO['Freq'] = [allele_freq]
+                        #Add log variant flanking depth
+                        vcf_rec.INFO['VFD'] = [log_vq]
                         #Add Exonic location
                         vcf_rec.INFO['Exon'] = ['Intron']
                         #Add Gene

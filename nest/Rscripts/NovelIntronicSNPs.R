@@ -119,7 +119,7 @@ colnames(table1) = c("Gene","SNP", "All wild type", "Minor mutant allele", "Majo
 write.csv(table1,"Novel_SNPs_Report_intronic.csv")
 
 ### bar graph of Table 1
-pdf("Novel_SNPs_intronic.pdf",width = 8,height = 12)
+pdf("Novel_SNPs_intronic.pdf",width = 10,height = 15)
 frequency_summary = cbind(rowSums(frequencies_matrix == 0,na.rm=TRUE),rowSums(frequencies_matrix >0 & frequencies_matrix < 0.5,na.rm=TRUE),rowSums(frequencies_matrix <=1 & frequencies_matrix >= 0.5,na.rm=TRUE))
 frequency_summary = frequency_summary[seq(from = dim(frequency_summary)[1], to = 1, by = -1),]
 temp = barplot(t(frequency_summary/rowSums(frequency_summary)),col=c("cyan","green","pink"),horiz=TRUE,las=1,xlab="Frequency",xpd=TRUE)

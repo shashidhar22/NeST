@@ -300,14 +300,22 @@ class Summary:
                     vcf_gene.append(var.CHROM)
                     vcf_var.append(variant)
                     vcf_sample.append(sample)
-                    if var.INFO['DP'][0] > 0:
-                        var_sample.append(sample_variant)
-                    else:
-                        var_sample.append('{0}{1}:{2}{3}NA'.format(sample,
+                    try:
+                        if var.INFO['DP'][0] > 0:
+                            var_sample.append(sample_variant)
+                        else:
+                            var_sample.append('{0}{1}:{2}{3}NA'.format(sample,
                                                             var.INFO['Gene'][0],
                                                            var.INFO['RefAA'][0],
                                                            var.INFO['AAPos'][0],
                                                            var.INFO['AltAA'][0]))
+                    except TypeError:
+                        if var.INFO['DP'][0] is None:
+                           var_sample.append('{0}{1}:{2}{3}NA'.format(sample,
+                                                             var.INFO['Gene'][0],
+                                                            var.INFO['RefAA'][0],
+                                                            var.INFO['AAPos'][0],
+                                                            var.INFO['AltAA'][0]))
             if count == 0:
                 for variants, rec in voi_df.iterrows():
                     vcf_dict['Chrom'].append(rec.Chrom)

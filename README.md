@@ -91,7 +91,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
       NeST can be executed on your own dataset using the following command:
 
       ```
-      python3 nest.py -i <path to input directory/ sra accession list> -a <adapter fasta file> -r < reference fasta file> -o <output directory path> --varofint <CSV file with variants of interest>
+      python3 nest.py -i <path to input directory/ sra accession list> -a <adapter fasta file> -r < reference fasta file> -b < reference bed file> -o <output directory path> --varofint <CSV file with variants of interest>
       ```
 
       NeST can be run without a variant of interest file, but it will not produce any summary figures. To get a list of options that can be used with NeST just type

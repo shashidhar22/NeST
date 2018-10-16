@@ -2,13 +2,18 @@
 
 if [ "$(uname)" == "Darwin" ]; then
     # Download latest Miniconda distribution for MacOS        
-    wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O ./lib/miniconda.sh
+    curl -o lib/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh 
+
+
 elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
     # Download latest Miniconda distribution for Linux
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ./lib/miniconda.sh
+
 fi
-# Silent install Miniconda into HOME directory
-bash ./lib/miniconda.sh -b -p $HOME/miniconda
+
+    # Silent install Miniconda into HOME directory
+    bash ./lib/miniconda.sh -b -p $HOME/miniconda
+
 # Add conda activation script to bashrc
 if [ -f ~/.bash_profile ]; then
     echo "Appending conda path to bash_profile"

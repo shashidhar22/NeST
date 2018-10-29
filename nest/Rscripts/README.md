@@ -1,7 +1,7 @@
-# R Code to generate figures using data outputs from MaRS pipeline  
+# R Code to generate figures using data outputs from NeST pipeline  
 
 ### Reportable SNPs
-#### Visualize the distribution of read depths for each reportable variant at each MaRS loci
+#### Visualize the distribution of read depths for each reportable variant at each NeST loci
 1. Run R script DepthPerReportSNP.R
    * Rscript DepthPerReportSNP.R -i /file/path/to/Study_depth.csv -o /file/path/to/output/image/file.png
 #### Visualize the frequency of wild-type, major, and minor alleles for each variant (if > 1 variant present)

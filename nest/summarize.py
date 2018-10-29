@@ -25,7 +25,7 @@ class Summary:
     Intronic. It also generates a allele frequency and depth of coverage view
     for the study, which are summarized in table and figuresself."""
 
-    def __init__(self, fasta, bed, voi, out_path, config):
+    def __init__(self, fasta, bed, voi, out_path):
         """
         Key attributes:
         fasta (str) - Path to reference Fasta file
@@ -41,7 +41,6 @@ class Summary:
         self.out_path = out_path
         self.summary_path = os.path.dirname(__file__)
         self.nest_path = os.path.dirname(self.summary_path)
-        self.config = config
         self.logger = logging.getLogger('NeST.Summary')
 
     def getBaseRange(self, chrom, gene, pos):
@@ -680,7 +679,7 @@ class Summary:
         #Write Known and novel variants to files
         self.toCSV('known')
         self.toCSV('novel')
-        self.toJSON()
+        #self.toJSON()
         # Plot using Rscript
         self.logger.info('Plotting Depth Per SNP')
         dcmd = ['Rscript',

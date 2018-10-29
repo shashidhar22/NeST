@@ -63,9 +63,21 @@ class Identifier:
             return(False)
 
     def isENA(self):
+	#@ERR2509673.1 WTCHG_35574_207:2:1204:15440:129645#CTATATAC length=100
         """Identify fastq headers in the following format
         # ERR161234.14 14 length=100"""
         header_regex = re.compile('@[\w\.]+ \d+ length=\d+')
+        match = re.fullmatch(header_regex, self.rec.header)
+        if match != None:
+            return(True)
+        else:
+            return(False)
+
+    def isENANew(self):
+	#@ERR2509673.1 WTCHG_35574_207:2:1204:15440:129645#CTATATAC length=100
+        """Identify fastq headers in the following format
+        # ERR161234.14 14 length=100"""
+        header_regex = re.compile('@[\w\.]+ .+ length=\d+')
         match = re.fullmatch(header_regex, self.rec.header)
         if match != None:
             return(True)
@@ -111,40 +123,41 @@ class Prepper:
       1. input_path (str) : Path to input directory or sra accession list
       2. sra_path (str) : Path to fastq-dump executable """
 
-    def __init__(self, input_path, sra_path):
+    def __init__(self, input_path, sra_number, sra_path):
         self.input_path = os.path.abspath(input_path)
         self.sra_path = sra_path
+        self.sra_number = sra_number
         self.logger = logging.getLogger('NeST.prepInputs')
 
     def downloadSRA(self):
         """Give a SRA accession list, download all the associated fastq files"""
-        out_dir = os.path.dirname(self.input_path)
-        sra_list = open(self.input_path)
-        for accessions in sra_list:
-            self.logger.debug('Downloading : {0}'.format(accessions))
-            accessions = accessions.strip()
-            fqd_cmd = [self.sra_path, '--gzip', '--split-3', '-O', out_dir,
-                        '-A', accessions]
-            fqd_run = subprocess.Popen(fqd_cmd, shell=False,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
-            fqd_run.wait()
-            if fqd_run.returncode != 0:
-                self.logger.error('Could not download {0}'.format(accessions))
-                self.logger.error(' '.join(fqd_cmd))
-            else:
-                self.logger.info('Downladed complete: {0}'.format(accessions))
-        return(out_dir)
 
-    def getFastqPaths(self):
+        self.logger.debug('Downloading : {0}'.format(self.sra_number))
+        fqd_cmd = [self.sra_path, '--gzip', '--split-3', '-O', self.input_path,
+                  '-A', self.sra_number]
+        fqd_run = subprocess.Popen(fqd_cmd, shell=False,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+        fqd_run.wait()
+        if fqd_run.returncode != 0:
+             self.logger.error('Could not download {0}'.format(self.sra_number))
+             self.logger.error(' '.join(fqd_cmd))
+        else:
+             self.logger.info('Downladed complete: {0}'.format(self.sra_number))
+        return(self.input_path)
+
+    def getFastqPaths(self, out_path=None):
         """Given a directory path, extract all the fastq file names"""
-        filenames = list()
-        for subdir, dirname, files in os.walk(self.input_path):
-            for filename in files:
-                if ('.fastq' in filename or '.fastq.gz' in filename or
-                    'fq' in filename or 'fq.gz' in filename):
-                    filepath = subdir + os.sep + filename
-                    filenames.append(filepath)
+        if out_path:
+            filenames = glob.glob('{0}/RawFastq/*'.format(out_path))
+        else:
+            filenames = list()
+            for subdir, dirname, files in os.walk(self.input_path):
+                for filename in files:
+                    if ('.fastq' in filename or '.fastq.gz' in filename or
+                        'fq' in filename or 'fq.gz' in filename):
+                        filepath = subdir + os.sep + filename
+                        filenames.append(filepath)
         return(filenames)
 
     def getReadPresence(self, file_name, minimum=1):
@@ -210,16 +223,10 @@ class Prepper:
             sampleID, genusSpecies, type, marker_list, rep)
         return(sample)
 
-    def prepInputs(self):
-        """Given a input directory path or sra accession list, iterate through
-        the list and create a sample record of reach file. Each sample record is
+    def prepInputs(self, files):
+        """Given a sra accession number create a sample record of reach file. Each sample record is
         added to a dictionary with the sample name as the key and sample record
         as the value"""
-        if os.path.isfile(self.input_path):
-            self.logger.info('Found SRA accession list,'
-                            'Will download files from SRA')
-            self.input_path = self.downloadSRA()
-        files = self.getFastqPaths()
         experiment = dict()
         for fastq in files:
             reader = Fastq(fastq, './', 'phred33')
@@ -240,6 +247,7 @@ class Prepper:
             isSraNew = identifier.isSraNew()
             isPac = identifier.isPacbio()
             isENA = identifier.isENA()
+            isENANew = identifier.isENANew()
             seqType = ''
             libType = ''
             sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
@@ -290,6 +298,13 @@ class Prepper:
                 seqType = 'Illumina'
                 if metric.avgReadLen():
                     libType = 'Short'
+            elif isENANew:
+                paired_regex = re.compile('@[\w\.]+ .+ length=\d+')
+                lib = re.findall(paired_regex, rec.header)[0]
+                paired = False
+                seqType = 'Illumina'
+                if metric.avgReadLen():
+                    libType = 'Short'
             elif isPac:
                 lib_regex = re.compile('@\w+_\d+_\d+_\w+')
                 lib = re.findall(lib_regex, rec.header)[0]
@@ -309,8 +324,8 @@ class Prepper:
                 experiment[sample] = Sample(sample, lib, seqType, [fastq],
                 libType, paired, year, country, site, td, treatment, sid, gs,
                 stype, markers, replicate)
-        self.logger.info('A total of {0} libraries were identified from the given folder {1}'.format(len(experiment), self.input_path))
-        self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
+        self.logger.info('A total of {0} libraries were identified from the given folder'.format(len(experiment)))
+        #self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         for sample, values in experiment.items():
             self.logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
                     values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))

@@ -33,11 +33,13 @@ library(stringr)
 #Move reading of reportable SNPs to before changing the working directory
 reportable_SNPs = read_csv(opt$report_snp, col_names = T)
 
-setwd(opt$output_dir)
 
 ###### read in summarized vcf data
 
 vcfdata <- read_csv(opt$input_file, col_names = T)
+
+## Set working directory
+setwd(opt$output_dir)
 
 ## recode DP as numeric variable
 vcfdata$DP[vcfdata$DP == "-inf"] = "-Inf"

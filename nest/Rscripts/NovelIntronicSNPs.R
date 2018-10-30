@@ -25,10 +25,10 @@ if(is.null(opt$output_dir)){
   stop("At least one argument must be supplied (output dir path)", call.=FALSE)
 }
 
-setwd(opt$output_dir)
 
 tbl.in <- read_csv(opt$input_file, col_names = T)
 
+setwd(opt$output_dir)
 #Output revised Study_novel_exonic_variants_gt1.csv
 #uncomment next two lines if you want to remove any samples that occur only one time
 #tbl.var.in <- tbl.in %>% group_by(Variant) %>% filter(n()>1)

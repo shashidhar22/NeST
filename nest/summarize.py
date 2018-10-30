@@ -601,6 +601,9 @@ class Summary:
         """Create CSV files from the DataFrames and generate the allele
         frequency and depth views for known and novel files"""
         #Sumarize variants of intrest
+        rep_dir = '{0}/Reports'.format(self.out_path)
+        if not os.path.exists(rep_dir):
+            os.mkdir(rep_dir)
         if var_type == 'known':
             var_df = self.getRepSnps()
             if var_df is None:
@@ -608,15 +611,15 @@ class Summary:
             else:
                 var_df = self.getDepthStats(var_df)
                 var_df = var_df.reset_index(level=1)
-                out_file = '{0}/Study_known_variants.csv'.format(self.out_path)
+                out_file = '{0}/Study_known_variants.csv'.format(rep_dir)
         elif var_type == 'novel':
             var_df = self.getNovSnps()
             var_df = self.getDepthStats(var_df)
             var_df = var_df.reset_index(level=1)
             out_file = '{0}/Study_novel_exonic_variants.csv'.format(
-                self.out_path)
+                rep_dir)
             sout_file = '{0}/Study_novel_intronic_variants.csv'.format(
-                self.out_path)
+                rep_dir)
             exp_intron = self.getIntronTables()
             exp_intron = exp_intron.reset_index()
             intron_key = ['Gene_name', 'RefAA_sym', 'AAPos_sort', 'AltAA_sym']
@@ -660,7 +663,7 @@ class Summary:
                           'AltAA_sym'], axis=1, inplace=True)
                 af_mask = exp_af.isnull()
                 exp_af.to_csv('{0}/Study_{1}_variants_allele_frequency.csv'.format(
-                                                           self.out_path, var_type))
+                                                           rep_dir, var_type))
 
                 exp_dp = var_df.pivot(var_df.index, 'Variant')['DP'].transpose()
                 exp_dp['Variant'] = exp_dp.index
@@ -670,7 +673,7 @@ class Summary:
                 exp_dp.drop(labels=['Variant', 'Gene_name', 'RefAA_sym', 'AAPos_sort',
                           'AltAA_sym'], axis=1, inplace=True)
                 dp_mask = exp_dp.isnull()
-                exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(self.out_path,
+                exp_dp.to_csv('{0}/Study_{1}_variants_depth.csv'.format(rep_dir,
                                                                           var_type))
             except AttributeError:
                 self.logger.debug('No novel exonic variants found') 
@@ -681,12 +684,15 @@ class Summary:
         self.toCSV('known')
         self.toCSV('novel')
         self.toJSON()
+        fig_path = '{0}/Figures'.format(self.out_path)
+        if not os.path.exists(fig_path):
+            os.mkdir(fig_path)
         # Plot using Rscript
         self.logger.info('Plotting Depth Per SNP')
         dcmd = ['Rscript',
             '{0}/Rscripts/DepthPerReportSNP.R'.format(self.summary_path), '-i',
-            '{0}/Study_known_variants_depth.csv'.format(self.out_path),
-            '-o', '{0}/Study_depth.pdf'.format(self.out_path)]
+            '{0}/Reports/Study_known_variants_depth.csv'.format(self.out_path),
+            '-o', '{0}/Study_depth.pdf'.format(fig_path)]
         drun = subprocess.Popen(dcmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         drun.wait()
@@ -697,9 +703,9 @@ class Summary:
         self.logger.info('Plotting Reportable SNPs Frequency')
         acmd = ['Rscript',
             '{0}/Rscripts/reportableSNPsFreq.R'.format(self.summary_path), '-i',
-            'Study_known_variants.csv', '-r',
+            '{0}/Reports/Study_known_variants.csv'.format(self.out_path), '-r',
             '{0}'.format(self.voi),
-            '-o', '{0}/'.format(self.out_path)]
+            '-o', '{0}/'.format(fig_path)]
         arun = subprocess.Popen(acmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         arun.wait()
@@ -709,8 +715,8 @@ class Summary:
         self.logger.info('Plotting Novel Exonic Non-Synonymous SNPs')
         nenscmd = ['Rscript',
             '{0}/Rscripts/NovelExonicNonSynSNPs.R'.format(self.summary_path),
-            '-i', 'Study_novel_exonic_variants.csv',
-            '-o', '{0}/'.format(self.out_path)]
+            '-i', '{0}/Reports/Study_novel_exonic_variants.csv'.format(self.out_path),
+            '-o', '{0}/'.format(fig_path)]
         nensrun = subprocess.Popen(nenscmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nensrun.wait()
@@ -721,8 +727,8 @@ class Summary:
         self.logger.info('Plotting Novel Exonic Synonymous SNPs')
         nescmd = ['Rscript',
             '{0}/Rscripts/NovelExonicSynSNPs.R'.format(self.summary_path), '-i',
-            'Study_novel_exonic_variants.csv',
-            '-o', '{0}/'.format(self.out_path)]
+            '{0}/Reports/Study_novel_exonic_variants.csv'.format(self.out_path),
+            '-o', '{0}/'.format(fig_path)]
         nesrun = subprocess.Popen(nescmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nesrun.wait()
@@ -733,8 +739,8 @@ class Summary:
         self.logger.info('Plotting Novel Intronic SNPs')
         nicmd = ['Rscript',
             '{0}/Rscripts/NovelIntronicSNPs.R'.format(self.summary_path), '-i',
-            'Study_novel_intronic_variants.csv',
-                '-o', '{0}/'.format(self.out_path)]
+            '{0}/Reports/Study_novel_intronic_variants.csv'.format(self.out_path),
+                '-o', '{0}/'.format(fig_path)]
         nirun = subprocess.Popen(nicmd, shell=False,
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nirun.wait()
@@ -743,13 +749,13 @@ class Summary:
             self.logger.error(' '.join(nicmd))
 
         #os.remove('{0}/Reportable_SNPs_Report.csv'.format(out_dir))
-        os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(self.out_path))
-        os.remove('{0}/novel_SNPs_intronic.csv'.format(self.out_path))
-        os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(self.out_path))
+        os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(fig_path))
+        os.remove('{0}/novel_SNPs_intronic.csv'.format(fig_path))
+        os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(fig_path))
         os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(
-            self.out_path))
+            fig_path))
         os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(
-            self.out_path))
+            fig_path))
 
     def getVarStats(self, vcf_file):
         vcf_file = Vcf.Reader(vcf_file)

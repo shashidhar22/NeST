@@ -171,58 +171,38 @@ NeST is designed to reduce the amount of user intervention with regards to input
 
 2. Figure files:
    
+
    NeST produces summarization figures which are stored under the output directory. The figures generated are listed below.
 
     * Study Depth:
      
       Read depth of coverage for single nucleotide polymorphisms (SNPs) associated with malaria drug resistance. SNP loci are shown on the x axis, and the read depth of coverage on the y axis. The colors indicate the genes that were amplified during sequencing. 
  
-      <object data="images/Study_depth.pdf" type="application/pdf" width="700px" height="400px">
-         <embed src="images/Study_depth.pdf">
-             <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
-         </embed>
-      </object>
+      ![Study depth](images/Study_depth.jpg)
 
     * Reportable SNPs:
 
       Bar graph depicting the wild type, major and minor allele frequencies of associated and/or confirmed resistance SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
 
-      <object data="images/Reportable_SNPs.pdf" type="application/pdf" width="700px" height="1000px">
-         <embed src="images/Reportable_SNPs.pdf">
-             <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
-         </embed>
-      </object>
+      ![Reportable SNPs](images/Reportable_SNPs.jpg)
 
     * Novel Intronic SNPs:
 
       Bar graph depicting the wild type, major and minor allele frequencies of intronic SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
 
-      <object data="images/Novel_SNPs_intronic.pdf" type="application/pdf" width="700px" height="1000px">
-         <embed src="images/Novel_SNPs_intronic.pdf">
-             <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
-         </embed>
-      </object>
+      ![Novel Intronic SNPs](images/Novel_SNPs_intronic.jpg)
 
     * Novel synonymous exoniic SNPs:
 
       Bar graph depicting the wild type, major and minor allele frequencies of novel synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
 
-      <object data="images/Novel_SNPs_exonic_syn.pdf" type="application/pdf" width="700px" height="1000px">
-         <embed src="images/Novel_SNPs_exonic_syn.pdf">
-             <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
-         </embed>
-      </object>
+      ![Novel Exonic Syn SNPs](images/Novel_SNPs_exonic_syn.jpg)
 
     * Novel non-synonymous exonic SNPs:
 
       Bar graph depicting the wild type, major and minor allele frequencies of novel non-synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
 
-      <object data="images/Novel_SNPs_exonic_nonsyn.pdf" type="application/pdf" width="700px" height="1000px">
-         <embed src="images/Novel_SNPs_exonic_nonsyn.pdf">
-             <p>This browser does not support PDFs. Please download the PDF to view it: <a href="http://yoursite.com/the.pdf">Download PDF</a>.</p>
-         </embed>
-      </object>
-
+      ![Novel Exonic Non-Syn SNPs](images/Novel_SNPs_exonic_nonsyn.jpg)
 <a id="hpc"></a>
 ## NeST on HPC
 

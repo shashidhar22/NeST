@@ -149,7 +149,7 @@ NeST is designed to reduce the amount of user intervention with regards to input
 
 
 
-<a id="outputs"></a>
+<a id="output"></a>
 ## Output Description
 
 1. Report files:

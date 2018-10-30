@@ -226,7 +226,7 @@ NeST is designed to reduce the amount of user intervention with regards to input
 <a id="hpc"></a>
 ## NeST on HPC
 
-With NeSTv2.1.0, we are trying to implement, complete HPC compatibiltiy with the script ```nest_submitter.py``` generates and submits a job in Moab scheduler environment. Currently it is still a work in progress and users need to manipulate the nest_submitter.py to reflect the HPC enivronment specifics. The command listed below will spawn 102 jobs for all the 10105 samples from (The    CRyPTIC    Consortium    and    the100,   2018) paper, using 1 node per job, with 15 threads and 16gb of memory per threads. Since this is still a work in progress, please use make necessary changes to the submitter script or create an issue on the GitHub with your HPC framework details and we will get back to you with the changes needed to execute NeST on your HPC framework
+With NeSTv2.1.0, we are trying to implement, a completely HPC compatibile framework with the script ```nest_submitter.py``` which generates and submits a job in a Moab scheduler environment. Currently it is still a work in progress and users need to manipulate the nest_submitter.py to reflect the HPC enivronment specifics. The command listed below will spawn 102 jobs for all the 10105 samples from (The CRyPTIC Consortium and the 100, 2018) paper, using 1 node per job, with 15 threads and 16gb of memory per threads. Since this is still a work in progress, please use make necessary changes to the submitter script or create an issue on the GitHub branch with your HPC framework details and we will get back to you with the changes needed to execute NeST on your HPC framework.
 
 ```{sh}
 python3 nest_submitter.py <queue name> <user email> <output path>

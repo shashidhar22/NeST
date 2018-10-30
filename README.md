@@ -6,7 +6,7 @@ Advancements in next-generation sequencing have led to the development of numero
 2. [Availability of code and installation](#Installation)
 3. [Your first analysis](#First)
 4. [Input standardization](#inputs)
-5. [NeST class structure](#classes)
+5. [Output description](#output)
 
 <a id="Overview"></a>
 ## Overview of the NeST framework:
@@ -149,6 +149,7 @@ NeST is designed to reduce the amount of user intervention with regards to input
 
 
 
+<a id="outputs"></a>
 ## Output Description
 
 1. Report files:

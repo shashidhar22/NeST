@@ -39,7 +39,13 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    cd  NeST
    ./install.sh
    ```
-
+   
+   To check if you have conda installed on your system you can use the following command
+   
+   ```
+   conda --version
+   ```
+   
    To create the NeST environment, run the following command from the NeST directory.
 
    ```
@@ -69,6 +75,19 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
    Note: NeST virtual environment currently uses `bioconda` and `conda-forge` channels. There are known conflicts with the conda `defaults` channel and `conda-forge` channel, which can lead to errors in creation of the environment. To overcome the issue, the NeST environment ignores the `defaults` channel. If you plan to modify the NeST environment, please update the configuration file provided or make sure to ignore the `defaults` channel.
 
+   If you are running into issues with multiple versions of conda. You can uninstall the version of conda that you prefer by just deleting the miniconda folder (for example)
+   
+   ```
+   rm -rf ~/miniconda
+   ```
+   and editing removing the following line from your `.bashrc` or `.bash_profile`
+   
+   ```
+   . <path to home directory>/miniconda/etc/profile.d/conda.sh
+   ```
+  
+   Will delete the version of miniconda installed by NeST. **Note: if you delete a miniconda installation you will lose all the environments associated with that installation of conda**
+   
 <a id="First"></a>
 ## Your first analysis
 

@@ -33,7 +33,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
 2. Installation:
 
-   NeST comes with a install script that can be run to setup miniconda and create the virtual environment required to run NeST. To setup up miniconda and the NeST virtual environment, run the following command from the NeST directory. **If you already have Anaconda or Miniconda installed on your system. You can skip the install step and just create a new environment as described in the next codeblock**
+   NeST comes with a install script that can be run to setup miniconda and create the virtual environment required to run NeST. To setup up miniconda and the NeST virtual environment, run the following command from the NeST directory. **If you already have Anaconda or Miniconda installed on your system, you can skip the install step and just create a new environment as described in the next codeblock**
 
    ```
    cd  NeST

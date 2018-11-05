@@ -36,6 +36,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    NeST comes with a install script that can be run to setup miniconda and create the virtual environment required to run NeST. To setup up miniconda and the NeST virtual environment, run the following command from the NeST directory.
 
    ```
+   cd  NeST
    ./install.sh
    ```
 
@@ -45,7 +46,15 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    conda env create -n nest -f lib/nest_env.yaml
    ```
 
-   Once the environment is create it can be activated using the command.
+   Once the environment is created you will need to refresh your `.bashrc` or `.bash_profile` using the following command
+   
+   ```
+   #If you have a .bashrc file
+   source ~/.bashrc
+   #If you have a .bash_profile file
+   source ~/.bash_profile
+   ```
+   The `nest` virtual environment  can then be activated using the command.
 
    ```
    conda activate nest

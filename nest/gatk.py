@@ -9,16 +9,24 @@ import subprocess
 
 class GenAnTK:
 
-    def __init__(self, gatk_path, out_path, java):
+    def __init__(self, gatk_path, out_path, java, picard_path):
         self.gatk_path = gatk_path
         self.out_path = out_path
         self.java = java
+        self.picard_path = picard_path
 
         return
 
     def hapCaller(self, bam_path, ref_path, sam_name):
         vcf_path = '{0}/{1}_variants_gatk.vcf'.format(self.out_path, sam_name)
-
+        ref_base = os.path.splitext(ref_path)[0]
+        dict_file = '{0}.dict'.format(ref_base)
+        if not os.path.exists(dict_file):
+            pcmd = [self.picard_path, 'CreateSequenceDictionary', 'R={0}'.format(ref_path), 
+                    'O={0}'.format(dict_file)]
+            prun = subprocess.Popen(pcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
+            prun.wait()
+            
         hcmd = [self.gatk_path, 'HaplotypeCaller', '-R', ref_path,
             '-I', bam_path, '-O', vcf_path, '--sample-name', sam_name,
             '--genotyping-mode', 'DISCOVERY', '--output-mode', 'EMIT_VARIANTS_ONLY']

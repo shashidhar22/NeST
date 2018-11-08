@@ -68,7 +68,10 @@ class Samtools:
 
     def pileup(self, ref_path, bam_path, sam_name):
         obcf_path = '{0}/{1}_variants.bcf'.format(self.out_path, sam_name)
-
+        fai_path = '{0}.fai'.format(ref_path)
+        if not os.path.exists(fai_path):
+            facmd = [self.sam_path, 'faidx', ref_path]
+            farun = subprocess.Popen(facmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)
         mpcmd = [self.sam_path, 'mpileup', '-go', obcf_path,
                 '-f', ref_path, bam_path]
         mprun = subprocess.Popen(mpcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)

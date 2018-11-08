@@ -266,7 +266,7 @@ def main(arguments):
 
 
     #Call GATK HaplotypeCaller to generate VCF files
-    varcaller = GenAnTK(gatk_path, out_path, java_path)
+    varcaller = GenAnTK(gatk_path, out_path, java_path, pic_path)
     main_logger.debug('Running GATK HaplotypeCaller')
     if os.path.exists('{0}/gatk.rt'.format(completion_path)):
         gvcf_path = '{0}/{1}_variants_gatk.vcf'.format(out_path, sam_name)
@@ -365,11 +365,14 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
                 repeat(pic_path), name_list, repeat(voi_path),
                 repeat(java_path)))
-
-    logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
-    summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
-    #Sumarize variants of intrest
-    summary.getSummary()
+    
+    if voi_path is not None:
+        logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
+        summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
+        #Sumarize variants of intrest
+        summary.getSummary()
+    elif voi_path is None:
+        logging.info('Variant of interest file not provided, skipping Summarize')
     return(0)
 
 if __name__ == '__main__':
@@ -386,7 +389,7 @@ if __name__ == '__main__':
     gatk_def = 'gatk' #"{0}/GenomeAnalysisTK.jar".format(def_path)
     pic_def = 'picard' #"{0}/picard.jar".format(def_path)
     sra_def = 'fastq-dump' #'{0}/sratoolkit/bin/fastq-dump'.format(def_path)
-    voi_def = '{0}/Reportable_SNPs.csv'.format(ref_def_path)
+    voi_def = None #'{0}/Reportable_SNPs.csv'.format(ref_def_path)
     #if 'java version "1.8.' in str(subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT).decode('UTF-8').split('\n')[0]):
     java_def = 'java'
     #else:

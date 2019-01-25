@@ -82,6 +82,16 @@ class Identifier:
         else:
             return(False)
 
+    def isFastq(self):
+        """Identify fastq with any other header format
+        @\w+"""
+        header_regex = re.compile('@.+')
+        match = re.fullmatch(header_regex, self.rec.header)
+        if match != None:
+            return(True)
+        else:
+            return(False)
+
 
 class Metrics:
     """The Metrics class calculates read length and quality metrics for a given
@@ -240,6 +250,7 @@ class Prepper:
             isSraNew = identifier.isSraNew()
             isPac = identifier.isPacbio()
             isENA = identifier.isENA()
+            isFastq = identifier.isFastq()
             seqType = ''
             libType = ''
             sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
@@ -260,43 +271,50 @@ class Prepper:
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
+                #if metric.avgReadLen(): removing unnecessary call for the time being ##01/24/19
+                libType = 'Short'
             elif isIllNew:
                 paired_regex = re.compile('@\w+-?\w+:\d+:\w+-?\w+:\d+:\d+:\d+:\d+\s')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
+                #if metric.avgReadLen():
+                libType = 'Short'
             elif isSraOld:
                 paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
+                #if metric.avgReadLen():
+                libType = 'Short'
             elif isSraNew:
                 paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
+                #if metric.avgReadLen():
+                libType = 'Short'
             elif isENA:
                 paired_regex = re.compile('@[\w\.]+ \d+ length=\d+')
                 lib = re.findall(paired_regex, rec.header)[0]
                 paired = False
                 seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
+                #if metric.avgReadLen():
+                libType = 'Short'
             elif isPac:
                 lib_regex = re.compile('@\w+_\d+_\d+_\w+')
                 lib = re.findall(lib_regex, rec.header)[0]
                 paired = False
                 seqType = 'Pacbio'
-                if metric.avgReadLen():
-                    libType = 'Long'
+                #if metric.avgReadLen():
+                libType = 'Long'
+            elif isFastq:
+                lib_regex = re.compile('@.+')
+                lib = re.findall(lib_regex, rec.header)[0]
+                paired = False
+                seqType = 'Unknown'
+                #if metric.avgReadLen():
+                libType = 'Short'
             else:
                 self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec.header))
             try:

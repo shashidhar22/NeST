@@ -721,8 +721,8 @@ class Summary:
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nensrun.wait()
         if nensrun.returncode != 0:
-            self.logger.error('Failed to execute NovelExonicNonSynSNPs.R')
-            self.logger.error(' '.join(nenscmd))
+            self.logger.warning('Failed to execute NovelExonicNonSynSNPs.R; This could be because no novel non-synonymous variants were found, check Study_novel_exonic_variants.csv')
+            self.logger.warning(' '.join(nenscmd))
 
         self.logger.info('Plotting Novel Exonic Synonymous SNPs')
         nescmd = ['Rscript',
@@ -733,8 +733,8 @@ class Summary:
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nesrun.wait()
         if nesrun.returncode != 0:
-            self.logger.error('Failed to execute NovelExonicSynSNPs.R')
-            self.logger.error(' '.join(acmd))
+            self.logger.warning('Failed to execute NovelExonicSynSNPs.R; This could be because no novel synonymous variants were found, check Study_novel_exonic_variants.csv')
+            self.logger.warning(' '.join(acmd))
 
         self.logger.info('Plotting Novel Intronic SNPs')
         nicmd = ['Rscript',
@@ -745,17 +745,22 @@ class Summary:
                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         nirun.wait()
         if nirun.returncode != 0:
-            self.logger.error('Failed to execute NovelIntronicSNPs.R')
-            self.logger.error(' '.join(nicmd))
+            self.logger.warning('Failed to execute NovelIntronicSNPs.R; This could be because no novel intronic variants were found, check Study_novel_intronic_variants.csv')
+            self.logger.warning(' '.join(nicmd))
 
         #os.remove('{0}/Reportable_SNPs_Report.csv'.format(out_dir))
-        os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(fig_path))
-        os.remove('{0}/novel_SNPs_intronic.csv'.format(fig_path))
-        os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(fig_path))
-        os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(
-            fig_path))
-        os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(
-            fig_path))
+        if os.path.exists('{0}/novel_SNPs_exonic_syn.csv'.format(fig_path)):
+            os.remove('{0}/novel_SNPs_exonic_syn.csv'.format(fig_path))
+        if os.path.exists('{0}/novel_SNPs_intronic.csv'.format(fig_path)):
+            os.remove('{0}/novel_SNPs_intronic.csv'.format(fig_path))
+        if os.path.exists('{0}/novel_SNPs_exonic_nonsyn.csv'.format(fig_path)):
+            os.remove('{0}/novel_SNPs_exonic_nonsyn.csv'.format(fig_path))
+        if os.path.exists('{0}/Study_novel_exonic_variants_filtered.csv'.format(fig_path)):
+            os.remove('{0}/Study_novel_exonic_variants_filtered.csv'.format(
+                      fig_path))
+        if os.path.exists('{0}/Study_novel_intronic_variants_filtered.csv'.format(fig_path)):
+            os.remove('{0}/Study_novel_intronic_variants_filtered.csv'.format(
+                      fig_path))
 
     def getVarStats(self, vcf_file):
         vcf_file = Vcf.Reader(vcf_file)

@@ -39,22 +39,22 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    cd  NeST
    ./install.sh
    ```
-   
+
    To check if you have conda installed on your system you can use the following command
-   
+
    ```
    conda --version
    ```
-   
+
    To create the NeST environment, run the following command from the NeST directory.
 
    ```
    conda env create -n nest -f lib/nest_env.yaml
    ```
-   
+
 
    Once the environment is created you will need to refresh your `.bashrc` or `.bash_profile` using the following command
-   
+
    ```
    #If you have a .bashrc file
    source ~/.bashrc
@@ -76,18 +76,18 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    Note: NeST virtual environment currently uses `bioconda` and `conda-forge` channels. There are known conflicts with the conda `defaults` channel and `conda-forge` channel, which can lead to errors in creation of the environment. To overcome the issue, the NeST environment ignores the `defaults` channel. If you plan to modify the NeST environment, please update the configuration file provided or make sure to ignore the `defaults` channel.
 
    If you are running into issues with multiple versions of conda. You can uninstall the version of conda that you prefer by just deleting the miniconda folder (for example)
-   
+
    ```
    rm -rf ~/miniconda
    ```
    and editing removing the following line from your `.bashrc` or `.bash_profile`
-   
+
    ```
    . <path to home directory>/miniconda/etc/profile.d/conda.sh
    ```
-  
+
    Will delete the version of miniconda installed by NeST. **Note: if you delete a miniconda installation you will lose all the environments associated with that installation of conda**
-   
+
 <a id="First"></a>
 ## Your first analysis
 
@@ -115,7 +115,28 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
       This will download 57 paired fastq files from the bioproject [PRJNA271805](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA271805), merges the different runs and executes NeST on the clinical samples from the paper. The results are stored under `local/ColmanEtAl` folder within the NeST directory. This analysis takes significantly longer than the MaRS study and requires around 80GB of disk space, due to the large amount of data that is download. Make sure you have a good internet connection and adequate amount of coffee before starting this study.
 
-   3. Executing your own analysis using NeST:
+   3. Executing NeST on a HPC framework:
+
+      An early implementation of HPC enabled NeST is available with the [NeSTv2.1.0 branch](https://github.com/shashidhar22/NeST/tree/v2.1.0#hpc). The script ```nest_submitter.py``` generates and submits a job in a Moab scheduler environment. It is still a work in progress and users need to manipulate the nest_submitter.py to reflect the HPC enivronment specifications. The command listed below will spawn 101 jobs for all the 10105 samples from [(The CRyPTIC Consortium and the 100, 2018)](https://www.nejm.org/doi/full/10.1056/NEJMoa1800474) paper, using 1 node per job, with 15 threads and 16gb of memory per threads. Since this is still a work in progress, please use make necessary changes to the submitter script or create an issue on the GitHub branch with your HPC framework details and we will get back to you with the changes needed to execute NeST on your HPC framework.
+
+      The average wall time for 101 jobs was 3.84 hours. The ability to split samples and schedule parallel jobs, drastically reduces the turn around time for any analysis. The results for each of the 101 jobs can be downloaded from http://vannberg.biology.gatech.edu/data/NEJM_results.tar.gz
+
+      The variant calls from the NeST for the *rpoB* were extracted and compiled to label each of the samples from CRyPTIC Consortium study as resistant or susceptible to Rifampicin, based on the list of variants associated with Rifampicin resistance provide by the [(The CRyPTIC Consortium and the 100, 2018)](https://www.nejm.org/doi/full/10.1056/NEJMoa1800474) (Also refer Jupyter notebook with the CRyPTIC folder). The predictions from NeST were then compared to that of the genotype calls from the CRyPTIC Consortium and the phenotypic information also provided for the samples.
+
+      The precision and recall for the comparison is shown in the table below. It is to be noted that NeST as of the current version only calls SNPs and hence InDels associated with Rifampicin resistance were not considered in predicting the genotypes. This feature however will be implemented in the coming releases of NeST.
+
+      |           Comparison            | Prediction Label  |  Precision   | Recall | F1-score | Support |
+      |:-------------------------------:|:-----------------:|:------------:|:------:|:--------:|:-------:|
+      | NeST Prediction vs Phenotype    |  Resistant        |     0.97     | 0.91   |  0.94    |  2557   |
+      |                                 |  Susceptible      |     0.86     | 0.95   |  0.90    |  1403   |
+      | CRyPTIC Prediction vs Phenotype |  Resistant        |     0.97     | 1.00   |  0.98    |  2557   |
+      |                                 |  Susceptible      |     0.99     | 0.94   |  0.97    |  1403   |
+
+
+      This research was supported in part through research cyberinfrastructure resources and services provided by the Partnership for an Advanced Computing Environment (PACE) at the Georgia Institute of Technology, Atlanta, Georgia, USA.
+
+
+   4. Executing your own analysis using NeST:
 
       NeST can be executed on your own dataset using the following command:
 
@@ -184,7 +205,7 @@ NeST is designed to reduce the amount of user intervention with regards to input
 1. Report files:
 
    NeST produces table reports that summarize the different types of variants found in the sample. All the tables will be stored under the ```Reports``` folder inside the output directory. The table below describes the different files that are generated by NeST.
-   
+
    |                   File                    |                                          Description                                                                                                      |
    |:------------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------|
    | Study_known_variants.csv                  | This file contains the calls for each of the variants of interst, for each of the samples. The table also lists the variant call metrics for the variants |
@@ -198,35 +219,35 @@ NeST is designed to reduce the amount of user intervention with regards to input
 
 
 2. Figure files:
-   
+
    NeST produces summarization figures which are stored under ```Figures``` folder inside the output directory. The figures generated are listed below.
 
     * Study Depth:
-     
-      Read depth of coverage for single nucleotide polymorphisms (SNPs) associated with malaria drug resistance. SNP loci are shown on the x axis, and the read depth of coverage on the y axis. The colors indicate the genes that were amplified during sequencing. 
- 
+
+      Read depth of coverage for single nucleotide polymorphisms (SNPs) associated with malaria drug resistance. SNP loci are shown on the x axis, and the read depth of coverage on the y axis. The colors indicate the genes that were amplified during sequencing.
+
       ![Study depth](images/Study_depth.jpg)
 
     * Reportable SNPs:
 
-      Bar graph depicting the wild type, major and minor allele frequencies of associated and/or confirmed resistance SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
+      Bar graph depicting the wild type, major and minor allele frequencies of associated and/or confirmed resistance SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation.
 
       ![Reportable SNPs](images/Reportable_SNPs.jpg)
 
     * Novel Intronic SNPs:
 
-      Bar graph depicting the wild type, major and minor allele frequencies of intronic SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
+      Bar graph depicting the wild type, major and minor allele frequencies of intronic SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation.
 
       ![Novel Intronic SNPs](images/Novel_SNPs_intronic.jpg)
 
     * Novel synonymous exoniic SNPs:
 
-      Bar graph depicting the wild type, major and minor allele frequencies of novel synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
+      Bar graph depicting the wild type, major and minor allele frequencies of novel synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation.
 
       ![Novel Exonic Syn SNPs](images/Novel_SNPs_exonic_syn.jpg)
 
     * Novel non-synonymous exonic SNPs:
 
-      Bar graph depicting the wild type, major and minor allele frequencies of novel non-synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation. 
+      Bar graph depicting the wild type, major and minor allele frequencies of novel non-synonymous SNPs. Allele frequencies are indicated on the x axis, and the variants of interest are listed along the y-axis (left). The number of samples that had a particular mutation is indicated on the y-axis (right). The color coding indicates the type of mutation found in the samples; blue is for wild type, green for minor allele mutation and red for major allele mutation.
 
       ![Novel Exonic Non-Syn SNPs](images/Novel_SNPs_exonic_nonsyn.jpg)

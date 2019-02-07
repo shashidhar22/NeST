@@ -127,10 +127,10 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
 
       |           Comparison            | Prediction Label  |  Precision   | Recall | F1-score | Support |
       |:-------------------------------:|:-----------------:|:------------:|:------:|:--------:|:-------:|
-      | NeST Prediction vs Phenotype    |  Resistant        |     0.97     | 0.91   |  0.94    |  2557   |
-      |                                 |  Susceptible      |     0.86     | 0.95   |  0.90    |  1403   |
-      | CRyPTIC Prediction vs Phenotype |  Resistant        |     0.97     | 1.00   |  0.98    |  2557   |
-      |                                 |  Susceptible      |     0.99     | 0.94   |  0.97    |  1403   |
+      | NeST Prediction vs Phenotype    |  Resistant        |     0.97     | 0.88   |  0.92    |  2844   |
+      |                                 |  Susceptible      |     0.94     | 0.98   |  0.96    |  5743   |
+      | CRyPTIC Prediction vs Phenotype |  Resistant        |     0.97     | 0.98   |  0.97    |  2844   |
+      |                                 |  Susceptible      |     0.99     | 0.99   |  0.99    |  5743   |
 
 
       This research was supported in part through research cyberinfrastructure resources and services provided by the Partnership for an Advanced Computing Environment (PACE) at the Georgia Institute of Technology, Atlanta, Georgia, USA.

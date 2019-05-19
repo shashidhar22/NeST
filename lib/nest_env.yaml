@@ -1,13 +1,13 @@
 channels:
   - conda-forge
+  - defaults
   - bioconda
   - r
-  - nodefaults
 
 dependencies:
   - fastqc=0.11.8
   - perl=5.26.2
-  - r=3.4.1
+  - r=3.5.1
   - igv=2.4.6
   - python=3.6
   - pysam=0.15.1
@@ -24,8 +24,8 @@ dependencies:
   - gatk4=4.0.4.0
   - picard=2.18.14
   - sra-tools=2.9.1_1
-  - readline=6.2
-  - r-optparse=1.6.0
+  - readline=7.0
+  - r-optparse=1.6.1
   - r-ggplot2=3.0.0
   - r-dplyr=0.7.6
   - r-tidyr=0.8.1

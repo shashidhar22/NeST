@@ -91,7 +91,6 @@ class Writer:
             #print(key,value)
             # If values are absent, do not write value
             if value == None or value[0] == None:
-                #info.append('{0}={1}'.format(key, 'NaN'))
                 continue
             elif type(value[0]) == list:
                 info.append('{0}={1}'.format(key,
@@ -117,27 +116,35 @@ class Writer:
             sam_string = list()
             for keys in all_formats:
                 value = info[keys]
-                if value[0] == None:
-                    continue
-                elif type(value[0]) == list and None in value[0]:
-                    continue
-                elif type(value[0]) == list and len(value[0]) == 1:
-                    sam_string.append(str(value[0][0]))
-                    if keys not in formats:
-                        formats.append(keys)
-                elif type(value[0]) == list and len(value[0]) > 1 :
-                    value = ','.join([
-                    str(val) if val != None else 'NaN'for val in value[0]])
-                    sam_string.append(value)
-                    if keys not in formats:
-                        formats.append(keys)
+                if len(value) == 1:
+                    sam_string.append(str(value[0]))
                 else:
-                    if value[0] == None:
-                        continue
-                    else:
-                        sam_string.append(str(value[0]))
-                        if keys not in formats:
-                            formats.append(keys)
+                    sstring = [str(val) for val in value]
+                    sam_string.append(','.join(sstring))
+                if key not in formats:
+                    formats.append(keys)
+                #print(value)
+                #if value[0] == None:
+                #    continue
+                #elif type(value[0]) == list and None in value[0]:
+                #    continue
+                #elif type(value[0]) == list and len(value[0]) == 1:
+                #    sam_string.append(str(value[0][0]))
+                #    if keys not in formats:
+                #        formats.append(keys)
+                #elif type(value[0]) == list and len(value[0]) > 1 :
+                #    value = ','.join([
+                #    str(val) if val != None else 'NaN'for val in value[0]])
+                #    sam_string.append(value)
+                #    if keys not in formats:
+                #        formats.append(keys)
+                #else:
+                #    if value[0] == None:
+                #        continue
+                #    else:
+                #        sam_string.append(str(value[0]))
+                #        if keys not in formats:
+                #            formats.append(keys)
             #print(':'.join(formats))
             #print(':'.join(sam_string))
             rec.append(':'.join(formats))

@@ -195,7 +195,8 @@ class Reader:
                 value = list(map(float, value.split(',')))
             elif info_type == 'String' or info_type == 'Character':
                 value = value.split(',')
-            info_dict[key] = value 
+            info_dict[key] = value
+
         return info_dict
 
     def getSampleInfo(self, sample_lists):
@@ -207,7 +208,7 @@ class Reader:
             for field, value in zip(format_fields, sample_fields):
                 format_type = self.format_dict[field]
                 if format_type == 'Integer':
-                    value = list(map(float, value.split(',')))
+                    value = list(map(int, value.split(',')))
                 elif format_type == 'Float':
                     value = list(map(float, value.split(',')))
                 elif format_type == 'String' or format_type == 'Character':

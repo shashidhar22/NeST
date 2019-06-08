@@ -36,6 +36,21 @@ class GenAnTK:
             print(' '.join(hcmd))
         return(vcf_path, hrun.returncode)
 
+class FreeBayes:
+
+    def __init__(self, free_path, out_path):
+        self.free_path = free_path
+        self.out_path = out_path
+        return
+    def freeBayes(self, bam_path, ref_path, sam_name):
+        vcf_path = '{0}/{1}_variants_freebayes.vcf'.format(self.out_path, sam_name)
+        fcmd = '{0} -f {1} {2} > {3}'.format(self.free_path, ref_path, bam_path, vcf_path)
+        frun = subprocess.Popen(fcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True)
+        frun.wait()
+        if frun.returncode != 0:
+            print(' '.join(fcmd))
+        return(vcf_path, frun.returncode)
+
 
 class Picard:
 

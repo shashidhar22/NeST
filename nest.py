@@ -19,13 +19,16 @@ from nest.alignment import Snap
 from nest.samtools import Samtools
 from nest.gatk import GenAnTK
 from nest.gatk import Picard
+from nest.gatk import FreeBayes
 from nest.kestrel import KestrelVar
 #from nest.annotater import Annotate
 from nest.kestrel import kes_runner
 from nest.summarize import Summary
 from nest.prepinputs import Prepper
-from nest.parsers.vcf import Vcf
-
+from nest.parsers.vcfReader import Reader 
+from nest.parsers.vcfmerge import Merge
+from nest.parsers.vcfannotate import Annotate
+from nest.parsers.vcfwriter import Writer
 def main(arguments):
     bbduk_path = arguments[0]
     alinger_path = arguments[1]
@@ -293,6 +296,22 @@ def main(arguments):
     else:
         main_logger.debug('GATK HaplotypeCaller stats completed')
 
+    #Call Freebayes to generate VCF files
+    varcaller = FreeBayes('freebayes', out_path)
+    main_logger.debug('Running Freebayes')
+    if os.path.exists('{0}/freebayes.rt'.format(completion_path)):
+        fvcf_path = '{0}/{1}_variants_freebayes.vcf'.format(out_path, sam_name)
+        fret = 0
+        main_logger.debug('Skipping Freebayes')
+    else:
+        fvcf_path, fret = varcaller.freeBayes(bam_path, ref_path, sam_name)
+        if fret == 0:
+            Path('{0}/freebayes.rt'.format(completion_path)).touch()
+    if fret != 0:
+        raise RuntimeError('Freebayes failed to complete; Exiting MARs')
+    else:
+        main_logger.debug('Freebayes stats completed')
+
     #Call Kestrel to generate VCF files
     #kestrel_path = 'lib/kestrel/kestrel.jar'
     #kanalyze_path = 'lib/kestrel/kanalyze.jar'
@@ -315,15 +334,20 @@ def main(arguments):
 
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
-    annotate = Vcf.Annotate()
+    annotate = Annotate()
     gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path, bam_path)
     vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path, bam_path)
+    fvcf_path = annotate.getAnnotation(bed_path, fvcf_path, ref_path, out_path, bam_path)
+    vcf_dict = {gvcf_path: 'GATK', vcf_path: 'Samtools', fvcf_path: 'Freebayes'}
+    merger = Merge(out_path, vcf_dict)
+    merged_vcf = merger.splitter(list(vcf_dict.keys()))[0]
+    final_vcf= '{0}/{1}_variants_merged.vcf'.format(out_path, sam_name)
+    os.rename(merged_vcf, final_vcf)
+    final_path = annotate.getAnnotation(bed_path, final_vcf, ref_path, out_path, bam_path)
     main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
-    gvcf_file = Vcf.Reader(gvcf_path)
-    svcf_file = Vcf.Reader(vcf_path)
-    merged_vcf = Vcf.Merge(gvcf_file, svcf_file, out_path).merge()
+    #merged_vcf = Vcf.Merge(gvcf_file, svcf_file, out_path).merge()
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    var_sum = summary.getVarStats(merged_vcf)
+    var_sum = summary.getVarStats(final_path)
     main_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
                         var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
     if purge:
@@ -338,7 +362,7 @@ def main(arguments):
        vcffiles = glob.glob('{0}/*.bcf*'.format(out_path))
        for files in vcffiles:
            os.remove(files)
-    return(merged_vcf, 0)
+    return(final_path, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               inp_path, ref_path, adp_path, bed_path, out_dir, aligner,
@@ -466,6 +490,13 @@ if __name__ == '__main__':
 
     if not os.path.exists(args.out_path):
         os.mkdir(args.out_path)
+
+    #single sample experiment.
+    print(args.bbduk_path, args.aligner_path, args.smt_path,
+                args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
+                args.adp_path, args.bed_path, args.out_path, args.aligner,
+                args.pic_path, args.voi_path, java_def, sra_def, args.verbose, 
+                args.threads, args.purge)
 
     #Check if the run command is for batch mode analysis or single sample
     #analysis.

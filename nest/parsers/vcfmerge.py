@@ -9,8 +9,9 @@ from nest.parsers.vcfwriter import Writer
 
 class Merge:
 
-    def __init__(self, tmp_dir):
+    def __init__(self, tmp_dir, vcf_dict):
          self.out_path = tmp_dir
+         self.vcf_dict = vcf_dict
 
     def splitter(self, vcf_list):
         vcf_len  = len(vcf_list)
@@ -20,7 +21,6 @@ class Merge:
             vcf_left = self.splitter(vcf_list[:vcf_len//2])
             vcf_right = self.splitter(vcf_list[vcf_len//2:])
             vcf_list = self.merge(vcf_left, vcf_right)
-            print(vcf_list)
             return vcf_list
         else:
             vcf_list = self.splitter(vcf_list[:vcf_len//2]) + self.splitter(vcf_list[vcf_len//2:])
@@ -72,10 +72,16 @@ class Merge:
                         else:
                             info_dict[key] = value 
                     if 'Sources' in lline.INFO and 'Sources' in rline.INFO:
-                        info_dict['Confidence'][0] += rline.INFO['Confidence']
-                        info_dict['Sources'][0] += ',{0}'.format(rline.INFO['Confidence'])
-                    elif 'Sources' not in info_dict:
-                        info_dict['Confidence'] = [2]
+                        info_dict['Confidence'][0] += rline.INFO['Confidence'][0]
+                        info_dict['Sources'][0] += rline.INFO['Sources'][0]
+                    elif 'Sources' in lline.INFO and 'Sources' not in rline.INFO:
+                        info_dict['Confidence'][0] += len(rsource.split(','))
+                        info_dict['Sources'][0] += ',{0}'.format(rsource)
+                    elif 'Sources' not in lline.INFO and 'Sources' in rline.INFO:
+                        info_dict['Confidence'] = [1 + rline.INFO['Confidence'][0]]
+                        info_dict['Sources'] = ['{0},{1}'.format(lsource, rline.INFO['Sources'][0])]
+                    else:
+                        info_dict['Confidence'] = [len(lsource.split(',')) + len(rsource.split(','))]
                         info_dict['Sources'] = ['{0},{1}'.format(lsource, rsource)]
                     record.INFO = info_dict
                     sample_dict = copy.deepcopy(lline.Samples)
@@ -100,14 +106,20 @@ class Merge:
                 record = lline
                 if 'Sources' not in lline.INFO:
                    record.INFO['Confidence'] = [1]
-                   record.INFO['Sources'] = ['{0}'.format(lsource)]
+                   record.INFO['Sources'] = [lsource]
+                else:
+                    record.INFO['Confidence'] = lline.INFO['Confidence']
+                    record.INFO['Sources'] = [lline.INFO['Sources'][0]]
                 yield record
                 lline = next(lreader, None)
             elif lline.UID > rline.UID:
                 record = rline 
                 if 'Sources' not in rline.INFO:
                     record.INFO['Confidence'] = [1]
-                    record.INFO['Sources'] = ['{0}'.format(rsource)]
+                    record.INFO['Sources'] = [rsource]
+                else:
+                    record.INFO['Confidence'] = rline.INFO['Confidence']
+                    record.INFO['Sources'] = [rline.INFO['Sources'][0]]
                 yield record
                 rline = next(rreader, None)
         while lline:
@@ -115,6 +127,9 @@ class Merge:
             if 'Sources' not in lline.INFO:
                 record.INFO['Confidence'] = [1]
                 record.INFO['Sources'] = ['{0}'.format(lsource)]
+            else:
+                record.INFO['Confidence'] = lline.INFO['Confidence']
+                record.INFO['Sources'] = [lline.INFO['Sources'][0]]
             yield record
             lline = next(lreader, None)
 
@@ -122,18 +137,20 @@ class Merge:
             record = rline 
             if 'Sources' not in rline.INFO:
                 record.INFO['Confidence'] = [1]
-                record.INFO['Sources'] = ['{0}'.format(rsource)]
+                record.INFO['Sources'] = [rsource]
+            else:
+                record.INFO['Confidence'] = rline.INFO['Confidence']
+                record.INFO['Sources'] = [rline.INFO['Sources'][0]]
             yield record
             rline = next(rreader, None)
 
     def merge(self, vcf_left, vcf_right):
-        try:
-            lsource = os.path.splitext(os.path.basename(vcf_left[0]))[0].split('_')[2]
-            rsource = os.path.splitext(os.path.basename(vcf_right[0]))[0].split('_')[2]
-        except IndexError:
-            lsource = os.path.splitext(os.path.basename(vcf_left[0]))[0]
-            rsource = os.path.splitext(os.path.basename(vcf_right[0]))[0]
-        out_file = '{0}/{1}_{2}_{3}.vcf'.format(self.out_path, 'tmp', lsource, rsource)
+        lsource = self.vcf_dict[vcf_left[0]]
+        rsource = self.vcf_dict[vcf_right[0]]
+        rname = '_'.join(rsource.split(','))
+        lname = '_'.join(lsource.split(','))
+        out_file = '{0}/{1}_{2}_{3}.vcf'.format(self.out_path, 'tmp', lname, rname)
+        self.vcf_dict[out_file] = '{0},{1}'.format(lsource, rsource)
         out_write = Writer(out_file)
         lvcf = Reader(vcf_left[0])
         lvcf.readheader()

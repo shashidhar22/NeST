@@ -12,7 +12,7 @@ import subprocess
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from nest.parsers.vcf import Vcf
+from nest.parsers.vcfReader import Reader
 from nest.parsers.bed import Bed
 from collections import namedtuple
 from collections import OrderedDict
@@ -171,18 +171,19 @@ class Summary:
             self.out_path))
         vcf_dict = {'Gene': [], 'Pos': [], 'Qual': [], 'Ref': [], 'Alt': [],
             'AAPos': [], 'AltCodon': [], 'RefCodon': [], 'RefAA': [],
-            'AltAA': [], 'DP': [], 'AF': [], 'Conf': [], 'Exon': [],
-            'Chrom': []}
+            'AltAA': [], 'DP': [], 'AF': [], 'Confidence': [], 'Exon': [],
+            'Chrom': [], 'Sources': []}
         vcf_var = list()
         vcf_sample = list()
         for files in vcf_files:
-            vcf = Vcf.Reader(files)
-            vcf_file = vcf.read()
+            vcf = Reader(files)
+            vcf.readheader()
+            vcf_file = vcf.readvcf()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
-            sample = barcode.split(vcf.samples[0])[0]
             for var in vcf_file:
                 #If variant call is annotated as an intronic call
                 #push it into the intronic variant dictionary
+                sample = barcode.split(list(var.keys())[0])
                 variant = '{0}:{1}{2}{3}'.format(var.CHROM, var.REF[0],
                                                 var.POS, var.ALT[0])
                 if var.INFO['Exon'][0] == 'Intron':
@@ -200,7 +201,8 @@ class Summary:
                     vcf_dict['AltAA'].append('NA')
                     vcf_dict['DP'].append(var.INFO['DP'][0])
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0])*100)
-                    vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
+                    vcf_dict['Confidence'].append(int(var.INFO['Confidence'][0]))
+                    vcf_dict['Sources'].append(var.INFO['Sources'][0])
                     vcf_var.append(variant)
                     vcf_sample.append(sample)
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
@@ -245,20 +247,23 @@ class Summary:
         vcf_df = pd.DataFrame()
         vcf_dict = {'Gene' : [], 'Pos' : [], 'Qual' : [], 'Ref' : [],
             'Alt' : [], 'AAPos' : [], 'RefCodon' : [], 'AltCodon' : [],
-            'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Conf': [],
-            'Exon' : [], 'Chrom' : []}
+            'RefAA' : [], 'AltAA' : [], 'DP' : [], 'AF' : [], 'Confidence': [],
+            'Exon' : [], 'Chrom' : [], 'Sources' : []}
         vcf_var = list()
         vcf_sample = list()
         vcf_gene = list()
         var_sample = list()
         voi_df = self.getVarOfInt()
         for files in vcf_files:
-            vcf = Vcf.Reader(files)
-            vcf_file = vcf.read()
+            vcf = Reader(files)
+            vcf.readheader()
+            vcf_file = vcf.readvcf()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
-            sample = barcode.split(vcf.samples[0])[0]
             count = 0
             for var in vcf_file:
+                sample = barcode.split(list(var.Samples.keys())[0])
+                if 'Gene' not in var.INFO:
+                    continue
                 variant = '{0}:{1}{2}{3}'.format(var.INFO['Gene'][0],
                                                 var.INFO['RefAA'][0],
                                                 var.INFO['AAPos'][0],
@@ -295,7 +300,8 @@ class Summary:
                     vcf_dict['AltAA'].append(var.INFO['AltAA'][0])
                     vcf_dict['DP'].append(var.INFO['DP'][0])
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0]) * 100)
-                    vcf_dict['Conf'].append(int(var.INFO['Conf'][0]))
+                    vcf_dict['Confidence'].append(int(var.INFO['Confidence'][0]))
+                    vcf_dict['Sources'].append(var.INFO['Sources'][0])
                     vcf_gene.append(var.CHROM)
                     vcf_var.append(variant)
                     vcf_sample.append(sample)
@@ -331,7 +337,8 @@ class Summary:
                     vcf_dict['AltAA'].append(rec.AltAA)
                     vcf_dict['DP'].append(0)
                     vcf_dict['AF'].append(np.nan)
-                    vcf_dict['Conf'].append(2)
+                    vcf_dict['Confidence'].append(3)
+                    vcf_dict['Sources'].append('GATK,Freebayes,Samtools')
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
 
@@ -375,6 +382,7 @@ class Summary:
         #Get table of exonic variants and variants of interest
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
+        print(exp_df.head())
         exp_voi = pd.DataFrame()
         if voi_df is None:
             return(None)
@@ -391,6 +399,7 @@ class Summary:
             var_voi.set_index(var_index, inplace=True)
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
+        print(exp_voi.head())
         exp_voi['FinalCall'] = exp_voi['SNP']
         #Regex to check if the variant description field is in the correct format
         var_regex = (r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])'
@@ -399,7 +408,7 @@ class Summary:
             #print(exp_voi.at[index, 'FinalCall'])
             if pd.isnull(series['DP']) or series['DP'] == 0:
                 exp_voi.at[index, 'FinalCall'] = 'WT'
-                exp_voi.at[index, 'Conf'] = 2
+                exp_voi.at[index, 'Confidence'] = 2
             elif pd.isnull(series['Alt']):
                 var_reg = re.match(var_regex, series['SNP'])
                 exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(
@@ -416,7 +425,7 @@ class Summary:
             inplace=True)
         exp_voi = exp_voi[['Chrom', 'Gene', 'SNP', 'FinalCall', 'Ref', 'Alt',
             'Pos', 'Qual', 'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos',
-            'Exon', 'AF', 'DP', 'Conf']]
+            'Exon', 'AF', 'DP', 'Confidence', 'Sources']]
         return(exp_voi)
 
     def getNovSnps(self):
@@ -467,7 +476,7 @@ class Summary:
         exp_nov = exp_nov[exp_nov.Conf == 2]
         exp_nov = exp_nov[['Chrom', 'Gene', 'Ref', 'Alt', 'Pos', 'Qual',
             'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos', 'Exon', 'AF',
-            'DP', 'Conf']]
+            'DP', 'Confidence', 'Sources']]
 
         return(exp_nov)
 
@@ -565,8 +574,8 @@ class Summary:
                 json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
                     'Ref' : record.RefAA, 'Pos': record.AAPos,
                     'Alt': record.AltAA , 'Call' :  record.FinalCall,
-                    'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
-                    'Status' : 'Known'}
+                    'AF' : record.AF, 'DP': record.DP, 'Confidence': record.Confidence,
+                    'Status' : 'Known', 'Sources': record.Sources}
 
         for index, record in novel_snps.iterrows():
             sample_info = self.config[index[0]]
@@ -589,8 +598,8 @@ class Summary:
             json_dict['Sample'][index[0]]['VariantCalls'][index[1]] = {
                 'Ref' : record.RefAA, 'Pos': record.AAPos,
                 'Alt': record.AltAA , 'Call' :  'NA',
-                'AF' : record.AF, 'DP': record.DP, 'Conf': record.Conf,
-                'Status' : 'Novel'}
+                'AF' : record.AF, 'DP': record.DP, 'Confidence': record.Confidence,
+                'Status' : 'Novel', 'Sources': record.Sources}
 
         json.dump(json_dict, jsonFile, indent=4)
         jsonFile.close()
@@ -762,8 +771,9 @@ class Summary:
                       fig_path))
 
     def getVarStats(self, vcf_file):
-        vcf_file = Vcf.Reader(vcf_file)
-        vcf_reader = vcf_file.read()
+        vcf_file = Reader(vcf_file)
+        vcf_file.readheader()
+        vcf_reader = vcf_file.readvcf()
         total = 0
         exonic = 0
         intronic = 0
@@ -775,19 +785,22 @@ class Summary:
         trasition = ['AG', 'GA', 'CT', 'TC']
         transversion = ['AC', 'AT', 'CA', 'CG', 'GC', 'GT', 'TA', 'TG']
         for variant in vcf_reader:
-            total += 1
-            if variant.INFO['Conf'][0] == 2:
-                verfied += 1
-            if variant.INFO['Exon'][0] == 'Intron':
-                intronic += 1
-            else:
-                exonic += 1
-                if variant.INFO['RefAA'][0] == variant.INFO['AltAA'][0]:
-                    syn += 1
+            try:
+                total += 1
+                if variant.INFO['Confidence'][0] >= 2:
+                    verfied += 1
+                if variant.INFO['Exon'][0] == 'Intron':
+                    intronic += 1
                 else:
-                    nsyn += 1
-                if '{0}{1}'.format(variant.REF[0], str(variant.ALT[0])) in trasition:
-                    trans += 1
-                else:
-                    tranv += 1
+                    exonic += 1
+                    if variant.INFO['RefAA'][0] == variant.INFO['AltAA'][0]:
+                        syn += 1
+                    else:
+                        nsyn += 1
+                    if '{0}{1}'.format(variant.REF[0], str(variant.ALT[0])) in trasition:
+                        trans += 1
+                    else:
+                        tranv += 1
+            except KeyError:
+                continue
         return(total, verfied, exonic, intronic, syn, nsyn, trans, tranv)

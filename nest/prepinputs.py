@@ -342,7 +342,7 @@ class Prepper:
                 experiment[sample] = Sample(sample, lib, seqType, [fastq],
                 libType, paired, year, country, site, td, treatment, sid, gs,
                 stype, markers, replicate)
-        self.logger.info('A total of {0} libraries were identified from the given folder'.format(len(experiment)))
+        self.logger.debug('A total of {0} libraries were identified from the given folder'.format(len(experiment)))
         #self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         for sample, values in experiment.items():
             self.logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(

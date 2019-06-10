@@ -279,7 +279,7 @@ class Annotate:
         cdspos_header = self.addInfoHeader('CDSPos', type='Integer',
             description='CDS location of variant', number=1)
         vcf.header['info'].append(cdspos_header)
-        vcf.info_dict['CDSPos'] = [1, 'Interger']
+        vcf.info_dict['CDSPos'] = [1, 'Integer']
         ref_codon_header = self.addInfoHeader('RefCodon',
             description='Reference codon for the variant', number=1)
         vcf.header['info'].append(ref_codon_header)
@@ -287,7 +287,7 @@ class Annotate:
         aapos_header = self.addInfoHeader('AAPos', type='Integer',
             description='Amino acid position altered by variant', number=1)
         vcf.header['info'].append(aapos_header)
-        vcf.info_dict['AAPos'] = [1, 'Interger']
+        vcf.info_dict['AAPos'] = [1, 'Integer']
         alt_codon_header = self.addInfoHeader('AltCodon',
             description='Alternate codon for the variant', number=1)
         vcf.header['info'].append(alt_codon_header)
@@ -382,7 +382,7 @@ class Annotate:
                         #Add triplet to info
                         vcf_rec.INFO['RefCodon'] = [triplet]
                         #Add Amino acid position
-                        vcf_rec.INFO['AAPos'] = [aa_pos]
+                        vcf_rec.INFO['AAPos'] = [int(aa_pos)]
                         #Add Alt codon Amino acid position
                         vcf_rec.INFO['AltCodon'] = [alt_triplet]
                         #Add Ref Amino acid
@@ -399,7 +399,7 @@ class Annotate:
                         vcf_rec.INFO['Gene'] = [gene]
                         #Add Variant
                         vcf_rec.INFO['Var'] = ['{0}:{1}{2}{3}'.format(
-                                            gene, ref_aa, aa_pos, alt_aa)]
+                                            gene, ref_aa, int(aa_pos), alt_aa)]
 
                     vcf_writer.writeRecords(vcf_rec)
                     vcf_count += 1
@@ -464,7 +464,7 @@ class Annotate:
                     #Add Variant
                     vcf_rec.INFO['Var'] = ['{0}:{1}{2}{3}'.format(
                                         vcf_rec.CHROM, vcf_rec.REF[0],
-                                        vcf_rec.POS, vcf_rec.ALT[0])]
+                                        int(vcf_rec.POS), vcf_rec.ALT[0])]
                     vcf_writer.writeRecords(vcf_rec)
                     vcf_count += 1
                     #print('Vcf record {0} written'.format(vcf_count))

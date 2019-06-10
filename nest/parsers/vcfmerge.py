@@ -79,7 +79,7 @@ class Merge:
                         info_dict['Sources'][0] += ',{0}'.format(rsource)
                     elif 'Sources' not in lline.INFO and 'Sources' in rline.INFO:
                         info_dict['Confidence'] = [1 + rline.INFO['Confidence'][0]]
-                        info_dict['Sources'] = ['{0},{1}'.format(lsource, rline.INFO['Sources'][0])]
+                        info_dict['Sources'] = ['{0},{1}'.format(lsource, ','.join(rline.INFO['Sources']))]
                     else:
                         info_dict['Confidence'] = [len(lsource.split(',')) + len(rsource.split(','))]
                         info_dict['Sources'] = ['{0},{1}'.format(lsource, rsource)]
@@ -109,7 +109,7 @@ class Merge:
                    record.INFO['Sources'] = [lsource]
                 else:
                     record.INFO['Confidence'] = lline.INFO['Confidence']
-                    record.INFO['Sources'] = [lline.INFO['Sources'][0]]
+                    record.INFO['Sources'] = [','.join(lline.INFO['Sources'])]
                 yield record
                 lline = next(lreader, None)
             elif lline.UID > rline.UID:
@@ -119,7 +119,7 @@ class Merge:
                     record.INFO['Sources'] = [rsource]
                 else:
                     record.INFO['Confidence'] = rline.INFO['Confidence']
-                    record.INFO['Sources'] = [rline.INFO['Sources'][0]]
+                    record.INFO['Sources'] = [','.join(rline.INFO['Sources'])]
                 yield record
                 rline = next(rreader, None)
         while lline:
@@ -129,7 +129,7 @@ class Merge:
                 record.INFO['Sources'] = ['{0}'.format(lsource)]
             else:
                 record.INFO['Confidence'] = lline.INFO['Confidence']
-                record.INFO['Sources'] = [lline.INFO['Sources'][0]]
+                record.INFO['Sources'] = [','.join(lline.INFO['Sources'])]
             yield record
             lline = next(lreader, None)
 
@@ -140,7 +140,7 @@ class Merge:
                 record.INFO['Sources'] = [rsource]
             else:
                 record.INFO['Confidence'] = rline.INFO['Confidence']
-                record.INFO['Sources'] = [rline.INFO['Sources'][0]]
+                record.INFO['Sources'] = [','.join(rline.INFO['Sources'])]
             yield record
             rline = next(rreader, None)
 

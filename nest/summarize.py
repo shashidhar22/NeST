@@ -183,10 +183,12 @@ class Summary:
             for var in vcf_file:
                 #If variant call is annotated as an intronic call
                 #push it into the intronic variant dictionary
-                sample = barcode.split(list(var.keys())[0])
+                sample = barcode.split(list(var.Samples.keys())[0])[0]
                 variant = '{0}:{1}{2}{3}'.format(var.CHROM, var.REF[0],
                                                 var.POS, var.ALT[0])
-                if var.INFO['Exon'][0] == 'Intron':
+                if 'Exon' not in var.INFO:
+                    continue
+                elif var.INFO['Exon'][0] == 'Intron':
                     vcf_dict['Chrom'].append(var.CHROM)
                     vcf_dict['Gene'].append(var.CHROM)
                     vcf_dict['Pos'].append(var.POS)
@@ -202,7 +204,7 @@ class Summary:
                     vcf_dict['DP'].append(var.INFO['DP'][0])
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0])*100)
                     vcf_dict['Confidence'].append(int(var.INFO['Confidence'][0]))
-                    vcf_dict['Sources'].append(var.INFO['Sources'][0])
+                    vcf_dict['Sources'].append(','.join(var.INFO['Sources']))
                     vcf_var.append(variant)
                     vcf_sample.append(sample)
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
@@ -261,7 +263,7 @@ class Summary:
             barcode = re.compile('_[ATGC]*-[ATGC]*')
             count = 0
             for var in vcf_file:
-                sample = barcode.split(list(var.Samples.keys())[0])
+                sample = barcode.split(list(var.Samples.keys())[0])[0]
                 if 'Gene' not in var.INFO:
                     continue
                 variant = '{0}:{1}{2}{3}'.format(var.INFO['Gene'][0],
@@ -301,7 +303,7 @@ class Summary:
                     vcf_dict['DP'].append(var.INFO['DP'][0])
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0]) * 100)
                     vcf_dict['Confidence'].append(int(var.INFO['Confidence'][0]))
-                    vcf_dict['Sources'].append(var.INFO['Sources'][0])
+                    vcf_dict['Sources'].append(','.join(var.INFO['Sources']))
                     vcf_gene.append(var.CHROM)
                     vcf_var.append(variant)
                     vcf_sample.append(sample)
@@ -341,7 +343,6 @@ class Summary:
                     vcf_dict['Sources'].append('GATK,Freebayes,Samtools')
                     vcf_var.append(variants)
                     vcf_sample.append(sample)
-
         vcf_index = [np.array(vcf_sample), np.array(vcf_var)]
         vcf_df = pd.DataFrame(vcf_dict, index=vcf_index)
         vcf_df.index.names = ['Sample', 'Variant']
@@ -382,7 +383,6 @@ class Summary:
         #Get table of exonic variants and variants of interest
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
-        print(exp_df.head())
         exp_voi = pd.DataFrame()
         if voi_df is None:
             return(None)
@@ -399,7 +399,6 @@ class Summary:
             var_voi.set_index(var_index, inplace=True)
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
-        print(exp_voi.head())
         exp_voi['FinalCall'] = exp_voi['SNP']
         #Regex to check if the variant description field is in the correct format
         var_regex = (r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])'
@@ -408,7 +407,8 @@ class Summary:
             #print(exp_voi.at[index, 'FinalCall'])
             if pd.isnull(series['DP']) or series['DP'] == 0:
                 exp_voi.at[index, 'FinalCall'] = 'WT'
-                exp_voi.at[index, 'Confidence'] = 2
+                exp_voi.at[index, 'Confidence'] = 3
+                exp_voi.at[index, 'Sources'] = 'GATK,Samtools,Freebayes'
             elif pd.isnull(series['Alt']):
                 var_reg = re.match(var_regex, series['SNP'])
                 exp_voi.at[index, 'FinalCall'] = '{0}{1}{0}'.format(
@@ -473,7 +473,7 @@ class Summary:
             var_nov.set_index(var_index, inplace=True)
             var_nov.index.names = ['Sample', 'Variant']
             exp_nov = exp_nov.append(var_nov)
-        exp_nov = exp_nov[exp_nov.Conf == 2]
+        exp_nov = exp_nov[exp_nov.Confidence >= 2]
         exp_nov = exp_nov[['Chrom', 'Gene', 'Ref', 'Alt', 'Pos', 'Qual',
             'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos', 'Exon', 'AF',
             'DP', 'Confidence', 'Sources']]
@@ -691,7 +691,6 @@ class Summary:
         #Write Known and novel variants to files
         self.toCSV('known')
         self.toCSV('novel')
-        self.toJSON()
         fig_path = '{0}/Figures'.format(self.out_path)
         if not os.path.exists(fig_path):
             os.mkdir(fig_path)

@@ -190,7 +190,7 @@ class Reader:
                 value = [True]
             info_type = self.info_dict[key]
             if info_type == 'Integer':
-                value = list(map(float, value.split(',')))
+                value = list(map(int, value.split(',')))
             elif info_type == 'Float':
                 value = list(map(float, value.split(',')))
             elif info_type == 'String' or info_type == 'Character':

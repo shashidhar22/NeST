@@ -90,17 +90,18 @@ class Writer:
         for key, value in records.INFO.items():
             #print(key,value)
             # If values are absent, do not write value
-            if value == None or value[0] == None:
-                continue
-            elif type(value[0]) == list:
-                info.append('{0}={1}'.format(key,
-                            ','.join([str(val) for val in value[0]])))
-            elif type(value[0]) == bool and value[0]:
-                info.append('{0}'.format(key))
-            elif type(value[0]) == bool and not value[0]:
-                continue
+            if len(value) == 1:
+                if value[0] is None:
+                    continue
+                elif type(value[0]) == bool and value[0]:
+                    info.append('{0}'.format(key))
+                elif type(value[0]) == bool and value[0]:
+                    continue
+                else:
+                    info.append('{0}={1}'.format(key, value[0]))
             else:
-                info.append('{0}={1}'.format(key, value[0]))
+                info.append('{0}={1}'.format(key, 
+                            ','.join([str(val) for val in value])))
         rec.append(';'.join(info))
         all_formats = list()
         #print(records.CHROM, records.POS)

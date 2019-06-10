@@ -93,7 +93,7 @@ class Samtools:
 
     def bcftools(self, bcf_path, sam_name):
         ovcf_path = '{0}/{1}_variants_samtools.vcf'.format(self.out_path, sam_name)
-        btcmd = [self.bft_path, 'call', '--skip-variants', 'indels',
+        btcmd = [self.bft_path, 'call', 
                 '--multiallelic-caller', '--variants-only', '-O', 'v',
                 '-s', sam_name, '-o', ovcf_path, bcf_path]
         btrun = subprocess.Popen(btcmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=False)

@@ -35,19 +35,20 @@ def main(arguments):
     smt_path = arguments[2]
     bft_path = arguments[3]
     gatk_path = arguments[4]
-    sra_number = arguments[5]
-    ref_path = arguments[6]
-    adp_path = arguments[7]
-    bed_path = arguments[8]
-    out_dir = arguments[9]
-    aligner = arguments[10]
-    pic_path = arguments[11]
-    voi_path = arguments[12]
-    java_path = arguments[13]
-    purge = arguments[14]    
+    sam_name = arguments[5]
+    file_list = arguments[6]
+    ref_path = arguments[7]
+    adp_path = arguments[8]
+    bed_path = arguments[9]
+    out_dir = arguments[10]
+    aligner = arguments[11]
+    pic_path = arguments[12]
+    voi_path = arguments[13]
+    java_path = arguments[14]
+    sra_path = arguments[15]
+    purge = arguments[16]    
     #Setup logging
     #Get logger for main method
-    sam_name = sra_number
     main_logger = logging.getLogger('NeST.{0}'.format(sam_name))
 
     #Check if files are present
@@ -59,13 +60,11 @@ def main(arguments):
     if not os.path.exists(fastq_path):
         os.mkdir(fastq_path)
     #Get FASTQs
-    config = Prepper(fastq_path, sra_number, 'fastq-dump')
-    fastq_path = config.downloadSRA()
+    prepper =  Prepper(fastq_path, out_dir, sra_path)
+    fastq_path = prepper.downloadSRA(sam_name, file_list)
     ##Note: Generalize this, right now it will only work with SRA. This is a fix for NEJM
-    fastq_files = glob.glob('{0}/*.fastq.gz'.format(fastq_path))
-    study = config.prepInputs(fastq_files)
-    rone_path = study[sam_name].files[0]
-    rtwo_path = study[sam_name].files[1]
+    rone_path = file_list[0]
+    rtwo_path = file_list[1]
   
     if not os.path.exists(rone_path):
         raise FileNotFoundException('Forward read not found; Exiting MARs')
@@ -312,25 +311,6 @@ def main(arguments):
     else:
         main_logger.debug('Freebayes stats completed')
 
-    #Call Kestrel to generate VCF files
-    #kestrel_path = 'lib/kestrel/kestrel.jar'
-    #kanalyze_path = 'lib/kestrel/kanalyze.jar'
-    #varcaller = KestrelVar(rone_path, rtwo_path, ref_path, kanalyze_path,
-    #                        kestrel_path, out_path)
-    #varcaller = GenAnTK(gatk_path, out_path, java_path)
-    #main_logger.debug('Running Kestrel')
-    #if os.path.exists('{0}/kestrel.rt'.format(completion_path)):
-    #    kvcf_path = '{0}/vairants_kes.vcf'.format(out_path)
-    #    kret = 0
-    #    main_logger.debug('Skipping Kestrel')
-    #else:
-    #    kvcf_path, kret = varcaller.run_kestrel()
-    #    if kret == 0:
-    #        Path('{0}/kestrel.rt'.format(completion_path)).touch()
-    #if kret != 0:
-    #    raise RuntimeError('Kestrel failed to complete; Exiting MARs')
-    #else:
-    #    main_logger.debug('Kestrel stats completed')
 
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
@@ -391,12 +371,15 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.addHandler(ch)
     #Create file and console handlers for MaRS
     logger.info('Gathering input information from input path.')
-    #prep = Prepper(inp_path, sra_path)
-    sra_list = [sra_number.strip() for sra_number in open(inp_path)]
-    logger.info('Running MaRS on {0} experiments'.format(len(sra_list)))
+    prep = Prepper(inp_path, out_dir, sra_path).prepInputs()
+    samples, files = list(), list()
+    logger.info('Running MaRS on {0} experiments'.format(len(prep)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #samples = config.keys()
     pools = Pool(threads)
+    for sample in prep:
+        samples.append(prep[sample].sample)
+        files.append(prep[sample].files)
     #rone_list = list()
     #rtwo_list = list()
     #name_list = list()
@@ -408,14 +391,11 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
 
     vcf_list = pools.map(main, zip(repeat(bbduk_path), repeat(aligner_path),
                 repeat(smt_path), repeat(bft_path), repeat(gatk_path),
-                sra_list, repeat(ref_path), repeat(adp_path),
+                samples, files, repeat(ref_path), repeat(adp_path),
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
                 repeat(pic_path), repeat(voi_path),
-                repeat(java_path), repeat(purge)))
-    fastq_list = glob.glob('{0}/*/RawFastq/*'.format(out_dir))
-    prep = Prepper(out_dir, None, None)
-    config = prep.prepInputs(fastq_list)
-    logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
+                repeat(java_path), repeat(sra_path), repeat(purge)))
+    logger.info('Summarizing variant calls from all {0} experiments'.format(len(prep)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #Sumarize variants of intrest
     summary.getSummary()

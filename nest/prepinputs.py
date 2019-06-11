@@ -133,41 +133,41 @@ class Prepper:
       1. input_path (str) : Path to input directory or sra accession list
       2. sra_path (str) : Path to fastq-dump executable """
 
-    def __init__(self, input_path, sra_number, sra_path):
+    def __init__(self, input_path, out_path, sra_path): #sra_number, sra_path):
         self.input_path = os.path.abspath(input_path)
+        self.out_path = os.path.abspath(out_path)
         self.sra_path = sra_path
-        self.sra_number = sra_number
         self.logger = logging.getLogger('NeST.prepInputs')
 
-    def downloadSRA(self):
+    def downloadSRA(self, sra_number, files):
         """Give a SRA accession list, download all the associated fastq files"""
-
-        self.logger.debug('Downloading : {0}'.format(self.sra_number))
-        fqd_cmd = [self.sra_path, '--gzip', '--split-3', '-O', self.input_path,
-                  '-A', self.sra_number]
-        fqd_run = subprocess.Popen(fqd_cmd, shell=False,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-        fqd_run.wait()
-        if fqd_run.returncode != 0:
-             self.logger.error('Could not download {0}'.format(self.sra_number))
-             self.logger.error(' '.join(fqd_cmd))
+        if os.path.exists(files[0]) and os.path.exists(files[1]):
+            return(self.input_path)
         else:
-             self.logger.info('Downladed complete: {0}'.format(self.sra_number))
-        return(self.input_path)
+            out_dir = os.path.dirname(files[0])
+            self.logger.debug('Downloading : {0}'.format(sra_number))
+            fqd_cmd = [self.sra_path, '--gzip', '--split-3', '-O', out_dir,
+                    '-A', sra_number]
+            fqd_run = subprocess.Popen(fqd_cmd, shell=False,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+            fqd_run.wait()
+            if fqd_run.returncode != 0:
+                self.logger.error('Could not download {0}'.format(sra_number))
+                print(' '.join(fqd_cmd))
+            else:
+                self.logger.info('Downladed complete: {0}'.format(sra_number))
+            return(self.input_path)
 
-    def getFastqPaths(self, out_path=None):
+    def getFastqPaths(self):
         """Given a directory path, extract all the fastq file names"""
-        if out_path:
-            filenames = glob.glob('{0}/RawFastq/*'.format(out_path))
-        else:
-            filenames = list()
-            for subdir, dirname, files in os.walk(self.input_path):
-                for filename in files:
-                    if ('.fastq' in filename or '.fastq.gz' in filename or
-                        'fq' in filename or 'fq.gz' in filename):
-                        filepath = subdir + os.sep + filename
-                        filenames.append(filepath)
+        filenames = list()
+        for subdir, dirname, files in os.walk(self.input_path):
+            for filename in files:
+                if ('.fastq' in filename or '.fastq.gz' in filename or
+                    'fq' in filename or 'fq.gz' in filename):
+                    filepath = subdir + os.sep + filename
+                    filenames.append(filepath)
         return(filenames)
 
     def getReadPresence(self, file_name, minimum=1):
@@ -233,36 +233,43 @@ class Prepper:
             sampleID, genusSpecies, type, marker_list, rep)
         return(sample)
 
-    def prepInputs(self, files):
+    def prepInputs(self):
         """Given a sra accession number create a sample record of reach file. Each sample record is
         added to a dictionary with the sample name as the key and sample record
         as the value"""
+        if  os.path.isfile(self.input_path):
+            files = open(self.input_path)
+            isfastq = False
+        else:
+            files = self.getFastqPaths()
+            isfastq = True
         experiment = dict()
         for fastq in files:
-            reader = Fastq(fastq, './', 'phred33')
-            Sample = namedtuple('Sample', ['sample', 'libname', 'library',
-            'files', 'prep', 'paired', 'year', 'country', 'site',
+            #reader = Fastq(fastq, './', 'phred33')
+            Sample = namedtuple('Sample', ['sample',  
+            'files', 'paired', 'year', 'country', 'site',
             'treatmentDay', 'treatment', 'iD', 'genus', 'type', 'markers',
             'replicate'])
-            readPresence = self.getReadPresence(fastq)
-            if not readPresence:
-                self.logger.warning('Sample doesn\'t contain minimum number of required reads; skipping sample : {0}'.format(fastq))
-                continue
-            rec = next(reader.read())
-            identifier = Identifier(rec)
-            metric = Metrics(fastq)
-            isIllOld =  identifier.isIlluminaOld()
-            isIllNew =  identifier.isIlluminaNew()
-            isSraOld = identifier.isSraOld()
-            isSraNew = identifier.isSraNew()
-            isPac = identifier.isPacbio()
-            isENA = identifier.isENA()
-            isFastq = identifier.isFastq()
-            isENANew = identifier.isENANew()
-            seqType = ''
-            libType = ''
-            sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
-            sample = sample_regex.split(os.path.basename(fastq))[0]
+            #readPresence = self.getReadPresence(fastq)
+            #if not readPresence:
+            #    self.logger.warning('Sample doesn\'t contain minimum number of required reads; skipping sample : {0}'.format(fastq))
+            #    continue
+            #rec = next(reader.read())
+            #identifier = Identifier(rec)
+            #metric = Metrics(fastq)
+            #isIllOld =  identifier.isIlluminaOld()
+            #isIllNew =  identifier.isIlluminaNew()
+            #isSraOld = identifier.isSraOld()
+            #isSraNew = identifier.isSraNew()
+            #isPac = identifier.isPacbio()
+            #isENA = identifier.isENA()
+            #isFastq = identifier.isFastq()
+            #isENANew = identifier.isENANew()
+            if isfastq:
+                sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
+                sample = sample_regex.split(os.path.basename(fastq))[0]
+            else:
+                sample = fastq.strip()
             sample_info = self.parseMaRS(sample)
             year = sample_info.Year
             country = sample_info.Country
@@ -274,79 +281,87 @@ class Prepper:
             stype = sample_info.Type
             markers = sample_info.Markers
             replicate = sample_info.Replicate
-            if isIllOld:
-                paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
-                #if metric.avgReadLen(): removing unnecessary call for the time being ##01/24/19
-                libType = 'Short'
-            elif isIllNew:
-                paired_regex = re.compile('@\w+-?\w+:\d+:\w+-?\w+:\d+:\d+:\d+:\d+\s')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
+            paired = False
+            #if isIllOld:
+            #    paired_regex = re.compile('@\w+-?\w+:\d+:\d+:\d+:\d+#\d')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
+            #    #if metric.avgReadLen(): removing unnecessary call for the time being ##01/24/19
+            #    libType = 'Short'
+            #elif isIllNew:
+            #    paired_regex = re.compile('@\w+-?\w+:\d+:\w+-?\w+:\d+:\d+:\d+:\d+\s')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
                 #if metric.avgReadLen():
-                libType = 'Short'
-            elif isSraOld:
-                paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
+            #    libType = 'Short'
+            #elif isSraOld:
+            #    paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\d+:\d+:\d+ length=\d+')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
+            #    #if metric.avgReadLen():
+            #    libType = 'Short'
+            #elif isSraNew:
+            #    paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
                 #if metric.avgReadLen():
-                libType = 'Short'
-            elif isSraNew:
-                paired_regex = re.compile('@\w+\.?\w+ \w+-?\w+:\d+:\w+:\d+:\d+:\d+:\d+ length=\d+')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
+            #    libType = 'Short'
+            #elif isENA:
+            #    paired_regex = re.compile('@[\w\.]+ \d+ length=\d+')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
+            #    if metric.avgReadLen():
+            #        libType = 'Short'
+            #elif isENANew:
+            #    paired_regex = re.compile('@[\w\.]+ .+ length=\d+')
+            #    lib = re.findall(paired_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Illumina'
+            #    if metric.avgReadLen():
+            #        libType = 'Short'
+            #elif isPac:
+            #    lib_regex = re.compile('@\w+_\d+_\d+_\w+')
+            #    lib = re.findall(lib_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Pacbio'
                 #if metric.avgReadLen():
-                libType = 'Short'
-            elif isENA:
-                paired_regex = re.compile('@[\w\.]+ \d+ length=\d+')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
-            elif isENANew:
-                paired_regex = re.compile('@[\w\.]+ .+ length=\d+')
-                lib = re.findall(paired_regex, rec.header)[0]
-                paired = False
-                seqType = 'Illumina'
-                if metric.avgReadLen():
-                    libType = 'Short'
-            elif isPac:
-                lib_regex = re.compile('@\w+_\d+_\d+_\w+')
-                lib = re.findall(lib_regex, rec.header)[0]
-                paired = False
-                seqType = 'Pacbio'
+            #    libType = 'Long'
+            #elif isFastq:
+            #    lib_regex = re.compile('@.+')
+            #    lib = re.findall(lib_regex, rec.header)[0]
+            #    paired = False
+            #    seqType = 'Unknown'
                 #if metric.avgReadLen():
-                libType = 'Long'
-            elif isFastq:
-                lib_regex = re.compile('@.+')
-                lib = re.findall(lib_regex, rec.header)[0]
-                paired = False
-                seqType = 'Unknown'
-                #if metric.avgReadLen():
-                libType = 'Short'
+            #    libType = 'Short'
+            #else:
+             #   self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec.header))
+            if isfastq:
+                try:
+                    paired = True
+                    experiment[sample] = Sample(sample, 
+                        [experiment[sample].files[0],fastq], paired,
+                        year, country, site, td, treatment, sid, gs, stype, markers,
+                        replicate)
+                except (KeyError, AttributeError):
+                    experiment[sample] = Sample(sample,  [fastq],
+                    paired, year, country, site, td, treatment, sid, gs,
+                    stype, markers, replicate)
             else:
-                self.logger.warning('Read from {0} with header : {1} does not follow any defined fastq header format.Please correct it'.format(fastq, rec.header))
-            try:
-                paired = True
-                experiment[sample] = Sample(sample, lib, seqType,
-                    [experiment[sample].files[0],fastq], libType, paired,
-                    year, country, site, td, treatment, sid, gs, stype, markers,
-                    replicate)
-            except (KeyError, AttributeError):
-                experiment[sample] = Sample(sample, lib, seqType, [fastq],
-                libType, paired, year, country, site, td, treatment, sid, gs,
-                stype, markers, replicate)
+                paired =True
+                file_list = ['{0}/{1}/RawFastq/{1}_1.fastq.gz'.format(self.out_path, sample),
+                             '{0}/{1}/RawFastq/{1}_2.fastq.gz'.format(self.out_path, sample)]
+                experiment[sample] = Sample(sample, file_list, paired, year, country, site, 
+                                            td, treatment, sid, gs, stype, markers, replicate)
         self.logger.debug('A total of {0} libraries were identified from the given folder'.format(len(experiment)))
         #self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         for sample, values in experiment.items():
-            self.logger.debug('Sample : {0}; Library: {1} ; Sequence type: {2} ; Files: {3} ; Library type: {4} ; Paired: {5}'.format(
-                    values.sample, values.libname, values.library, ''.join(values.files), values.prep, values.paired))
+            self.logger.debug('Sample : {0}; Files: {1}; Paired: {2}'.format(
+                    values.sample, ''.join(values.files), values.paired))
         for samples, info in experiment.items():
             if not info.paired:
                 self.logger.warning('NeST does not currently support single end runs; skipping sample : {0}'.format(samples))

@@ -85,7 +85,7 @@ class Bed:
                 gene = records.name
                 exon = 'exon{0}'.format(exon_count)
                 start = estart
-                stop = estart + length
+                stop = estart + length - 1 # substract 1 from exon stop
                 strand = records.strand
                 uidStart = self.uids[chrom] + start
                 uidStop = self.uids[chrom] + stop

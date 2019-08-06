@@ -47,10 +47,11 @@ def main(arguments):
     java_path = arguments[14]
     sra_path = arguments[15]
     purge = arguments[16]    
+    sra_list = arguments[17]
     #Setup logging
     #Get logger for main method
     main_logger = logging.getLogger('NeST.{0}'.format(sam_name))
-
+    main_logger.debug('Starting analysis for {0}'.format(sam_name))
     #Check if files are present
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
@@ -61,7 +62,7 @@ def main(arguments):
         os.mkdir(fastq_path)
     #Get FASTQs
     prepper =  Prepper(fastq_path, out_dir, sra_path)
-    fastq_path = prepper.downloadSRA(sam_name, file_list)
+    fastq_path = prepper.sra(sam_name, sra_list, file_list)
     ##Note: Generalize this, right now it will only work with SRA. This is a fix for NEJM
     rone_path = file_list[0]
     rtwo_path = file_list[1]
@@ -372,7 +373,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     #Create file and console handlers for MaRS
     logger.info('Gathering input information from input path.')
     prep = Prepper(inp_path, out_dir, sra_path).prepInputs()
-    samples, files = list(), list()
+    samples, sra_list, files = list(), list(), list()
     logger.info('Running MaRS on {0} experiments'.format(len(prep)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #samples = config.keys()
@@ -380,6 +381,7 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     for sample in prep:
         samples.append(prep[sample].sample)
         files.append(prep[sample].files)
+        sra_list.append(prep[sample].sra)
     #rone_list = list()
     #rtwo_list = list()
     #name_list = list()
@@ -388,13 +390,13 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     #    rone_list.append(config[samples].files[0])
     #    rtwo_list.append(config[samples].files[1])
 
-
+    #sra_list = files
     vcf_list = pools.map(main, zip(repeat(bbduk_path), repeat(aligner_path),
                 repeat(smt_path), repeat(bft_path), repeat(gatk_path),
                 samples, files, repeat(ref_path), repeat(adp_path),
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
                 repeat(pic_path), repeat(voi_path),
-                repeat(java_path), repeat(sra_path), repeat(purge)))
+                repeat(java_path), repeat(sra_path), repeat(purge), sra_list))
     logger.info('Summarizing variant calls from all {0} experiments'.format(len(prep)))
     summary = Summary(ref_path, bed_path, voi_path, out_dir)
     #Sumarize variants of intrest
@@ -472,11 +474,6 @@ if __name__ == '__main__':
         os.mkdir(args.out_path)
 
     #single sample experiment.
-    print(args.bbduk_path, args.aligner_path, args.smt_path,
-                args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
-                args.adp_path, args.bed_path, args.out_path, args.aligner,
-                args.pic_path, args.voi_path, java_def, sra_def, args.verbose, 
-                args.threads, args.purge)
 
     #Check if the run command is for batch mode analysis or single sample
     #analysis.

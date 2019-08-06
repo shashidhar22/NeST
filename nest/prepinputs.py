@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import glob
+import time
 import logging
 import subprocess
 import numpy as np
@@ -139,6 +140,63 @@ class Prepper:
         self.sra_path = sra_path
         self.logger = logging.getLogger('NeST.prepInputs')
 
+    def sra(self, sample, sra, files):
+        sample = sample
+        if type(sra) is list or sra is None:
+            return(self.input_path, files[0], files[1])
+        #accession = sra.split(',')
+        accession = re.split(',| ', sra)
+        outpath = os.path.dirname(files[0])
+        if os.path.exists(files[0]) and os.path.exists(files[1]):
+            return(self.input_path)
+        if 'SAMN' in accession[0] or 'SRS' in accession[0]:
+            sralist = []
+            while not sralist:
+                time.sleep(20)
+                ecmd = 'esearch -db sra -query {0} | efetch -format docsum | xtract -pattern Runs -element Run@acc'.format(accession[0])
+                samtosra = subprocess.Popen(ecmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                sraout = samtosra.communicate()[0]
+                sralist = sraout.decode('utf-8').strip().split()
+        else:
+            sralist = accession
+        for acc in sralist: 
+            sra_cmd  = ['fastq-dump', '--split-3', '-O', outpath, acc]
+            sra_run = subprocess.Popen(sra_cmd, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            sra_run.wait()
+            if sra_run.returncode != 0:
+                self.logger.error('Could not download {0}'.format(acc))
+                print(' '.join(sra_cmd))
+            else:
+                self.logger.debug('Downladed complete: {0}'.format(acc))
+        if sra == sample:
+           return(self.input_path)
+        #Get R1 and R2 list 
+        r1 = ['{1}/{0}_1.fastq'.format(acc, outpath) for acc in sralist]
+        r2 = ['{1}/{0}_2.fastq'.format(acc, outpath) for acc in sralist]
+        #print(sample, accession, r1, r2)
+        #Cat R1's together and rename to sample name
+        cat_cmd = 'cat '
+        for files in r1:
+            cat_cmd += '{0} '.format(files)
+        cat_cmd += '> {1}/{0}_1.fastq'.format(sample, outpath)
+        #cat_cmd = 'cat {0} > /nv/hp10/sravishankar9/scratch/NeST/NEJM/{1}_1.fq'.format(' '.join(r1), sample)
+        cat_run = subprocess.Popen(cat_cmd, shell=True)
+        cat_run.wait()
+        #Cat R2's together and rename to sample name
+        cat_cmd = 'cat '
+        for files in r2:
+            cat_cmd += '{0} '.format(files)
+        cat_cmd += '> {1}/{0}_2.fastq'.format(sample, outpath)
+        #cat_cmd = 'cat {0} > /nv/hp10/sravishankar9/scratch/NeST/NEJM/{1}_2.fq'.format(' '.join(r2), sample)
+        cat_run = subprocess.Popen(cat_cmd, shell=True)
+        cat_run.wait()
+        #Delete orginal files
+        del_dat = ['{1}/{0}_*.fastq'.format(acc, outpath) for acc in sralist]
+        del_cmd = 'rm {0}'.format(' '.join(del_dat))
+        del_run = subprocess.Popen(del_cmd, shell=True)
+        del_run.wait()
+        return(self.input_path, r1, r2)
+
     def downloadSRA(self, sra_number, files):
         """Give a SRA accession list, download all the associated fastq files"""
         if os.path.exists(files[0]) and os.path.exists(files[1]):
@@ -156,7 +214,7 @@ class Prepper:
                 self.logger.error('Could not download {0}'.format(sra_number))
                 print(' '.join(fqd_cmd))
             else:
-                self.logger.info('Downladed complete: {0}'.format(sra_number))
+                self.logger.debug('Downladed complete: {0}'.format(sra_number))
             return(self.input_path)
 
     def getFastqPaths(self):
@@ -240,6 +298,10 @@ class Prepper:
         if  os.path.isfile(self.input_path):
             files = open(self.input_path)
             isfastq = False
+            if os.path.splitext(self.input_path)[1] == '.tsv':
+                isacclist = False
+            else:
+                isacclist = True
         else:
             files = self.getFastqPaths()
             isfastq = True
@@ -249,7 +311,7 @@ class Prepper:
             Sample = namedtuple('Sample', ['sample',  
             'files', 'paired', 'year', 'country', 'site',
             'treatmentDay', 'treatment', 'iD', 'genus', 'type', 'markers',
-            'replicate'])
+            'replicate', 'sra'])
             #readPresence = self.getReadPresence(fastq)
             #if not readPresence:
             #    self.logger.warning('Sample doesn\'t contain minimum number of required reads; skipping sample : {0}'.format(fastq))
@@ -268,8 +330,16 @@ class Prepper:
             if isfastq:
                 sample_regex = re.compile('_r1|_r2|_?l001|_?l002|_?l003|_?l004|_R1|_R2|_L001|_?L002|_L003|_L004|_1|_2') #|L001|L002|L003|L004')
                 sample = sample_regex.split(os.path.basename(fastq))[0]
+                sra = None
             else:
-                sample = fastq.strip()
+                if isacclist:
+                    sample = fastq.strip()
+                    sra = sample
+                else:
+                    study = fastq.strip().split('\t')
+                    sample = study[0]
+                    sra = study[1]
+                    
             sample_info = self.parseMaRS(sample)
             year = sample_info.Year
             country = sample_info.Country
@@ -346,17 +416,17 @@ class Prepper:
                     experiment[sample] = Sample(sample, 
                         [experiment[sample].files[0],fastq], paired,
                         year, country, site, td, treatment, sid, gs, stype, markers,
-                        replicate)
+                        replicate, sra)
                 except (KeyError, AttributeError):
                     experiment[sample] = Sample(sample,  [fastq],
                     paired, year, country, site, td, treatment, sid, gs,
-                    stype, markers, replicate)
+                    stype, markers, replicate, sra)
             else:
                 paired =True
-                file_list = ['{0}/{1}/RawFastq/{1}_1.fastq.gz'.format(self.out_path, sample),
-                             '{0}/{1}/RawFastq/{1}_2.fastq.gz'.format(self.out_path, sample)]
+                file_list = ['{0}/{1}/RawFastq/{1}_1.fastq'.format(self.out_path, sample),
+                             '{0}/{1}/RawFastq/{1}_2.fastq'.format(self.out_path, sample)]
                 experiment[sample] = Sample(sample, file_list, paired, year, country, site, 
-                                            td, treatment, sid, gs, stype, markers, replicate)
+                                            td, treatment, sid, gs, stype, markers, replicate, sra)
         self.logger.debug('A total of {0} libraries were identified from the given folder'.format(len(experiment)))
         #self.logger.debug('The following libraries were detected in the given folder : {0}'.format(self.input_path))
         for sample, values in experiment.items():

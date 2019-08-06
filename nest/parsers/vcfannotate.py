@@ -167,9 +167,10 @@ class Annotate:
                 total = sum(vcf_rec.INFO['DP4'])
                 alfreq = alt/float(total)
             else:
+                sample = list(vcf_rec.Samples.keys())[0]
                 self.logger.debug('Variant with AD notation')
-                alt = vcf_rec.Samples[0]['AD'][1]
-                total = sum(vcf_rec.Samples[0]['AD'])
+                alt = vcf_rec.Samples[sample]['AD'][1]
+                total = sum(vcf_rec.Samples[sample]['AD'])
                 alfreq = alt/float(total)
         # Fix added for cases where AD is missing
         # Instance found when GT == ./.
@@ -213,7 +214,7 @@ class Annotate:
         min_overlap = list()
         index = [var for var in range(0, len(read_table.index))]
         read_table.sort_values(by=['Divergence','Overlap'], ascending=[True, False], inplace=True)
-        read_table_sorted = read_table.reindex(labels=index)
+        read_table_sorted = read_table.reindex()
         max_index, max_overlap =  next(read_table.iterrows())
         for index, values in read_table.iterrows():
             local_start = 0
@@ -237,7 +238,7 @@ class Annotate:
         mean_centrality = np.mean(read_table.Centrality)
         mean_overlap = np.mean(read_table.MinOverlap)
         depth = len(read_table.index)
-        vardepth = vcf_rec.INFO['DP'][0]
+        #vardepth = vcf_rec.INFO['DP'][0]
         variant_quality = mean_centrality * mean_overlap * depth
         log_vq = np.log10(variant_quality)
         return(log_vq)

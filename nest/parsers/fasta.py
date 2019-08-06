@@ -38,7 +38,7 @@ class Fasta:
 			next_line = self.peek(fasta_handle)
 			try:
 					if next_line[0] == '>':
-						header = fasta_handle.readline().strip()[1:]
+						header = fasta_handle.readline().strip()[1:].split('|')[0].strip()
 					sequence = ''
 					header_found = True
 					line_number += 1
@@ -52,7 +52,6 @@ class Fasta:
 								elif (self.peek(fasta_handle) == ' \n' or self.peek(fasta_handle)[0] == '>') and header_found:
 									line_number += 1
 									raise SyntaxError('Sequence missing for header : {0} at line {1}'.format(header, line_number))
-									sys.exit()
 								elif self.peek(fasta_handle)[0] == '>' and not header_found:
 									break
 						except IndexError:

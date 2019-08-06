@@ -100,8 +100,48 @@ class Merge:
                     rline = next(rreader, None)
                     yield record
                 else:
+                    record.CHROM = lline.CHROM 
+                    record.POS = lline.POS
+                    record.UID = lline.UID 
+                    record.ID = lline.ID 
+                    record.REF = lline.REF if len(lline.REF[0]) < len(rline.REF[0]) else rline.REF #list(set(lline.REF).union(set(rline.REF)))
+                    record.ALT = lline.ALT if len(lline.ALT[0]) < len(rline.ALT[0]) else rline.ALT #list(set(lline.ALT).union(set(rline.ALT)))
+                    record.QUAL = lline.QUAL 
+                    record.FILTER = lline.FILTER
+                    info_dict = copy.deepcopy(lline.INFO)
+                    for key, value in rline.INFO.items():
+                        if key in info_dict:
+                            continue
+                        else:
+                            info_dict[key] = value 
+                    if 'Sources' in lline.INFO and 'Sources' in rline.INFO:
+                        info_dict['Confidence'][0] += rline.INFO['Confidence'][0]
+                        info_dict['Sources'][0] += rline.INFO['Sources'][0]
+                    elif 'Sources' in lline.INFO and 'Sources' not in rline.INFO:
+                        info_dict['Confidence'][0] += len(rsource.split(','))
+                        info_dict['Sources'][0] += ',{0}'.format(rsource)
+                    elif 'Sources' not in lline.INFO and 'Sources' in rline.INFO:
+                        info_dict['Confidence'] = [1 + rline.INFO['Confidence'][0]]
+                        info_dict['Sources'] = ['{0},{1}'.format(lsource, ','.join(rline.INFO['Sources']))]
+                    else:
+                        info_dict['Confidence'] = [len(lsource.split(',')) + len(rsource.split(','))]
+                        info_dict['Sources'] = ['{0},{1}'.format(lsource, rsource)]
+                    record.INFO = info_dict
+                    sample_dict = copy.deepcopy(lline.Samples)
+                    for sample in rline.Samples:
+                        if sample not in sample_dict:
+                            continue
+                        else:
+                            for values in rline.Samples[sample]:
+                                if values in sample_dict[sample]:
+                                    continue
+                                else:
+                                    sample_dict[sample][values] = rline.Samples[sample][values]
+                    record.Samples = sample_dict
+
                     lline = next(lreader, None)
                     rline = next(rreader, None)
+                    yield record
             elif lline.UID < rline.UID:
                 record = lline
                 if 'Sources' not in lline.INFO:

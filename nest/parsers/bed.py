@@ -42,13 +42,15 @@ class Bed:
             thickEnd = int(line[7])
             itemRGB = None
             blockCount = int(line[9])
+            if blockCount == 0:
+                continue
             blockSizes = [int(val) for val in line[10].split(',') if val != '']
             blockStarts = [int(val) for val in line[11].split(',') if val != '']
             if (len(blockSizes) != blockCount or
                 len(blockStarts) != blockCount):
-                print('Error in BED format, please check the block details')
-                print(line)
-                sys.exit()
+                self.logger.error('Error in BED format, please check the block details')
+                self.logger.error(line)
+                return
             record = Bed(chrom, start, stop, name, score, strand, thickStart,
                         thickEnd, itemRGB, blockCount, blockSizes, blockStarts,
                         length)
@@ -131,8 +133,8 @@ class Bed:
         fasta_reader = fasta_file.read()
         exon_reader = self.getExonTable()
         if not self.checkOrder(fasta_path):
-            print('Bed and fasta contigs are not in the same order')
-            sys.exit()
+            self.logger.error('Bed and fasta contigs are not in the same order')
+            return
         coding_seq = namedtuple('Fasta', ['chrom', 'seq', 'fid', 'length'])
         coding_dict = OrderedDict()
         fasta_rec = next(fasta_reader)

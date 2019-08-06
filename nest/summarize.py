@@ -201,7 +201,10 @@ class Summary:
                     vcf_dict['AltCodon'].append('NA')
                     vcf_dict['RefAA'].append('NA')
                     vcf_dict['AltAA'].append('NA')
-                    vcf_dict['DP'].append(var.INFO['DP'][0])
+                    try:
+                        vcf_dict['DP'].append(var.INFO['DP'][0])
+                    except KeyError:
+                        vcf_dict['DP'].append(0)
                     vcf_dict['AF'].append(float(var.INFO['Freq'][0])*100)
                     vcf_dict['Confidence'].append(int(var.INFO['Confidence'][0]))
                     vcf_dict['Sources'].append(','.join(var.INFO['Sources']))
@@ -381,6 +384,7 @@ class Summary:
           19. Conf : Number of variant callers that called the variant of interest
         """
         #Get table of exonic variants and variants of interest
+        pd.set_option('display.max_columns', None)
         exp_df = self.getVarTables()
         voi_df = self.getVarOfInt()
         exp_voi = pd.DataFrame()
@@ -399,12 +403,12 @@ class Summary:
             var_voi.set_index(var_index, inplace=True)
             var_voi.index.names = ['Sample', 'Variant']
             exp_voi = exp_voi.append(var_voi)
+            
         exp_voi['FinalCall'] = exp_voi['SNP']
         #Regex to check if the variant description field is in the correct format
         var_regex = (r'(?P<RefAA>[DTSEPGACVMILYFHKRWQN])'
                      r'(?P<AAPos>\d+)(?P<AltAA>[DTSEPGACVMILYFHKRWQN])')
         for index, series in exp_voi.iterrows():
-            #print(exp_voi.at[index, 'FinalCall'])
             if pd.isnull(series['DP']) or series['DP'] == 0:
                 exp_voi.at[index, 'FinalCall'] = 'WT'
                 exp_voi.at[index, 'Confidence'] = 3
@@ -415,17 +419,19 @@ class Summary:
                                                          var_reg.group('RefAA'),
                                                          var_reg.group('AAPos'))
             exp_voi.at[index, 'AAPos'] = series['AAPos_x'] and series['AAPos_y']
-            #print(series['AltAA_x'] , series['AltAA_y'])
             exp_voi.at[index, 'AltAA'] = series['AltAA_x'] and series['AltAA_y']
             exp_voi.at[index, 'Chrom'] = series['Chrom_x'] and series['Chrom_y']
             exp_voi.at[index, 'Gene'] = series['Gene_x'] and series['Gene_y']
             exp_voi.at[index, 'RefAA'] = series['RefAA_x'] and series['RefAA_y']
-        exp_voi.drop(columns=['AAPos_x', 'AAPos_y', 'AltAA_x', 'AltAA_y',
+        #try:
+        exp_voi.drop(['AAPos_x', 'AAPos_y', 'AltAA_x', 'AltAA_y',
             'Chrom_x', 'Chrom_y', 'Gene_x', 'Gene_y', 'RefAA_x', 'RefAA_y'],
-            inplace=True)
+            inplace=True, axis=1)
         exp_voi = exp_voi[['Chrom', 'Gene', 'SNP', 'FinalCall', 'Ref', 'Alt',
             'Pos', 'Qual', 'RefCodon', 'RefAA', 'AltCodon', 'AltAA', 'AAPos',
             'Exon', 'AF', 'DP', 'Confidence', 'Sources']]
+        #Sorting to remove performance warning
+        exp_voi.sort_index(inplace=True)
         return(exp_voi)
 
     def getNovSnps(self):
@@ -619,6 +625,9 @@ class Summary:
             else:
                 var_df = self.getDepthStats(var_df)
                 var_df = var_df.reset_index(level=1)
+                var_df['Test'] = var_df.index
+                var_df.drop_duplicates(['Test', 'Variant'], inplace=True)
+                var_df.drop('Test', axis=1, inplace=True)
                 out_file = '{0}/Study_known_variants.csv'.format(rep_dir)
         elif var_type == 'novel':
             var_df = self.getNovSnps()
@@ -661,7 +670,6 @@ class Summary:
                 var_df.drop(labels=['Sample_name', 'Gene_name', 'RefAA_sym',
                     'AAPos_sort', 'AltAA_sym'], axis=1, inplace=True)
                 var_df.to_csv(out_file)
-
                 exp_af = var_df.pivot(var_df.index, 'Variant')['AF'].transpose()
                 exp_af['Variant'] = exp_af.index
                 exp_af[var_key] = exp_af['Variant'].str.extract(var_regex, expand=True)

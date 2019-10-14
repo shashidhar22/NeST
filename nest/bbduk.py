@@ -55,9 +55,10 @@ class QualCheck:
         ortwo_path = '{0}/{1}_cleaned.fq'.format(self.out_path, brtwo)
         stats_path = '{0}/{1}_stats.txt'.format(self.out_path, brone)
         #Set up the command
-        bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=0', 'ktrim=l',
+        #Change trimq to 30 after insilico exp
+        bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=1', 'ktrim=l',
                 'ref={0}'.format(self.adp_path), 'qtrim=rl', 'minlength=50',
-                'trimq=30', 'qin=33', 'overwrite=true', 'mink=4',
+                'trimq=20', 'qin=33', 'overwrite=true', 'mink=4',
                 'in={0}'.format(rone_path), 'in2={0}'.format(rtwo_path),
                 'out={0}'.format(orone_path), 'out2={0}'.format(ortwo_path),
                 'stats={0}'.format(stats_path)]

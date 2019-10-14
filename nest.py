@@ -19,40 +19,54 @@ from nest.alignment import Snap
 from nest.samtools import Samtools
 from nest.gatk import GenAnTK
 from nest.gatk import Picard
+from nest.gatk import FreeBayes
 from nest.kestrel import KestrelVar
 #from nest.annotater import Annotate
 from nest.kestrel import kes_runner
 from nest.summarize import Summary
 from nest.prepinputs import Prepper
-from nest.parsers.vcf import Vcf
-
+from nest.parsers.vcfReader import Reader 
+from nest.parsers.vcfmerge import Merge
+from nest.parsers.vcfannotate import Annotate
+from nest.parsers.vcfwriter import Writer
 def main(arguments):
     bbduk_path = arguments[0]
     alinger_path = arguments[1]
     smt_path = arguments[2]
     bft_path = arguments[3]
     gatk_path = arguments[4]
-    rone_path = arguments[5]
-    rtwo_path = arguments[6]
+    sam_name = arguments[5]
+    file_list = arguments[6]
     ref_path = arguments[7]
     adp_path = arguments[8]
     bed_path = arguments[9]
     out_dir = arguments[10]
     aligner = arguments[11]
     pic_path = arguments[12]
-    sam_name = arguments[13]
-    voi_path = arguments[14]
-    java_path = arguments[15]
+    voi_path = arguments[13]
+    java_path = arguments[14]
+    sra_path = arguments[15]
+    purge = arguments[16]    
+    sra_list = arguments[17]
     #Setup logging
     #Get logger for main method
     main_logger = logging.getLogger('NeST.{0}'.format(sam_name))
-
+    main_logger.debug('Starting analysis for {0}'.format(sam_name))
     #Check if files are present
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
         os.mkdir(out_path)
 
-
+    fastq_path = '{0}/RawFastq'.format(out_path)
+    if not os.path.exists(fastq_path):
+        os.mkdir(fastq_path)
+    #Get FASTQs
+    prepper =  Prepper(fastq_path, out_dir, sra_path)
+    fastq_path = prepper.sra(sam_name, sra_list, file_list)
+    ##Note: Generalize this, right now it will only work with SRA. This is a fix for NEJM
+    rone_path = file_list[0]
+    rtwo_path = file_list[1]
+  
     if not os.path.exists(rone_path):
         raise FileNotFoundException('Forward read not found; Exiting MARs')
         sys.exit()
@@ -77,6 +91,7 @@ def main(arguments):
     if not os.path.exists(completion_path):
         os.mkdir(completion_path)
 
+    
     #Call Bbduk
     main_logger.debug('Running BBDuk')
     if os.path.exists('{0}/bbduk.rt'.format(completion_path)):
@@ -281,45 +296,58 @@ def main(arguments):
     else:
         main_logger.debug('GATK HaplotypeCaller stats completed')
 
-    #Call Kestrel to generate VCF files
-    #kestrel_path = 'lib/kestrel/kestrel.jar'
-    #kanalyze_path = 'lib/kestrel/kanalyze.jar'
-    #varcaller = KestrelVar(rone_path, rtwo_path, ref_path, kanalyze_path,
-    #                        kestrel_path, out_path)
-    #varcaller = GenAnTK(gatk_path, out_path, java_path)
-    #main_logger.debug('Running Kestrel')
-    #if os.path.exists('{0}/kestrel.rt'.format(completion_path)):
-    #    kvcf_path = '{0}/vairants_kes.vcf'.format(out_path)
-    #    kret = 0
-    #    main_logger.debug('Skipping Kestrel')
-    #else:
-    #    kvcf_path, kret = varcaller.run_kestrel()
-    #    if kret == 0:
-    #        Path('{0}/kestrel.rt'.format(completion_path)).touch()
-    #if kret != 0:
-    #    raise RuntimeError('Kestrel failed to complete; Exiting MARs')
-    #else:
-    #    main_logger.debug('Kestrel stats completed')
+    #Call Freebayes to generate VCF files
+    varcaller = FreeBayes('freebayes', out_path)
+    main_logger.debug('Running Freebayes')
+    if os.path.exists('{0}/freebayes.rt'.format(completion_path)):
+        fvcf_path = '{0}/{1}_variants_freebayes.vcf'.format(out_path, sam_name)
+        fret = 0
+        main_logger.debug('Skipping Freebayes')
+    else:
+        fvcf_path, fret = varcaller.freeBayes(bam_path, ref_path, sam_name)
+        if fret == 0:
+            Path('{0}/freebayes.rt'.format(completion_path)).touch()
+    if fret != 0:
+        raise RuntimeError('Freebayes failed to complete; Exiting MARs')
+    else:
+        main_logger.debug('Freebayes stats completed')
+
 
     #Filer  and annotate variant calls
     main_logger.debug('Annotating variants')
-    annotate = Vcf.Annotate()
+    annotate = Annotate()
     gvcf_path = annotate.getAnnotation(bed_path, gvcf_path, ref_path, out_path, bam_path)
     vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path, bam_path)
+    fvcf_path = annotate.getAnnotation(bed_path, fvcf_path, ref_path, out_path, bam_path)
+    vcf_dict = {gvcf_path: 'GATK', vcf_path: 'Samtools', fvcf_path: 'Freebayes'}
+    merger = Merge(out_path, vcf_dict, ref_path)
+    merged_vcf = merger.splitter(list(vcf_dict.keys()))[0]
+    final_vcf= '{0}/{1}_variants_merged_annotated.vcf'.format(out_path, sam_name)
+    os.rename(merged_vcf, final_vcf)
+    #final_path = annotate.getAnnotation(bed_path, final_vcf, ref_path, out_path, bam_path)
     main_logger.debug('Filetering low quality variants and merging GATK and Samtools calls')
-    gvcf_file = Vcf.Reader(gvcf_path)
-    svcf_file = Vcf.Reader(vcf_path)
-    merged_vcf = Vcf.Merge(gvcf_file, svcf_file, out_path).merge()
-    config = dict()
-    summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
-    var_sum = summary.getVarStats(merged_vcf)
+    #merged_vcf = Vcf.Merge(gvcf_file, svcf_file, out_path).merge()
+    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    var_sum = summary.getVarStats(final_vcf)
     main_logger.info('Total variants : {0}; Verified calls : {1}; Exonic : {2}; Intronic : {3}; Synonymous : {4}; Non Synonymous : {5}; Transition : {6}; Transversion : {7}'.format(
                         var_sum[0], var_sum[1], var_sum[2], var_sum[3], var_sum[4], var_sum[5], var_sum[6], var_sum[7]))
-    return(merged_vcf, 0)
+    if purge:
+       shutil.rmtree('{0}/RawFastq'.format(out_path))
+       shutil.rmtree('{0}/CleanedFastq'.format(out_path))
+       alignments = glob.glob('{0}/alignments/*'.format(out_path))
+       for files in alignments:
+           if 'output_FM_SR_DD_RG.ba' in files:
+               continue
+           else:
+               os.remove(files)
+       vcffiles = glob.glob('{0}/*.bcf*'.format(out_path))
+       for files in vcffiles:
+           os.remove(files)
+    return(final_vcf, 0)
 
 def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
               inp_path, ref_path, adp_path, bed_path, out_dir, aligner,
-              pic_path, voi_path, java_path, sra_path, verbose):
+              pic_path, voi_path, java_path, sra_path, verbose, threads, purge):
     #Creating logger for nest
     logger = logging.getLogger('NeST')
     logger.setLevel(logging.DEBUG)
@@ -344,35 +372,35 @@ def marsBatch(bbduk_path, aligner_path, smt_path, bft_path, gatk_path,
     logger.addHandler(ch)
     #Create file and console handlers for MaRS
     logger.info('Gathering input information from input path.')
-    prep = Prepper(inp_path, sra_path)
-    config = prep.prepInputs()
-    logger.info('Running MaRS on {0} experiments'.format(len(config)))
+    prep = Prepper(inp_path, out_dir, sra_path).prepInputs()
+    samples, sra_list, files = list(), list(), list()
+    logger.info('Running MaRS on {0} experiments'.format(len(prep)))
     #summary = Summary(ref_path, bed_path, voi_path, out_dir)
-    samples = config.keys()
-    pools = Pool(5)
-    rone_list = list()
-    rtwo_list = list()
-    name_list = list()
-    for samples in config:
-        name_list.append(config[samples].sample)
-        rone_list.append(config[samples].files[0])
-        rtwo_list.append(config[samples].files[1])
+    #samples = config.keys()
+    pools = Pool(threads)
+    for sample in prep:
+        samples.append(prep[sample].sample)
+        files.append(prep[sample].files)
+        sra_list.append(prep[sample].sra)
+    #rone_list = list()
+    #rtwo_list = list()
+    #name_list = list()
+    #for samples in config:
+    #    name_list.append(config[samples].sample)
+    #    rone_list.append(config[samples].files[0])
+    #    rtwo_list.append(config[samples].files[1])
 
-
+    #sra_list = files
     vcf_list = pools.map(main, zip(repeat(bbduk_path), repeat(aligner_path),
                 repeat(smt_path), repeat(bft_path), repeat(gatk_path),
-                rone_list, rtwo_list, repeat(ref_path), repeat(adp_path),
+                samples, files, repeat(ref_path), repeat(adp_path),
                 repeat(bed_path), repeat(out_dir), repeat(aligner),
-                repeat(pic_path), name_list, repeat(voi_path),
-                repeat(java_path)))
-    
-    if voi_path is not None:
-        logger.info('Summarizing variant calls from all {0} experiments'.format(len(config)))
-        summary = Summary(ref_path, bed_path, voi_path, out_dir, config)
-        #Sumarize variants of intrest
-        summary.getSummary()
-    elif voi_path is None:
-        logging.info('Variant of interest file not provided, skipping Summarize')
+                repeat(pic_path), repeat(voi_path),
+                repeat(java_path), repeat(sra_path), repeat(purge), sra_list))
+    logger.info('Summarizing variant calls from all {0} experiments'.format(len(prep)))
+    summary = Summary(ref_path, bed_path, voi_path, out_dir)
+    #Sumarize variants of intrest
+    summary.getSummary()
     return(0)
 
 if __name__ == '__main__':
@@ -430,8 +458,12 @@ if __name__ == '__main__':
                         help='Path to Bcftools executable')
     parser.add_argument('--varofint', dest='voi_path', type=str, default=voi_def,
                         help='Path to variant of interest')
+    parser.add_argument('--threads', dest='threads', type=int, default=5,
+                        help='Number of threads')
     parser.add_argument('--verbose', action='store_true', 
                         help='Increase verbosity of log file')                        
+    parser.add_argument('--purge', action='store_true', 
+                        help='Remove intermiediate Fastq and alignment files')                        
     args = parser.parse_args()
 
     #Validate parsed arguments
@@ -441,6 +473,8 @@ if __name__ == '__main__':
     if not os.path.exists(args.out_path):
         os.mkdir(args.out_path)
 
+    #single sample experiment.
+
     #Check if the run command is for batch mode analysis or single sample
     #analysis.
     #If inp_path is empty and rone_path is not, then the experiment is a
@@ -448,4 +482,5 @@ if __name__ == '__main__':
     status = marsBatch(args.bbduk_path, args.aligner_path, args.smt_path,
                 args.bft_path, args.gatk_path, args.inp_path, args.ref_path,
                 args.adp_path, args.bed_path, args.out_path, args.aligner,
-                args.pic_path, args.voi_path, java_def, sra_def, args.verbose)
+                args.pic_path, args.voi_path, java_def, sra_def, args.verbose, 
+                args.threads, args.purge)

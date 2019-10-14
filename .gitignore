@@ -2,6 +2,8 @@
 fq/*
 fq/*/*.fastq.gz
 !fq/MaRS_test
+!fq/Insilico
+!fq/MaRS
 #Ignore output directory
 local
 #Ignore reference folder

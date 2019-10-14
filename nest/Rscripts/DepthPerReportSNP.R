@@ -51,4 +51,4 @@ if(length(unique(tbl.long$Loci)) <= 12){
 ggplot(tbl.long, aes(x=Variant, y=Readdepth, fill=Loci)) + geom_boxplot() + theme(axis.text.x = element_text(angle = 90)) + ylab("Read Depth") + theme(text = element_text(size=10), axis.text.x = element_text(size = 6)) + scale_fill_manual(values=cbPalette)
 
 #Save plot as image file
-ggsave(opt$output_file, plot = last_plot(), dpi = 300, width = 30, height = 15, units = c("cm"), limitsize = T)
+ggsave(opt$output_file, plot = last_plot(), dpi = 300, width = 60, height = 30, units = c("cm"), limitsize = T)

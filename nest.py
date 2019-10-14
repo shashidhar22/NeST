@@ -320,7 +320,7 @@ def main(arguments):
     vcf_path = annotate.getAnnotation(bed_path, vcf_path, ref_path, out_path, bam_path)
     fvcf_path = annotate.getAnnotation(bed_path, fvcf_path, ref_path, out_path, bam_path)
     vcf_dict = {gvcf_path: 'GATK', vcf_path: 'Samtools', fvcf_path: 'Freebayes'}
-    merger = Merge(out_path, vcf_dict)
+    merger = Merge(out_path, vcf_dict, ref_path)
     merged_vcf = merger.splitter(list(vcf_dict.keys()))[0]
     final_vcf= '{0}/{1}_variants_merged_annotated.vcf'.format(out_path, sam_name)
     os.rename(merged_vcf, final_vcf)

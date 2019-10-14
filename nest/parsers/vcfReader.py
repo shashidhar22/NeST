@@ -28,8 +28,12 @@ class Reader:
                     the fields are stored as a key value pair, and correspond
                     to the INFO fields described in the header
     '''
-    def __init__(self, vcf_path):
+    def __init__(self, vcf_path, ref_path):
+        ## Edit: (10/10/19); Added fasta path as an input for initializing Reader
+        ## Reason: Freebayes does not have contig field in the VCF header, Contig 
+        ## field is needed to create UID for variants, which are used for merging
         self.vcf_path = os.path.abspath(vcf_path)
+        self.ref_path = os.path.abspath(ref_path)
         self.reader = open(self.vcf_path)
         self.info_dict = dict()
         self.format_dict = dict()
@@ -166,13 +170,21 @@ class Reader:
 
     def getUid(self):
         self.uids = OrderedDict()
-        for index, contigs in enumerate(self.header['contig'], 1):
-            try:
-                length = int(contigs.length)
-                order = 10**(int(math.log10(length)) + 1) * index
-            except TypeError:
-                order = 10**(11) * index
-            self.uids[contigs.id] = order
+        try:
+            for index, contigs in enumerate(self.header['contig'], 1):
+                try:
+                    length = int(contigs.length)
+                    order = 10**(int(math.log10(length)) + 1) * index
+                except TypeError:
+                    order = 10**(11) * index
+                self.uids[contigs.id] = order
+        except KeyError:
+            fasta = open(self.ref_path).read().split('>')[1:]
+            for index, lines in enumerate(fasta, 1):
+                ids = lines.split('\n')[0]
+                contig = len(''.join(lines.split('\n')[1:]))
+                order = 10**(int(math.log10(contig)) + 1) * index
+                self.uids[ids] = order
         return
 
 

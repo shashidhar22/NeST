@@ -98,13 +98,13 @@ class Annotate:
                                 exon, seq.chrom, strand)
 
     def getModFasta(self, fasta_path, vcf_path):
-        vcf = Reader(vcf_path)
+        vcf = Reader(vcf_path, fasta_path)
         vcf.readheader()
         vcf_reader = vcf.readvcf()
         fasta = Fasta(fasta_path)
         fasta_reader = fasta.read()
         for fasta_rec in fasta_reader:
-            vcf = Reader(vcf_path)
+            vcf = Reader(vcf_path, fasta_path)
             vcf.readheader()
             vcf_reader = vcf.readvcf()
             header = fasta_rec.header
@@ -248,7 +248,7 @@ class Annotate:
         bed = Bed(bed_path)
         bed_reader = bed.getExonTable()
         #Open vcf reader
-        vcf = Reader(vcf_path)
+        vcf = Reader(vcf_path, fasta_path)
         vcf.readheader()
         vcf_reader = vcf.readvcf()
         #Set output files

@@ -46,7 +46,7 @@ The figure outlines the four key blocks of NeST and the steps performed by each 
    ```
    conda --version
    ```
- 3. Create NeST virtual environment
+3. Create NeST virtual environment
 
    To create the NeST environment, run the following command from the NeST directory.
 

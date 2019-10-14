@@ -176,7 +176,7 @@ class Summary:
         vcf_var = list()
         vcf_sample = list()
         for files in vcf_files:
-            vcf = Reader(files)
+            vcf = Reader(files, self.fasta)
             vcf.readheader()
             vcf_file = vcf.readvcf()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
@@ -260,7 +260,7 @@ class Summary:
         var_sample = list()
         voi_df = self.getVarOfInt()
         for files in vcf_files:
-            vcf = Reader(files)
+            vcf = Reader(files, self.fasta)
             vcf.readheader()
             vcf_file = vcf.readvcf()
             barcode = re.compile('_[ATGC]*-[ATGC]*')
@@ -778,7 +778,7 @@ class Summary:
                       fig_path))
 
     def getVarStats(self, vcf_file):
-        vcf_file = Reader(vcf_file)
+        vcf_file = Reader(vcf_file, self.fasta)
         vcf_file.readheader()
         vcf_reader = vcf_file.readvcf()
         total = 0

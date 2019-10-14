@@ -9,9 +9,12 @@ from nest.parsers.vcfwriter import Writer
 
 class Merge:
 
-    def __init__(self, tmp_dir, vcf_dict):
+    def __init__(self, tmp_dir, vcf_dict, ref_path):
+         ## Edit: (10/10/19): Added fasta path as requirement for initialization of merge
+         ## Reason: Reader was modified to require fasta path, see vcfReader for more info
          self.out_path = tmp_dir
          self.vcf_dict = vcf_dict
+         self.ref_path = ref_path
 
     def splitter(self, vcf_list):
         vcf_len  = len(vcf_list)
@@ -192,10 +195,10 @@ class Merge:
         out_file = '{0}/{1}_{2}_{3}.vcf'.format(self.out_path, 'tmp', lname, rname)
         self.vcf_dict[out_file] = '{0},{1}'.format(lsource, rsource)
         out_write = Writer(out_file)
-        lvcf = Reader(vcf_left[0])
+        lvcf = Reader(vcf_left[0], self.ref_path)
         lvcf.readheader()
         lreader = lvcf.readvcf()
-        rvcf = Reader(vcf_right[0])
+        rvcf = Reader(vcf_right[0], self.ref_path)
         rvcf.readheader()
         rreader = rvcf.readvcf()
         out_header = self.mergeheader(lvcf.header, rvcf.header)

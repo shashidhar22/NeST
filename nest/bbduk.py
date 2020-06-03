@@ -5,7 +5,12 @@ import logging
 import argparse
 import subprocess
 
-
+###reference: https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/
+###comment: Quality trimming:bbduk.sh in=reads.fq out=clean.fq qtrim=r trimq=10 
+###This will quality-trim to Q10 using the Phred algorithm, which is more accurate 
+###than naive trimming. “qtrim=r” means it will trim the right side only; you can 
+###alternatively set “qtrim=l” for left or “qtrim=rl” for both. If quality trimming 
+###is enabled, it happens after all kmer-based operations.
 
 class QualCheck:
     '''QualCheck class is written to filter reads from a sample, based on
@@ -56,6 +61,8 @@ class QualCheck:
         stats_path = '{0}/{1}_stats.txt'.format(self.out_path, brone)
         #Set up the command
         #Change trimq to 30 after insilico exp
+        ###comment: BBDuk’s shellscript will try to autodetect the available memory 
+        ###comment: Kmers, hdist, qhdist, and edist:
         bbcmd = [self.bbduk_path, '-Xmx1g', 'k=27', 'hdist=1', 'edist=1', 'ktrim=l',
                 'ref={0}'.format(self.adp_path), 'qtrim=rl', 'minlength=50',
                 'trimq=20', 'qin=33', 'overwrite=true', 'mink=4',

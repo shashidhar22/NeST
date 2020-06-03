@@ -2,6 +2,7 @@ import os
 import sys
 import subprocess
 
+###comment: submit information related and inputs used for running the nest program
 if not os.path.exists('qsub_scripts'):
     os.mkdir('qsub_scripts')
 job_ids = open('Jobid.txt', 'w')

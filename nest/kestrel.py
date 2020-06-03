@@ -8,7 +8,15 @@ import subprocess
 from multiprocessing import Pool
 from itertools import repeat
 
-
+###reference: https://github.com/paudano/kestrel
+###comment: Mapping-free variant caller for short-read Illumina data
+###Kestrel is a variant-caller for short-read Illumina data. It does not align 
+###sequence reads or perform a de novo assembly. Instead, it breaks reads into k-mers, 
+###which are short overlapping fragments of uniform length, and it counts the number of 
+###occurences of each unique k-mer in the sequence data. It also finds the ordered k-mers 
+###of a reference. With these two k-mer sets, Kestrel searches for patterns of variation. 
+###By using a novel local assembly method guided by the reference, it builds one or more 
+###sequences over the altered region and call variants from its alignment.
 class KestrelVar:
 
     def __init__(self, rone_path, rtwo_path, ref_path, kanalyze_path, kestrel_path, out_path):
@@ -23,10 +31,13 @@ class KestrelVar:
 
         return
 
+
+    ###comment: running kestrel function
     def run_kestrel(self):
 
         ikc_path = '{0}/kmertable.ikc'.format(self.out_path)
 
+        ###comment: input command to run the kestrel
         kcmd =['java', '-jar', self.kanalyze_path, 'count', '-k', '31', '-m', 'ikc',
             '--minsize', '15','-o', ikc_path, self.rone_path, self.rtwo_path]
 
@@ -60,7 +71,7 @@ class KestrelVar:
         return(var_path, kret)
 
 
-
+###comment: function for running the kesterl class and the run_kestrel function inside the kestrel class
 def kes_runner(rone_path, rtwo_path, ref_path, samtools_path, kanalyze_path, kestrel_path, out_path):
     rone_path = os.path.abspath(rone_path)
     rtwo_path = os.path.abspath(rtwo_path)
@@ -76,7 +87,7 @@ def kes_runner(rone_path, rtwo_path, ref_path, samtools_path, kanalyze_path, kes
     return(kret, var_path)
 
 
-
+###arguments necessary to run the kestrel
 if __name__ == '__main__':
 
      parser = argparse.ArgumentParser(prog='Kestrel E.coli test')

@@ -1,4 +1,13 @@
 #! /usr/bin/python3
+#####comment: written in OOP and classes
+#####comment: import tools
+####reference: https://www.webopedia.com/TERM/O/object_oriented_programming_OOP.html
+####comment: OOP: Object-oriented programming (OOP) refers to a type of computer 
+####programming (software design) in which programmers define the data type of a data structure, 
+####and also the types of operations (functions) that can be applied to the data structure.
+####In this way, the data structure becomes an object that includes both data and functions. 
+####In addition, programmers can create relationships between one object and another. For example, 
+####objects can inherit characteristics from other objects.
 import os
 import sys
 import glob
@@ -12,9 +21,10 @@ from pathlib import Path
 from itertools import repeat
 from multiprocessing import Pool
 from nest.bbduk import QualCheck
-from nest.alignment import Bwa
-from nest.alignment import Bowtie
-from nest.alignment import BBMap
+#####comment: import bioinformatics tools
+from nest.alignment import Bwa #####comment: import Bwa aligner
+from nest.alignment import Bowtie #####comment: import Bowtie aligner
+from nest.alignment import BBMap #####comment: import BBMAP
 from nest.alignment import Snap
 from nest.samtools import Samtools
 from nest.gatk import GenAnTK
@@ -29,6 +39,9 @@ from nest.parsers.vcfReader import Reader
 from nest.parsers.vcfmerge import Merge
 from nest.parsers.vcfannotate import Annotate
 from nest.parsers.vcfwriter import Writer
+
+#####comment: setting path for differnt moduels
+#####comment: path for different tools
 def main(arguments):
     bbduk_path = arguments[0]
     alinger_path = arguments[1]
@@ -49,24 +62,30 @@ def main(arguments):
     purge = arguments[16]    
     sra_list = arguments[17]
     #Setup logging
+    #####comment:By logging useful data from the right places, 
+    ####you can not only debug errors easily but also use the data to analyze 
+    ####the performance of the application to plan for scaling or look at usage 
+    ####patterns to plan for marketing.
     #Get logger for main method
     main_logger = logging.getLogger('NeST.{0}'.format(sam_name))
     main_logger.debug('Starting analysis for {0}'.format(sam_name))
-    #Check if files are present
+    #####comment:Check if files are present
     out_path = '{0}/{1}'.format(os.path.abspath(out_dir), sam_name)
     if not os.path.exists(out_path):
         os.mkdir(out_path)
 
+    #####comment:check paths for fastq file
     fastq_path = '{0}/RawFastq'.format(out_path)
     if not os.path.exists(fastq_path):
         os.mkdir(fastq_path)
-    #Get FASTQs
+    #####comment:Get FASTQs
     prepper =  Prepper(fastq_path, out_dir, sra_path)
     fastq_path = prepper.sra(sam_name, sra_list, file_list)
     ##Note: Generalize this, right now it will only work with SRA. This is a fix for NEJM
     rone_path = file_list[0]
     rtwo_path = file_list[1]
-  
+
+    #####comment:List errors when there is no specific directory input
     if not os.path.exists(rone_path):
         raise FileNotFoundException('Forward read not found; Exiting MARs')
         sys.exit()
@@ -93,26 +112,61 @@ def main(arguments):
 
     
     #Call Bbduk
+    #####referemce:https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbduk-guide/
+    #####comment:“Duk” stands for Decontamination Using Kmers. 
+    #####BBDuk was developed to combine most common data-quality-related 
+    #####trimming, filtering, and masking operations into a single high-performance tool. 
+    #####It is capable of quality-trimming and filtering, adapter-trimming, contaminant-filtering 
+    #####via kmer matching, sequence masking, GC-filtering, length filtering, entropy-filtering, 
+    #####format conversion, histogram generation, subsampling, quality-score recalibration, kmer 
+    #####cardinality estimation, and various other operations in a single pass. 
     main_logger.debug('Running BBDuk')
     if os.path.exists('{0}/bbduk.rt'.format(completion_path)):
+        ###splittext method breaks the Text node into two nodes at the specified offset, keeping both nodes in the tree as siblings.
+        ###After the split, the current node contains all the content up to the specified offset point, and a newly created node of the same type contains the remaining text. The newly created node is returned to the caller. If the original node had a parent, the new node is inserted as the next sibling of the original node. If the offset is equal to the length of the original node, the newly created node has no data.
+        ###reference: https://docs.python.org/2/library/os.path.html
+        ###comment: Split the pathname path into a pair (root, ext) such that root + ext == path, 
+        ###and ext is empty or begins with a period and contains at most one period. 
+        ###Leading periods on the basename are ignored; splitext('.cshrc') returns ('.cshrc', '').
+        ###comment: before cleaning R1 and R2 of the sample
         brone = os.path.splitext(os.path.basename(rone_path))[0]
         brtwo = os.path.splitext(os.path.basename(rtwo_path))[0]
+        ###comment: after cleaning R1 and R2 of the sample
         rone_path = '{0}/{1}/{2}_cleaned.fq'.format(out_path, 'CleanedFastq', brone)
         rtwo_path = '{0}/{1}/{2}_cleaned.fq'.format(out_path, 'CleanedFastq', brtwo)
         main_logger.debug('Skipping BBDuk')
         bret = 0
     else:
+        ###comment: '''QualCheck class is written to filter reads from a sample, based on
+        ###adapter contamination and low quality reads using BBDuk. The reads are
+        ###trimmed from both sides, reads are scanned across using kmers of max length
+        ###27, and minimum length 4. hdist specfies a hamming distance of 1, that is,
+        ###a max of one mismatch between the kmer and the adapter sequences.
+        ###Sections with average quality less 30 are trimmed. Reads smaller than 50
+        ###are excluded from the study.
+        ###Basically the purpose of qualcheck is to filter reads and trim it. 
         bbduk = QualCheck(bbduk_path, adp_path, out_path, java_path)
         rone_path, rtwo_path, bret = bbduk.bbduk(rone_path, rtwo_path)
         if bret == 0:
             Path('{0}/bbduk.rt'.format(completion_path)).touch()
+    ###comment: When there is no path exit the program
     if bret != 0:
         raise RuntimeError('BBDuk failed to complete; Exiting MARs')
     else:
         main_logger.debug('BBDuk completed')
 
+    ####reference: http://bio-bwa.sourceforge.net/
+    ####BWA is a software package for mapping low-divergent sequences against a large reference genome, 
+    ####such as the human genome. It consists of three algorithms: BWA-backtrack, BWA-SW and BWA-MEM. 
+    ####The first algorithm is designed for Illumina sequence reads up to 100bp, while the rest two for 
+    ####longer sequences ranged from 70bp to 1Mbp. BWA-MEM and BWA-SW share similar features such as 
+    ####long-read support and split alignment, but BWA-MEM, which is the latest, is generally recommended 
+    ####for high-quality queries as it is faster and more accurate. BWA-MEM also has better performance 
+    ####than BWA-backtrack for 70-100bp Illumina reads. 
     if aligner == 'bwa':
-        #Call BWA
+        #Call BWA class 
+        ###''Bwa class runs BWA mem in standard settings to align the samples reads
+        ###against the reference genome
         main_logger.debug('Running BWA')
         if os.path.exists('{0}/align.rt'.format(completion_path)):
             sam_path = '{0}/alignments/output.sam'.format(out_path)
@@ -120,6 +174,7 @@ def main(arguments):
             main_logger.debug('Skipping BWA')
         else:
             bwa = Bwa(alinger_path, out_path, ref_path)
+            ###run bwamem function from bwa class
             sam_path, mret = bwa.bwamem(rone_path, rtwo_path)
             if mret == 0:
                 Path('{0}/align.rt'.format(completion_path)).touch()
@@ -129,6 +184,13 @@ def main(arguments):
             main_logger.debug('BWA completed')
 
     elif aligner == 'bowtie2':
+        ###reference: http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
+        ###comment: Bowtie 2 is an ultrafast and memory-efficient tool for aligning sequencing 
+        #reads to long reference sequences. It is particularly good at aligning reads of about 50 
+        #up to 100s or 1,000s of characters, and particularly good at aligning to relatively long 
+        #(e.g. mammalian) genomes. Bowtie 2 indexes the genome with an FM Index to keep its memory 
+        #footprint small: for the human genome, its memory footprint is typically around 3.2 GB. 
+        #Bowtie 2 supports gapped, local, and paired-end alignment modes. 
         #Call Bowtie2
         main_logger.debug('Running Bowtie2')
         if os.path.exists('{0}/aling.rt'.format(completion_path)):
@@ -137,6 +199,7 @@ def main(arguments):
             main_logger.debug('Skipping Bowtie2')
         else:
             bowtie = Bowtie(alinger_path, out_path, ref_path)
+            ###run bowtie function from bowtie class
             sam_path, mret = bowtie.bowtie(rone_path, rtwo_path)
             if mret == 0:
                 Path('{0}/align.rt'.format(completion_path)).touch()
@@ -146,8 +209,17 @@ def main(arguments):
             main_logger.debug('Bowtie2 completed')
 
     elif aligner == 'snap':
+        ###reference: http://snap.cs.berkeley.edu/
+        ###comment: SNAP is a new sequence aligner that is 3-20x faster and just as 
+        #accurate as existing tools like BWA-mem, Bowtie2 and Novoalign. It runs on commodity 
+        #x86 processors, and supports a rich error model that lets it cheaply match reads with 
+        #more differences from the reference than other tools. This gives SNAP up to 2x lower 
+        #error rates than existing tools (in some cases) and lets it match larger mutations 
+        #that they may miss. SNAP also natively reads BAM, FASTQ, or gzipped FASTQ, and natively 
+        #writes SAM or BAM, with built-in sorting, duplicate marking, and BAM indexing.
         #Call Snap
         main_logger.debug('Running Snap')
+        ###run snap function from snap class
         snap = Snap(alinger_path, out_path, ref_path)
         sam_path, mret = snap.snap(rone_path, rtwo_path)
         if mret != 0:
@@ -157,6 +229,21 @@ def main(arguments):
 
     elif aligner == 'bbmap':
         #Call Bbmap
+        ###refernece: https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/
+        ###comment: BBMap is a splice-aware global aligner for DNA and RNA sequencing reads. 
+        ###It can align reads from all major platforms – Illumina, 454, Sanger, 
+        ###Ion Torrent, Pac Bio, and Nanopore. BBMap is fast and extremely accurate, 
+        ###particularly with highly mutated genomes or reads with long indels, even 
+        ###whole-gene deletions over 100kbp long. It has no upper limit to genome size or 
+        ###number of contigs, and has been successfully used for mapping to an 85 gigabase soil 
+        ###metagenome with over 200 million contigs. Additionally, the indexing phase is very fast 
+        ###compared to other aligners.
+        ###BBMap has a large array of options, described in its shell script. It can output many 
+        ####different statistics files, such as an empirical read quality histogram, insert-size 
+        ###distribution, and genome coverage, with or without generating a sam file. As a result, 
+        ###it is useful in quality control of libraries and sequencing runs, or evaluating new 
+        ###sequencing platforms. The derivative program BBSplit is also useful in binning or 
+        ###refining metagenomic reads.
         main_logger.debug('Running BBMap')
         if os.path.exists('{0}/aling.rt'.format(completion_path)):
             sam_path = '{0}/alignments/output.sam'.format(out_path)
@@ -219,7 +306,10 @@ def main(arguments):
     else:
         main_logger.debug('Samtools dedup completed')
 
-
+    ####reference: https://broadinstitute.github.io/picard/
+    ####comment: Picard is a set of command line tools for manipulating high-throughput sequencing (HTS) 
+    ###data and formats such as SAM/BAM/CRAM and VCF. These file formats are defined in the 
+    ###Hts-specs repository. See especially the SAM specification and the VCF specification.
     rgadder = Picard(java_path, pic_path, out_path)
     if os.path.exists('{0}/readgroup.rt'.format(completion_path)):
         base = os.path.splitext(os.path.basename(bam_path))[0]
@@ -281,6 +371,16 @@ def main(arguments):
 
 
     #Call GATK HaplotypeCaller to generate VCF files
+    ###refernece: https://gatk.broadinstitute.org/hc/en-us
+    ###The GATK is the industry standard for identifying SNPs and indels in germline DNA and 
+    #RNAseq data. Its scope is now expanding to include somatic short variant calling, and to 
+    #tackle copy number (CNV) and structural variation (SV). In addition to the variant callers 
+    #themselves, the GATK also includes many utilities to perform related tasks such as processing 
+    #and quality control of high-throughput sequencing data, and bundles the popular Picard toolkit.
+    ###These tools were primarily designed to process exomes and whole genomes generated with Illumina 
+    #sequencing technology, but they can be adapted to handle a variety of other technologies and 
+    #experimental designs. And although it was originally developed for human genetics, the GATK has 
+    #since evolved to handle genome data from any organism, with any level of ploidy.
     varcaller = GenAnTK(gatk_path, out_path, java_path, pic_path)
     main_logger.debug('Running GATK HaplotypeCaller')
     if os.path.exists('{0}/gatk.rt'.format(completion_path)):
@@ -297,6 +397,17 @@ def main(arguments):
         main_logger.debug('GATK HaplotypeCaller stats completed')
 
     #Call Freebayes to generate VCF files
+    ###reference: https://github.com/ekg/freebayes
+    ###freebayes is a Bayesian genetic variant detector designed to find small polymorphisms, 
+    #specifically SNPs (single-nucleotide polymorphisms), indels (insertions and deletions), 
+    #MNPs (multi-nucleotide polymorphisms), and complex events (composite insertion and 
+    #substitution events) smaller than the length of a short-read sequencing alignment.
+    ###freebayes is haplotype-based, in the sense that it calls variants based on the literal 
+    #sequences of reads aligned to a particular target, not their precise alignment. This model 
+    #is a straightforward generalization of previous ones (e.g. PolyBayes, samtools, GATK) which 
+    #detect or report variants based on alignments. This method avoids one of the core problems 
+    #with alignment-based variant detection--- that identical sequences may have multiple possible 
+    #alignments:
     varcaller = FreeBayes('freebayes', out_path)
     main_logger.debug('Running Freebayes')
     if os.path.exists('{0}/freebayes.rt'.format(completion_path)):
@@ -424,6 +535,7 @@ if __name__ == '__main__':
     #    java_def = "{0}/jdk/bin/java".format(def_path)
     aligner_def = {'bwa' : bwa_def, 'snap' : snap_def, 'bowtie2': bowtie_def, 'bbmap': bbmap_def}
     #Get arguments
+    ### comment: add path through argument
     parser = argparse.ArgumentParser(prog='NeST')
     parser.add_argument('-i', '--inp_path', type=str,
                         help='Path to input directory (Specify only for batch mode)')
@@ -484,3 +596,34 @@ if __name__ == '__main__':
                 args.adp_path, args.bed_path, args.out_path, args.aligner,
                 args.pic_path, args.voi_path, java_def, sra_def, args.verbose, 
                 args.threads, args.purge)
+
+
+####comment NeST overall:
+
+###BWA-MEM: High-quality queries, 
+###low-divergent sequences against a large reference genome, 
+###Illumina sequence reads to 70bp to 100 bp (1Mbp)
+
+###Bbduk: combine common data quality for trimming, filtering, and mask
+### many trimming, filtering, 
+
+###Bowtie: Good for long reference squences
+###algining 100s or 1000s of characters (especially for long mammalian genomes)
+
+###Freebayes:Bayesian genetic variant detector
+###find small polymorphisms, SNP, indels, MNPs, and complex events
+###halotype based(calls variants based on literal sequences of reads)
+###detect variants based on alginments
+
+
+###SNAP:New sequence aligner 3-20x faster
+### supports a rich error model 
+### good for cheaply match reads
+###reads BAM,FASTQ, SAM or BAM
+
+###BBmap:algin reads from all major platforms
+### good for highly mutated genomes or reads with long indels
+### even covers 100kbp long whole-gene deletions
+### metagenome with over 200 million contigs
+###large array options, quality control of libraries and sequencing runs
+###----BBsplit is also good for binning or refining metagenomic reads
